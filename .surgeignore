@@ -1,0 +1,12 @@
+# Never publish the WhatsApp tooling - config.json holds a permanent Meta access
+# token, and a deploy would otherwise expose it at a public URL.
+# The card images live in images/products/ instead, which IS published because
+# Meta fetches them at send time.
+whatsapp
+
+.git
+.gitignore
+.gitattributes
+.claude
+.surgeignore
+*.py

@@ -1,0 +1,18 @@
+{
+  "_comment": "Copy to config.json and fill in. config.json is gitignored - never commit the token.",
+
+  "access_token": "PASTE_PERMANENT_SYSTEM_USER_TOKEN",
+  "app_id": "PASTE_META_APP_ID",
+  "waba_id": "PASTE_WHATSAPP_BUSINESS_ACCOUNT_ID",
+  "phone_number_id": "PASTE_PHONE_NUMBER_ID",
+
+  "_note_site_base_url": "Baked into the approved template - get the domain live BEFORE creating the template, or you'll need a new template to change it. Use the canonical host (www), not the redirecting apex.",
+  "site_base_url": "https://www.sharhan.co.in",
+
+  "_note_image_base_url": "Where the card images are publicly served from. Must be reachable by Meta.",
+  "image_base_url": "https://www.sharhan.co.in/images/products",
+
+  "template_name": "sharhan_weekly_catalogue",
+  "language": "en",
+  "api_version": "v21.0"
+}

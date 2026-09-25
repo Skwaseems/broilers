@@ -1,0 +1,38 @@
+{
+  "body": "Fresh from the Sharhan floor this week. Tap any cut below for full specs, pack sizes and to send us your weekly requirement.",
+  "button_text": "Shop now",
+  "cards": [
+    {
+      "slug": "curry-cut",
+      "text": "Curry Cut Twelve Piece - uniform weight, skin off. Packs: 5 kg / 20 kg."
+    },
+    {
+      "slug": "breast-fillet",
+      "text": "Breast Fillet - trimmed, 140-180 g per piece. Packs: 2 / 10 / 25 kg."
+    },
+    {
+      "slug": "whole-chicken",
+      "text": "Whole Chicken - skinless, dressed 900 g to 1.2 kg. Packs: 5 / 20 / 50 kg."
+    },
+    {
+      "slug": "drumsticks",
+      "text": "Drumsticks - skin on, graded 85-110 g per piece. Packs: 5 kg / 20 kg."
+    },
+    {
+      "slug": "thigh-boneless",
+      "text": "Thigh Boneless - skinless, 90-120 g per piece. Packs: 2 kg / 10 kg."
+    },
+    {
+      "slug": "wings",
+      "text": "Two Joint Wings - tip removed, 40-55 g each. Packs: 2 kg / 10 kg."
+    },
+    {
+      "slug": "soup-pieces",
+      "text": "Soup Pieces - backs, necks and frames for stock. Packs: 5 kg / 20 kg."
+    },
+    {
+      "slug": "liver-gizzard",
+      "text": "Liver and Gizzard Mix - cleaned and chilled. Packs: 1 kg / 5 kg."
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+# Meta credentials - never commit
+whatsapp/config.json
+whatsapp/media_handles.json
+whatsapp/recipients.txt
+
+__pycache__/
+*.pyc
