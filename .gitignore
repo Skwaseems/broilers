@@ -5,3 +5,10 @@ whatsapp/recipients.txt
 
 __pycache__/
 *.pyc
+
+# Local rollback copy (the bundled original is also in git history) and
+# build-time font conversions.
+_backup/
+tools/.fonts/
+
+tools/.seed/

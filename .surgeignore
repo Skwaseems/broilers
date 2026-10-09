@@ -4,6 +4,23 @@
 # Meta fetches them at send time.
 whatsapp
 
+# Backend source, build tooling and backups - not part of the public site.
+cloudflare-worker
+tools
+_backup
+firebase.json
+firestore.rules
+.firebaserc
+site.config.json
+README.md
+
+# Unreferenced legacy photos (kept in the repo, not published). images/products/
+# must stay published - the approved WhatsApp template fetches those cards.
+images/chicken-breast.jpg
+images/delivery.jpg
+images/whole-chicken.jpg
+images/hero.jpeg
+
 .git
 .gitignore
 .gitattributes

@@ -1,0 +1,42 @@
+# Sharhan Broilers
+
+> Sharhan Broilers (established 1990) are suppliers and contractors of live and processed chicken broilers, supplying fresh and frozen chicken to hotels, restaurants, caterers and cloud kitchens across Mumbai.
+
+## Products
+
+Live broilers, and processed chicken supplied fresh or frozen:
+
+- Live Broiler
+- Whole Chicken
+- Chicken Tandoori
+- Breast Boneless
+- Leg Boneless
+- Curry Cut
+- Chicken Wings
+- Drumstick
+- Thigh Boneless
+- Boneless Trimming
+- Chicken Keema
+- Soup Piece
+- Chicken Liver
+- Gizzard
+- Chicken Skin
+
+## How to order
+
+Business customers fill in their approximate weekly requirement on the website (kg per day for each product, fresh and/or frozen), and can book a specific delivery day: bookings made before 3:00 PM are delivered the next day. The form sends the order to Sharhan Broilers by WhatsApp or email. Rates follow the daily mandi rate and are confirmed at the time of order.
+
+## Contact
+
+- Phone / WhatsApp: +91 98201 32880
+- Email: sharhanbroilers@gmail.com
+- Office address: 27/28, 296 Parsi Chawl, Nagdevi Street, Opp. Crawford Market, Mandvi, Mumbai, Maharashtra 400003, India
+
+## Pages
+
+- [Home](https://sharhan-broilers.surge.sh/): Product categories, today's fresh stock, packs and the weekly order form
+- [Product categories](https://sharhan-broilers.surge.sh/#categories)
+- [Today's fresh stock](https://sharhan-broilers.surge.sh/#stock)
+- [Packs](https://sharhan-broilers.surge.sh/#packs)
+- [Visit us](https://sharhan-broilers.surge.sh/#visit)
+- [Contact](https://sharhan-broilers.surge.sh/#contact)
