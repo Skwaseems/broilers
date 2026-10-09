@@ -1,0 +1,32 @@
+{
+  "_note": "Single source of truth for the domain and business details. Edit here, then run: python tools/build_seo.py. Only verified facts belong here (source: Udyam Registration UDYAM-MH-19-0381986).",
+
+  "site_url": "https://sharhan-broilers.surge.sh",
+
+  "name": "Sharhan Broilers",
+  "title": "Sharhan Broilers – Wholesale Chicken Supplier in Mumbai",
+  "description": "Sharhan Broilers supplies fresh and frozen chicken to hotels, restaurants, caterers and cloud kitchens across Mumbai. Send your weekly requirement online.",
+  "og_image": "/og-image.jpg",
+  "og_image_alt": "Sharhan Broilers – fresh poultry supply, Mumbai",
+  "theme_color": "#22352a",
+  "locale": "en_IN",
+
+  "business": {
+    "schema_type": "WholesaleStore",
+    "founding_year": "1990",
+    "_founding_year_source": "Stated by the owner (2026-10-09). The Udyam registration date of this proprietorship is 2018-03-26.",
+    "telephone": "+91-98201-32880",
+    "telephone_display": "+91 98201 32880",
+    "email": "sharhanbroilers@gmail.com",
+    "street_address": "27/28, 296 Parsi Chawl, Nagdevi Street, Opp. Crawford Market, Mandvi",
+    "locality": "Mumbai",
+    "region": "Maharashtra",
+    "postal_code": "400003",
+    "country": "IN",
+    "latitude": 18.948384148201573,
+    "longitude": 72.8344467067504,
+    "area_served": "Mumbai"
+  },
+
+  "noindex_pages": ["admin.html"]
+}

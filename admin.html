@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- SEO:START -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#22352a">
+<!-- SEO:END -->
+<title>Sharhan Broilers &mdash; Catalogue Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--gold:#846e3e;--ink:#1c1c22;--muted:#54535c;--line:#ddd8d0;--bg:#faf9f7;--ok:#25864d;--warn:#9a5b00;--err:#b3302c;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Jost',sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:#fff;border-bottom:1px solid var(--line);padding:18px 20px;text-align:center;}
+  header h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;margin:0;letter-spacing:.08em;}
+  header p{margin:4px 0 0;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+  .wrap{max-width:860px;margin:0 auto;padding:20px 16px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:20px;margin-bottom:20px;}
+  .card h2{font-family:'Cormorant Garamond',serif;font-size:21px;margin:0 0 6px;font-weight:600;}
+  .card > .muted:first-of-type{margin-top:0;}
+  #signin-gate{text-align:center;padding:60px 16px;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;background:var(--gold);color:#fff;border:1px solid var(--gold);border-radius:3px;padding:0 20px;font-family:'Jost',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
+  .btn:hover{background:#6f5d34;border-color:#6f5d34;}
+  .btn:disabled{opacity:.55;cursor:not-allowed;}
+  .btn.secondary{background:#fff;color:var(--ink);border-color:var(--line);}
+  .btn.secondary:hover{border-color:var(--ink);}
+  .btn.small{min-height:34px;padding:0 12px;font-size:11px;}
+  .btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+  #app{display:none;}
+  #topbar{display:flex;justify-content:space-between;align-items:center;max-width:860px;margin:0 auto;padding:10px 16px;font-size:12px;color:var(--muted);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);}
+  th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .row-form{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  input[type=text],textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:3px;font-family:'Jost',sans-serif;font-size:13px;color:var(--ink);background:#fff;}
+  .row-form input{flex:1;min-width:140px;width:auto;}
+  textarea{resize:vertical;min-height:58px;line-height:1.45;}
+  .muted{color:var(--muted);font-size:12px;line-height:1.55;}
+  .status{margin-top:10px;font-size:13px;min-height:1em;}
+  .status.ok{color:var(--ok);} .status.err{color:var(--err);}
+  .badge{display:inline-block;background:#f3f2f0;border:1px solid var(--line);border-radius:3px;padding:2px 8px;font-size:11px;color:var(--muted);vertical-align:middle;}
+  .badge.ok{background:#e9f5ee;border-color:#bfe0cc;color:var(--ok);}
+  .badge.warn{background:#fdf3e2;border-color:#f0d6a8;color:var(--warn);}
+  .badge.err{background:#fbeceb;border-color:#efc3c0;color:var(--err);}
+  .inbox-item{padding:10px 0;border-bottom:1px solid var(--line);}
+  .inbox-item .who{font-weight:600;font-size:13px;}
+  .inbox-item .when{font-size:11px;color:var(--muted);}
+  .inbox-item .text{font-size:13px;margin-top:2px;}
+
+  .cat-item{display:grid;grid-template-columns:96px 1fr;gap:14px;padding:16px 0;border-top:1px solid var(--line);}
+  .cat-item:first-child{border-top:none;}
+  .cat-photo{width:96px;height:96px;border-radius:3px;background:#f3f2f0 center/cover no-repeat;border:1px solid var(--line);}
+  .cat-photo-empty{display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--muted);}
+  .cat-fields{display:flex;flex-direction:column;gap:8px;min-width:0;}
+  .cat-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .cat-num{font-size:12px;color:var(--muted);min-width:22px;}
+  .cat-head input{flex:1;min-width:150px;width:auto;font-weight:500;}
+  .cat-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;}
+  .cat-label .over{color:var(--err);font-weight:600;}
+  .cat-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .cat-actions label.btn{margin:0;}
+  .cat-actions input[type=file]{position:absolute;width:1px;height:1px;opacity:0;}
+  .part-tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);}
+  .tpl{border:1px solid var(--line);border-radius:3px;padding:10px 12px;margin-top:8px;font-size:13px;}
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+  .sticky-save{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 0 2px;margin-top:6px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  @media (max-width:520px){.cat-item{grid-template-columns:72px 1fr;}.cat-photo{width:72px;height:72px;}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SHARHAN BROILERS</h1>
+  <p>Catalogue &amp; WhatsApp &mdash; Admin</p>
+</header>
+
+<div id="signin-gate">
+  <p class="muted">Sign in with your authorized Google account to continue.</p>
+  <button class="btn" id="signin-btn">Sign in with Google</button>
+  <p id="signin-error" class="muted" style="color:#b3302c;"></p>
+</div>
+
+<div id="topbar" style="display:none;">
+  <span id="who"></span>
+  <button class="btn secondary small" id="signout-btn">Sign out</button>
+</div>
+
+<div id="app">
+  <div class="wrap">
+
+    <section class="card" aria-labelledby="send-title">
+      <h2 id="send-title">Send the catalogue</h2>
+      <p class="muted">Sends the approved WhatsApp catalogue to every customer below. With more than 10 items it arrives as two carousel messages, one after the other.</p>
+      <p class="muted" id="live-summary">Loading&hellip;</p>
+      <button class="btn" id="send-btn">Send Catalogue Now</button>
+      <div class="status" id="send-status" role="status"></div>
+    </section>
+
+    <section class="card" aria-labelledby="cat-title">
+      <h2 id="cat-title">Catalogue <span class="badge" id="cat-count">0 / 15</span></h2>
+      <p class="muted"><strong>Photos</strong> go live on the next send. <strong>Names and card text</strong> are fixed by WhatsApp when a template is approved, so after changing them, save and then submit the catalogue for approval below. Items 1&ndash;10 go in the first carousel, 11&ndash;15 in the second.</p>
+      <div id="cat-list"></div>
+      <div class="row-form">
+        <input type="text" id="new-item-name" maxlength="60" placeholder="New item name (e.g. Chicken Lollipop)" aria-label="New item name">
+        <button class="btn secondary" id="add-item-btn">Add item</button>
+      </div>
+      <div class="sticky-save">
+        <button class="btn" id="save-cat-btn" disabled>Save catalogue changes</button>
+        <span class="status" id="cat-status" role="status" style="margin:0;"></span>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="tpl-title">
+      <h2 id="tpl-title">WhatsApp approval</h2>
+      <p class="muted">Meta reviews every catalogue version before it can be sent (usually a few hours, sometimes up to a day). Until the new version is approved, sends keep using the current approved one.</p>
+      <div id="tpl-live"></div>
+      <div id="tpl-pending"></div>
+      <div class="row-form">
+        <button class="btn" id="submit-cat-btn">Submit catalogue for approval</button>
+        <button class="btn secondary" id="status-btn">Check approval status</button>
+      </div>
+      <div class="status" id="tpl-status" role="status"></div>
+    </section>
+
+    <section class="card" aria-labelledby="cust-title">
+      <h2 id="cust-title">Customers</h2>
+      <p class="muted">Only add customers who have agreed to receive the catalogue on WhatsApp.</p>
+      <table>
+        <thead><tr><th>Name</th><th>Phone</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+        <tbody id="customers-body"></tbody>
+      </table>
+      <div class="row-form">
+        <input type="text" id="new-name" placeholder="Name (e.g. Ramesh Hotel)" aria-label="Customer name">
+        <input type="text" id="new-phone" placeholder="Phone (e.g. 919876543210)" aria-label="Customer phone" inputmode="tel">
+        <button class="btn" id="add-customer-btn">Add</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="inbox-title">
+      <h2 id="inbox-title">Inbox <span class="badge" id="inbox-count">0</span></h2>
+      <p class="muted">Replies from customers, newest first.</p>
+      <div id="inbox-list"></div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBf5aW_YupSVKp_eNVB5TALC4iC-TXFNdk",
+  authDomain: "sharhan-broilers.firebaseapp.com",
+  projectId: "sharhan-broilers",
+  storageBucket: "sharhan-broilers.firebasestorage.app",
+  messagingSenderId: "567739053091",
+  appId: "1:567739053091:web:61238d8206cc3d255c6d96"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const WORKER_BASE = "https://sharhan-whatsapp.waseemshaikh597.workers.dev";
+const ALLOWED_EMAILS = ["waseemshaikh597@gmail.com"];
+const MAX_ITEMS = 15;
+const MAX_TEXT = 160;
+const PHOTO_SIZE = 1080;
+
+const $ = (id) => document.getElementById(id);
+function setStatus(id, text, kind) {
+  const el = $(id);
+  el.textContent = text || "";
+  el.className = "status" + (kind ? " " + kind : "");
+}
+function el(tag, props, children) {
+  const e = document.createElement(tag);
+  Object.assign(e, props || {});
+  (children || []).forEach((c) => e.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
+  return e;
+}
+async function api(path, options) {
+  const token = await auth.currentUser.getIdToken();
+  const res = await fetch(WORKER_BASE + path, {
+    ...options,
+    headers: { Authorization: "Bearer " + token, ...((options && options.headers) || {}) },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Request failed (" + res.status + ")");
+  return data;
+}
+
+// ---------- Auth ----------
+$("signin-btn").addEventListener("click", () => {
+  $("signin-error").textContent = "";
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch((e) => { $("signin-error").textContent = e.message; });
+});
+$("signout-btn").addEventListener("click", () => auth.signOut());
+
+let inboxUnsub = null, customersUnsub = null;
+auth.onAuthStateChanged((user) => {
+  const ok = user && ALLOWED_EMAILS.includes((user.email || "").toLowerCase());
+  $("signin-gate").style.display = ok ? "none" : "block";
+  $("topbar").style.display = ok ? "flex" : "none";
+  $("app").style.display = ok ? "block" : "none";
+  if (ok) {
+    $("who").textContent = user.email;
+    startListeners();
+    loadCatalogue();
+    refreshTemplates();
+  } else {
+    if (user) { $("signin-error").textContent = "This Google account is not authorized for this dashboard."; auth.signOut(); }
+    if (inboxUnsub) inboxUnsub();
+    if (customersUnsub) customersUnsub();
+  }
+});
+
+// ---------- Catalogue editor ----------
+let items = [];          // [{id, name, spec, packs:[], image, placeholder, order}]
+let removed = new Set(); // ids deleted locally, removed from Firestore on save
+let dirty = false;
+
+function markDirty() {
+  dirty = true;
+  $("save-cat-btn").disabled = false;
+  setStatus("cat-status", "Unsaved changes", "");
+}
+
+async function loadCatalogue() {
+  const snap = await db.collection("catalogue").orderBy("order").get();
+  items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  removed = new Set();
+  dirty = false;
+  $("save-cat-btn").disabled = true;
+  renderCatalogue();
+}
+
+function slugify(name) {
+  return name.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+}
+
+function renderCatalogue() {
+  const list = $("cat-list");
+  list.innerHTML = "";
+  $("cat-count").textContent = items.length + " / " + MAX_ITEMS;
+  $("add-item-btn").disabled = items.length >= MAX_ITEMS;
+
+  items.forEach((it, i) => {
+    const photo = el("div", { className: "cat-photo" + (it.image ? "" : " cat-photo-empty"), textContent: it.image ? "" : "No photo" });
+    if (it.image) photo.style.backgroundImage = "url('" + it.image + "')";
+    photo.setAttribute("role", "img");
+    photo.setAttribute("aria-label", (it.image ? "Photo of " : "No photo for ") + it.name);
+
+    const nameInput = el("input", { type: "text", value: it.name || "", maxLength: 60 });
+    nameInput.setAttribute("aria-label", "Item " + (i + 1) + " name");
+    nameInput.addEventListener("input", () => { it.name = nameInput.value; markDirty(); });
+
+    const counter = el("span", {});
+    const spec = el("textarea", { value: it.spec || "", rows: 2 });
+    spec.setAttribute("aria-label", "Item " + (i + 1) + " card text");
+    const updateCounter = () => {
+      const n = spec.value.length;
+      counter.textContent = n + " / " + MAX_TEXT;
+      counter.className = n > MAX_TEXT ? "over" : "";
+    };
+    spec.addEventListener("input", () => { it.spec = spec.value; updateCounter(); markDirty(); });
+    updateCounter();
+
+    const packs = el("input", { type: "text", value: (it.packs || []).join(", "), placeholder: "e.g. 5 kg, 20 kg" });
+    packs.setAttribute("aria-label", "Item " + (i + 1) + " pack sizes");
+    packs.addEventListener("input", () => {
+      it.packs = packs.value.split(",").map((s) => s.trim()).filter(Boolean);
+      markDirty();
+    });
+
+    const up = el("button", { className: "btn secondary small", textContent: "↑", disabled: i === 0 });
+    up.setAttribute("aria-label", "Move " + it.name + " up");
+    up.addEventListener("click", () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; markDirty(); renderCatalogue(); });
+    const down = el("button", { className: "btn secondary small", textContent: "↓", disabled: i === items.length - 1 });
+    down.setAttribute("aria-label", "Move " + it.name + " down");
+    down.addEventListener("click", () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; markDirty(); renderCatalogue(); });
+
+    const fileId = "photo-" + it.id;
+    const file = el("input", { type: "file", id: fileId, accept: "image/*" });
+    const fileLabel = el("label", { className: "btn secondary small", htmlFor: fileId, textContent: it.image && !it.placeholder ? "Change photo" : "Upload photo" });
+    file.addEventListener("change", () => file.files[0] && uploadPhoto(it, file.files[0], fileLabel));
+
+    const del = el("button", { className: "btn secondary small", textContent: "Remove" });
+    del.addEventListener("click", () => {
+      if (!confirm("Remove \"" + it.name + "\" from the catalogue?")) return;
+      removed.add(it.id);
+      items.splice(i, 1);
+      markDirty();
+      renderCatalogue();
+    });
+
+    const badges = [];
+    if (it.placeholder) badges.push(el("span", { className: "badge warn", textContent: "Placeholder photo — upload a real one" }));
+    if (!it.image) badges.push(el("span", { className: "badge err", textContent: "Photo needed" }));
+
+    const head = el("div", { className: "cat-head" }, [el("span", { className: "cat-num", textContent: String(i + 1) }), nameInput]);
+    const part = el("span", { className: "part-tag", textContent: i < splitPoint() ? "Carousel 1" : "Carousel 2" });
+    const fields = el("div", { className: "cat-fields" }, [
+      head,
+      el("div", {}, badges),
+      el("div", { className: "cat-label" }, [el("span", { textContent: "Card text (shown under the photo in WhatsApp)" }), counter]),
+      spec,
+      el("div", { className: "cat-label" }, [el("span", { textContent: "Pack sizes (shown on the website)" })]),
+      packs,
+      el("div", { className: "cat-actions" }, [fileLabel, file, up, down, del, part]),
+    ]);
+    list.appendChild(el("div", { className: "cat-item" }, [photo, fields]));
+  });
+}
+
+// Mirrors the Worker: 10 per carousel, never leaving a 1-card carousel.
+function splitPoint() {
+  const n = items.length;
+  if (n <= 10) return n;
+  return n - 10 < 2 ? n - 2 : 10;
+}
+
+$("add-item-btn").addEventListener("click", () => {
+  const name = $("new-item-name").value.trim();
+  if (!name) return;
+  if (items.length >= MAX_ITEMS) return alert("The catalogue can have at most " + MAX_ITEMS + " items.");
+  let id = slugify(name);
+  if (!id) return alert("Please use letters or numbers in the name.");
+  const taken = new Set(items.map((it) => it.id));
+  for (let n = 2; taken.has(id); n++) id = slugify(name) + "-" + n;
+  removed.delete(id);
+  items.push({ id, name, spec: "", packs: [], image: "", placeholder: false });
+  $("new-item-name").value = "";
+  markDirty();
+  renderCatalogue();
+});
+
+$("save-cat-btn").addEventListener("click", async () => {
+  for (const it of items) {
+    if (!it.name.trim()) return setStatus("cat-status", "Every item needs a name.", "err");
+    if ((it.spec || "").length > MAX_TEXT) return setStatus("cat-status", '"' + it.name + '" card text is over ' + MAX_TEXT + " characters.", "err");
+  }
+  $("save-cat-btn").disabled = true;
+  setStatus("cat-status", "Saving…", "");
+  try {
+    const batch = db.batch();
+    items.forEach((it, i) => {
+      batch.set(db.collection("catalogue").doc(it.id), {
+        order: i, name: it.name.trim(), spec: (it.spec || "").trim(), packs: it.packs || [],
+        image: it.image || "", placeholder: !!it.placeholder,
+      });
+    });
+    removed.forEach((id) => batch.delete(db.collection("catalogue").doc(id)));
+    await batch.commit();
+    await loadCatalogue();
+    setStatus("cat-status", "Saved. If you changed names or card text, submit the catalogue for approval below.", "ok");
+  } catch (e) {
+    $("save-cat-btn").disabled = false;
+    setStatus("cat-status", "Save failed: " + e.message, "err");
+  }
+});
+
+// Square-crop to 1080×1080 JPEG in the browser (WhatsApp cards are square; keeps uploads small).
+function toSquareJpeg(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(img.naturalWidth, img.naturalHeight);
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = PHOTO_SIZE;
+      canvas.getContext("2d").drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, PHOTO_SIZE, PHOTO_SIZE);
+      URL.revokeObjectURL(img.src);
+      const tryQ = (q) => canvas.toBlob((b) => (b.size > 1.8 * 1024 * 1024 && q > 0.5 ? tryQ(q - 0.1) : resolve(b)), "image/jpeg", q);
+      tryQ(0.86);
+    };
+    img.onerror = () => reject(new Error("That file couldn't be read as an image."));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function uploadPhoto(it, file, label) {
+  const original = label.textContent;
+  label.textContent = "Uploading…";
+  try {
+    const blob = await toSquareJpeg(file);
+    const { url } = await api("/catalogue-image/" + it.id, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: blob });
+    it.image = url;
+    it.placeholder = false;
+    const ref = db.collection("catalogue").doc(it.id);
+    const exists = (await ref.get()).exists;
+    if (exists) await ref.update({ image: url, placeholder: false });
+    else markDirty();
+    renderCatalogue();
+    setStatus("cat-status", 'Photo for "' + it.name + '" updated' + (exists ? "." : " — save to keep this new item."), "ok");
+  } catch (e) {
+    label.textContent = original;
+    setStatus("cat-status", "Photo upload failed: " + e.message, "err");
+  }
+}
+
+// ---------- WhatsApp templates ----------
+function describeTemplates(group, title) {
+  const box = el("div", { className: "tpl" });
+  box.appendChild(el("div", {}, [el("strong", { textContent: title })]));
+  group.templates.forEach((t, i) => {
+    const kind = t.status === "APPROVED" ? "ok" : t.status === "REJECTED" ? "err" : "warn";
+    box.appendChild(el("div", { className: "muted" }, [
+      "Carousel " + (i + 1) + ": " + t.slugs.length + " items · ",
+      el("span", { className: "badge " + kind, textContent: t.status }),
+      t.rejectedReason ? " " + t.rejectedReason : "",
+    ]));
+  });
+  return box;
+}
+
+async function refreshTemplates() {
+  try {
+    const meta = await api("/catalogue-status");
+    $("tpl-live").innerHTML = "";
+    $("tpl-pending").innerHTML = "";
+    if (meta.live) {
+      $("tpl-live").appendChild(describeTemplates(meta.live, "Live (approved) version " + meta.live.version));
+      const n = meta.live.templates.reduce((a, t) => a + t.slugs.length, 0);
+      $("live-summary").textContent = "Approved catalogue: " + n + " items in " + meta.live.templates.length + " message" + (meta.live.templates.length > 1 ? "s" : "") + ".";
+    } else {
+      $("live-summary").textContent = "No approved catalogue yet.";
+    }
+    if (meta.pending) $("tpl-pending").appendChild(describeTemplates(meta.pending, "Waiting for approval: version " + meta.pending.version));
+    return meta;
+  } catch (e) {
+    setStatus("tpl-status", "Couldn't load approval status: " + e.message, "err");
+  }
+}
+
+$("status-btn").addEventListener("click", async () => {
+  setStatus("tpl-status", "Checking with WhatsApp…", "");
+  const meta = await refreshTemplates();
+  if (meta) setStatus("tpl-status", meta.pending ? "Still in review." : "Up to date.", "ok");
+});
+
+$("submit-cat-btn").addEventListener("click", async () => {
+  if (dirty) return setStatus("tpl-status", "Save your catalogue changes first.", "err");
+  const missing = items.filter((it) => !it.image).map((it) => it.name);
+  if (missing.length) return setStatus("tpl-status", "Add photos first: " + missing.join(", "), "err");
+  const placeholders = items.filter((it) => it.placeholder).map((it) => it.name);
+  const msg = "Submit all " + items.length + " items to WhatsApp for approval?" +
+    (placeholders.length ? "\n\nThese still use placeholder name tiles instead of real photos: " + placeholders.join(", ") + "." : "") +
+    "\n\nReview usually takes a few hours. The current approved catalogue keeps being used until then.";
+  if (!confirm(msg)) return;
+  $("submit-cat-btn").disabled = true;
+  setStatus("tpl-status", "Submitting… (uploading " + items.length + " photos to WhatsApp)", "");
+  try {
+    await api("/catalogue-submit", { method: "POST" });
+    await refreshTemplates();
+    setStatus("tpl-status", "Submitted. Check back later with “Check approval status”.", "ok");
+  } catch (e) {
+    setStatus("tpl-status", "Submit failed: " + e.message, "err");
+  } finally {
+    $("submit-cat-btn").disabled = false;
+  }
+});
+
+// ---------- Send ----------
+$("send-btn").addEventListener("click", async () => {
+  if (!confirm("Send the approved catalogue to all customers now?")) return;
+  const btn = $("send-btn");
+  btn.disabled = true;
+  let offset = 0, sent = 0, failed = 0, total = 0;
+  const failures = [];
+  try {
+    do {
+      setStatus("send-status", total ? "Sending… " + (sent + failed) + " of " + total : "Sending…", "");
+      const data = await api("/send-catalogue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ offset }) });
+      total = data.total;
+      data.results.forEach((r) => (r.ok ? sent++ : (failed++, failures.push(r.to + ": " + r.error))));
+      offset = data.nextOffset;
+    } while (offset !== null && offset !== undefined);
+    setStatus("send-status", "Sent to " + sent + " customer(s)" + (failed ? ", " + failed + " failed — " + failures.slice(0, 3).join("; ") : "") + ".", failed ? "err" : "ok");
+  } catch (e) {
+    setStatus("send-status", "Error: " + e.message + (sent ? " (sent to " + sent + " before stopping)" : ""), "err");
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ---------- Customers + inbox ----------
+function startListeners() {
+  customersUnsub = db.collection("whatsapp_customers").orderBy("name").onSnapshot((snap) => {
+    const body = $("customers-body");
+    body.innerHTML = "";
+    snap.forEach((doc) => {
+      const c = doc.data();
+      const del = el("button", { className: "btn secondary small", textContent: "Remove" });
+      del.setAttribute("aria-label", "Remove " + (c.name || c.phone));
+      del.addEventListener("click", () => db.collection("whatsapp_customers").doc(doc.id).delete());
+      body.appendChild(el("tr", {}, [
+        el("td", { textContent: c.name || "(no name)" }),
+        el("td", { textContent: c.phone || "" }),
+        el("td", {}, [del]),
+      ]));
+    });
+  });
+
+  inboxUnsub = db.collection("whatsapp_inbox").orderBy("timestamp", "desc").limit(100).onSnapshot((snap) => {
+    const list = $("inbox-list");
+    list.innerHTML = "";
+    $("inbox-count").textContent = snap.size;
+    if (snap.empty) { list.appendChild(el("p", { className: "muted", textContent: "No replies yet." })); return; }
+    snap.forEach((doc) => {
+      const m = doc.data();
+      list.appendChild(el("div", { className: "inbox-item" }, [
+        el("div", { className: "who", textContent: (m.name || m.from || "Unknown") + " — " + (m.from || "") }),
+        el("div", { className: "when", textContent: m.timestamp ? new Date(m.timestamp).toLocaleString() : "" }),
+        el("div", { className: "text", textContent: m.text || "[" + (m.type || "message") + "]" }),
+      ]));
+    });
+  });
+}
+
+$("add-customer-btn").addEventListener("click", async () => {
+  const name = $("new-name").value.trim();
+  const phone = $("new-phone").value.replace(/\D/g, "");
+  if (!phone) return;
+  await db.collection("whatsapp_customers").add({ name, phone, addedAt: new Date().toISOString() });
+  $("new-name").value = "";
+  $("new-phone").value = "";
+});
+</script>
+</body>
+</html>
