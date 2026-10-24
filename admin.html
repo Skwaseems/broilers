@@ -1,537 +1,2664 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- SEO:START -->
-<meta name="robots" content="noindex, nofollow">
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="manifest" href="/site.webmanifest">
-<meta name="theme-color" content="#22352a">
-<!-- SEO:END -->
-<title>Sharhan Broilers &mdash; Catalogue Admin</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{--gold:#846e3e;--ink:#1c1c22;--muted:#54535c;--line:#ddd8d0;--bg:#faf9f7;--ok:#25864d;--warn:#9a5b00;--err:#b3302c;}
-  *{box-sizing:border-box;}
-  body{margin:0;font-family:'Jost',sans-serif;background:var(--bg);color:var(--ink);}
-  header{background:#fff;border-bottom:1px solid var(--line);padding:18px 20px;text-align:center;}
-  header h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;margin:0;letter-spacing:.08em;}
-  header p{margin:4px 0 0;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
-  .wrap{max-width:860px;margin:0 auto;padding:20px 16px 60px;}
-  .card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:20px;margin-bottom:20px;}
-  .card h2{font-family:'Cormorant Garamond',serif;font-size:21px;margin:0 0 6px;font-weight:600;}
-  .card > .muted:first-of-type{margin-top:0;}
-  #signin-gate{text-align:center;padding:60px 16px;}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;background:var(--gold);color:#fff;border:1px solid var(--gold);border-radius:3px;padding:0 20px;font-family:'Jost',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
-  .btn:hover{background:#6f5d34;border-color:#6f5d34;}
-  .btn:disabled{opacity:.55;cursor:not-allowed;}
-  .btn.secondary{background:#fff;color:var(--ink);border-color:var(--line);}
-  .btn.secondary:hover{border-color:var(--ink);}
-  .btn.small{min-height:34px;padding:0 12px;font-size:11px;}
-  .btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
-  #app{display:none;}
-  #topbar{display:flex;justify-content:space-between;align-items:center;max-width:860px;margin:0 auto;padding:10px 16px;font-size:12px;color:var(--muted);}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);}
-  th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
-  .row-form{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
-  input[type=text],textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:3px;font-family:'Jost',sans-serif;font-size:13px;color:var(--ink);background:#fff;}
-  .row-form input{flex:1;min-width:140px;width:auto;}
-  textarea{resize:vertical;min-height:58px;line-height:1.45;}
-  .muted{color:var(--muted);font-size:12px;line-height:1.55;}
-  .status{margin-top:10px;font-size:13px;min-height:1em;}
-  .status.ok{color:var(--ok);} .status.err{color:var(--err);}
-  .badge{display:inline-block;background:#f3f2f0;border:1px solid var(--line);border-radius:3px;padding:2px 8px;font-size:11px;color:var(--muted);vertical-align:middle;}
-  .badge.ok{background:#e9f5ee;border-color:#bfe0cc;color:var(--ok);}
-  .badge.warn{background:#fdf3e2;border-color:#f0d6a8;color:var(--warn);}
-  .badge.err{background:#fbeceb;border-color:#efc3c0;color:var(--err);}
-  .inbox-item{padding:10px 0;border-bottom:1px solid var(--line);}
-  .inbox-item .who{font-weight:600;font-size:13px;}
-  .inbox-item .when{font-size:11px;color:var(--muted);}
-  .inbox-item .text{font-size:13px;margin-top:2px;}
 
-  .cat-item{display:grid;grid-template-columns:96px 1fr;gap:14px;padding:16px 0;border-top:1px solid var(--line);}
-  .cat-item:first-child{border-top:none;}
-  .cat-photo{width:96px;height:96px;border-radius:3px;background:#f3f2f0 center/cover no-repeat;border:1px solid var(--line);}
-  .cat-photo-empty{display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--muted);}
-  .cat-fields{display:flex;flex-direction:column;gap:8px;min-width:0;}
-  .cat-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-  .cat-num{font-size:12px;color:var(--muted);min-width:22px;}
-  .cat-head input{flex:1;min-width:150px;width:auto;font-weight:500;}
-  .cat-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;}
-  .cat-label .over{color:var(--err);font-weight:600;}
-  .cat-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
-  .cat-actions label.btn{margin:0;}
-  .cat-actions input[type=file]{position:absolute;width:1px;height:1px;opacity:0;}
-  .part-tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);}
-  .tpl{border:1px solid var(--line);border-radius:3px;padding:10px 12px;margin-top:8px;font-size:13px;}
-  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
-  .sticky-save{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 0 2px;margin-top:6px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-  @media (max-width:520px){.cat-item{grid-template-columns:72px 1fr;}.cat-photo{width:72px;height:72px;}}
-</style>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- SEO:START -->
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#22352a">
+  <!-- SEO:END -->
+  <title>Sharhan Broilers &mdash; Catalogue Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --gold: #846e3e;
+      --ink: #1c1c22;
+      --muted: #54535c;
+      --line: #ddd8d0;
+      --bg: #faf9f7;
+      --ok: #25864d;
+      --warn: #9a5b00;
+      --err: #b3302c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Jost', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 18px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: 24px;
+      margin: 0;
+      letter-spacing: .08em;
+    }
+
+    header p {
+      margin: 4px 0 0;
+      font-size: 11px;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 20px 16px 60px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 21px;
+      margin: 0 0 6px;
+      font-weight: 600;
+    }
+
+    .card>.muted:first-of-type {
+      margin-top: 0;
+    }
+
+    #signin-gate {
+      text-align: center;
+      padding: 60px 16px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 42px;
+      background: var(--gold);
+      color: #fff;
+      border: 1px solid var(--gold);
+      border-radius: 3px;
+      padding: 0 20px;
+      font-family: 'Jost', sans-serif;
+      font-size: 13px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #6f5d34;
+      border-color: #6f5d34;
+    }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .btn.secondary:hover {
+      border-color: var(--ink);
+    }
+
+    .btn.small {
+      min-height: 34px;
+      padding: 0 12px;
+      font-size: 11px;
+    }
+
+    .btn:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
+    }
+
+    #app {
+      display: none;
+    }
+
+    #topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .row-form {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    input[type=text],
+    textarea {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      font-family: 'Jost', sans-serif;
+      font-size: 13px;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .row-form input {
+      flex: 1;
+      min-width: 140px;
+      width: auto;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 58px;
+      line-height: 1.45;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 13px;
+      min-height: 1em;
+    }
+
+    .status.ok {
+      color: var(--ok);
+    }
+
+    .status.err {
+      color: var(--err);
+    }
+
+    .badge {
+      display: inline-block;
+      background: #f3f2f0;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-size: 11px;
+      color: var(--muted);
+      vertical-align: middle;
+    }
+
+    .badge.ok {
+      background: #e9f5ee;
+      border-color: #bfe0cc;
+      color: var(--ok);
+    }
+
+    .badge.warn {
+      background: #fdf3e2;
+      border-color: #f0d6a8;
+      color: var(--warn);
+    }
+
+    .badge.err {
+      background: #fbeceb;
+      border-color: #efc3c0;
+      color: var(--err);
+    }
+
+    .inbox-item {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .inbox-item .who {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .inbox-item .when {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .inbox-item .text {
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .cat-item {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 14px;
+      padding: 16px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .cat-item:first-child {
+      border-top: none;
+    }
+
+    .cat-photo {
+      width: 96px;
+      height: 96px;
+      border-radius: 3px;
+      background: #f3f2f0 center/cover no-repeat;
+      border: 1px solid var(--line);
+    }
+
+    .cat-photo-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .cat-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .cat-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .cat-num {
+      font-size: 12px;
+      color: var(--muted);
+      min-width: 22px;
+    }
+
+    .cat-head input {
+      flex: 1;
+      min-width: 150px;
+      width: auto;
+      font-weight: 500;
+    }
+
+    .cat-label {
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .cat-label .over {
+      color: var(--err);
+      font-weight: 600;
+    }
+
+    .cat-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .cat-actions label.btn {
+      margin: 0;
+    }
+
+    .cat-actions input[type=file] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    .part-tag {
+      font-size: 10px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .tpl {
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 10px 12px;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    .sticky-save {
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      border-top: 1px solid var(--line);
+      padding: 12px 0 2px;
+      margin-top: 6px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    select {
+      padding: 7px 8px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      font-family: 'Jost', sans-serif;
+      font-size: 12px;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .web-row {
+      display: flex;
+      gap: 8px 14px;
+      flex-wrap: wrap;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .site-sec {
+      border-top: 1px solid var(--line);
+      padding: 4px 0;
+    }
+
+    .site-sec summary {
+      cursor: pointer;
+      padding: 12px 0;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .site-sec[open] summary {
+      color: var(--gold);
+    }
+
+    .site-item {
+      display: grid;
+      grid-template-columns: 22px auto 1fr;
+      gap: 12px;
+      padding: 12px 0;
+      border-top: 1px dashed var(--line);
+    }
+
+    .site-imgs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .site-img {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      width: 110px;
+    }
+
+    .site-thumb {
+      width: 110px;
+      height: 82px;
+      border-radius: 3px;
+      background: #f3f2f0 center/cover no-repeat;
+      border: 1px solid var(--line);
+    }
+
+    .site-img input[type=file] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    .site-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .site-add {
+      margin: 12px 0 8px;
+    }
+
+    .send-modes {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 12px 0 16px;
+      font-size: 13px;
+    }
+
+    .send-modes .check {
+      align-items: flex-start;
+    }
+
+    .send-modes input {
+      margin-top: 3px;
+    }
+
+    .wa-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .price-input {
+      width: 120px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      font-family: 'Jost', sans-serif;
+      font-size: 14px;
+    }
+
+    .wa-row .check {
+      font-weight: 600;
+      color: #1f6b3f;
+    }
+
+    .pick-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .recip-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 16px;
+      margin-top: 10px;
+    }
+
+    @media (max-width:520px) {
+      .recip-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .fi-wrap {
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    .fi-table {
+      min-width: 560px;
+    }
+
+    .fi-table td {
+      vertical-align: middle;
+      padding: 4px;
+    }
+
+    .fi-table input[type=text] {
+      padding: 7px 8px;
+    }
+
+    .fi-table td.fi-tick {
+      text-align: center;
+    }
+
+    .fi-table td.fi-tick input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .fi-actions {
+      white-space: nowrap;
+    }
+
+    .fi-actions button {
+      min-width: 32px;
+      min-height: 32px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 3px;
+      cursor: pointer;
+      color: var(--ink);
+    }
+
+    .fi-actions button:disabled {
+      opacity: .35;
+      cursor: default;
+    }
+
+    .pay-grid {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 16px;
+      margin-top: 12px;
+      align-items: start;
+    }
+
+    @media (max-width:620px) {
+      .pay-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pay-qr-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+
+    #pay-qr-img {
+      width: 160px;
+      height: 160px;
+      object-fit: contain;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .pay-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .row-form .pay-check input {
+      flex: none;
+      min-width: 0;
+      width: 18px;
+      height: 18px;
+    }
+
+    .capp {
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      background: #fff;
+    }
+
+    .capp.capp-pending {
+      border-left: 3px solid var(--gold);
+    }
+
+    .capp-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: baseline;
+    }
+
+    .capp-docs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .capp-docs figure {
+      margin: 0;
+      width: 150px;
+    }
+
+    .capp-docs img {
+      width: 150px;
+      height: 110px;
+      object-fit: cover;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      cursor: zoom-in;
+      background: #f3f2f0;
+      display: block;
+    }
+
+    .capp-docs figcaption {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .pay-sub {
+      margin: 26px 0 4px;
+      font-size: 15px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+
+    .auto-share {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .auto-qr {
+      width: 168px;
+      height: 168px;
+      flex: none;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: #fff center/contain no-repeat;
+    }
+
+    .auto-share-text {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .auto-row {
+      padding: 6px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    .cust-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0 4px;
+    }
+
+    .cust-send {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+
+    tr.cust-off td:not(:first-child) {
+      opacity: .5;
+    }
+
+    @media (max-width:520px) {
+      .cat-item {
+        grid-template-columns: 72px 1fr;
+      }
+
+      .cat-photo {
+        width: 72px;
+        height: 72px;
+      }
+
+      .site-item {
+        grid-template-columns: 22px 1fr;
+      }
+
+      .site-item>.cat-fields {
+        grid-column: 1 / -1;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <h1>SHARHAN BROILERS</h1>
-  <p>Catalogue &amp; WhatsApp &mdash; Admin</p>
-</header>
+  <header>
+    <h1>SHARHAN BROILERS</h1>
+    <p>Catalogue &amp; WhatsApp &mdash; Admin</p>
+  </header>
 
-<div id="signin-gate">
-  <p class="muted">Sign in with your authorized Google account to continue.</p>
-  <button class="btn" id="signin-btn">Sign in with Google</button>
-  <p id="signin-error" class="muted" style="color:#b3302c;"></p>
-</div>
-
-<div id="topbar" style="display:none;">
-  <span id="who"></span>
-  <button class="btn secondary small" id="signout-btn">Sign out</button>
-</div>
-
-<div id="app">
-  <div class="wrap">
-
-    <section class="card" aria-labelledby="send-title">
-      <h2 id="send-title">Send the catalogue</h2>
-      <p class="muted">Sends the approved WhatsApp catalogue to every customer below. With more than 10 items it arrives as two carousel messages, one after the other.</p>
-      <p class="muted" id="live-summary">Loading&hellip;</p>
-      <button class="btn" id="send-btn">Send Catalogue Now</button>
-      <div class="status" id="send-status" role="status"></div>
-    </section>
-
-    <section class="card" aria-labelledby="cat-title">
-      <h2 id="cat-title">Catalogue <span class="badge" id="cat-count">0 / 15</span></h2>
-      <p class="muted"><strong>Photos</strong> go live on the next send. <strong>Names and card text</strong> are fixed by WhatsApp when a template is approved, so after changing them, save and then submit the catalogue for approval below. Items 1&ndash;10 go in the first carousel, 11&ndash;15 in the second.</p>
-      <div id="cat-list"></div>
-      <div class="row-form">
-        <input type="text" id="new-item-name" maxlength="60" placeholder="New item name (e.g. Chicken Lollipop)" aria-label="New item name">
-        <button class="btn secondary" id="add-item-btn">Add item</button>
-      </div>
-      <div class="sticky-save">
-        <button class="btn" id="save-cat-btn" disabled>Save catalogue changes</button>
-        <span class="status" id="cat-status" role="status" style="margin:0;"></span>
-      </div>
-    </section>
-
-    <section class="card" aria-labelledby="tpl-title">
-      <h2 id="tpl-title">WhatsApp approval</h2>
-      <p class="muted">Meta reviews every catalogue version before it can be sent (usually a few hours, sometimes up to a day). Until the new version is approved, sends keep using the current approved one.</p>
-      <div id="tpl-live"></div>
-      <div id="tpl-pending"></div>
-      <div class="row-form">
-        <button class="btn" id="submit-cat-btn">Submit catalogue for approval</button>
-        <button class="btn secondary" id="status-btn">Check approval status</button>
-      </div>
-      <div class="status" id="tpl-status" role="status"></div>
-    </section>
-
-    <section class="card" aria-labelledby="cust-title">
-      <h2 id="cust-title">Customers</h2>
-      <p class="muted">Only add customers who have agreed to receive the catalogue on WhatsApp.</p>
-      <table>
-        <thead><tr><th>Name</th><th>Phone</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
-        <tbody id="customers-body"></tbody>
-      </table>
-      <div class="row-form">
-        <input type="text" id="new-name" placeholder="Name (e.g. Ramesh Hotel)" aria-label="Customer name">
-        <input type="text" id="new-phone" placeholder="Phone (e.g. 919876543210)" aria-label="Customer phone" inputmode="tel">
-        <button class="btn" id="add-customer-btn">Add</button>
-      </div>
-    </section>
-
-    <section class="card" aria-labelledby="inbox-title">
-      <h2 id="inbox-title">Inbox <span class="badge" id="inbox-count">0</span></h2>
-      <p class="muted">Replies from customers, newest first.</p>
-      <div id="inbox-list"></div>
-    </section>
-
+  <div id="signin-gate">
+    <p class="muted">Sign in with your authorized Google account to continue.</p>
+    <button class="btn" id="signin-btn">Sign in with Google</button>
+    <p id="signin-error" class="muted" style="color:#b3302c;"></p>
   </div>
-</div>
 
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBf5aW_YupSVKp_eNVB5TALC4iC-TXFNdk",
-  authDomain: "sharhan-broilers.firebaseapp.com",
-  projectId: "sharhan-broilers",
-  storageBucket: "sharhan-broilers.firebasestorage.app",
-  messagingSenderId: "567739053091",
-  appId: "1:567739053091:web:61238d8206cc3d255c6d96"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+  <div id="topbar" style="display:none;">
+    <span id="who"></span>
+    <button class="btn secondary small" id="signout-btn">Sign out</button>
+  </div>
 
-const WORKER_BASE = "https://sharhan-whatsapp.waseemshaikh597.workers.dev";
-const ALLOWED_EMAILS = ["waseemshaikh597@gmail.com"];
-const MAX_ITEMS = 15;
-const MAX_TEXT = 160;
-const PHOTO_SIZE = 1080;
+  <div id="app">
+    <div class="wrap">
 
-const $ = (id) => document.getElementById(id);
-function setStatus(id, text, kind) {
-  const el = $(id);
-  el.textContent = text || "";
-  el.className = "status" + (kind ? " " + kind : "");
-}
-function el(tag, props, children) {
-  const e = document.createElement(tag);
-  Object.assign(e, props || {});
-  (children || []).forEach((c) => e.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
-  return e;
-}
-async function api(path, options) {
-  const token = await auth.currentUser.getIdToken();
-  const res = await fetch(WORKER_BASE + path, {
-    ...options,
-    headers: { Authorization: "Bearer " + token, ...((options && options.headers) || {}) },
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || "Request failed (" + res.status + ")");
-  return data;
-}
+      <section class="card" aria-labelledby="send-title">
+        <h2 id="send-title">Send the catalogue</h2>
+        <p class="muted">Sends a WhatsApp catalogue to every customer below.</p>
+        <div class="send-modes" role="radiogroup" aria-label="What to send">
+          <label class="check"><input type="radio" name="send-mode" value="pick" checked> <span><strong>Ticked
+                items</strong> &mdash; <span id="pick-summary">loading&hellip;</span></span></label>
+          <label class="check"><input type="radio" name="send-mode" value="full"> <span><strong>Full catalogue</strong>
+              &mdash; <span id="live-summary">loading&hellip;</span></span></label>
+        </div>
+        <p class="muted" style="margin:4px 0 6px;"><strong>Card style</strong> (also used for automatic replies)</p>
+        <div class="send-modes" role="radiogroup" aria-label="Card style" style="margin-top:0;">
+          <label class="check"><input type="radio" name="card-style" value="photo" checked> <span><strong>Big
+                photo</strong> &mdash; large square photo with the item name on it</span></label>
+          <label class="check"><input type="radio" name="card-style" value="text"> <span><strong>Photo + text
+                below</strong> &mdash; shorter photo with your card text underneath</span></label>
+        </div>
+        <label class="site-field" style="margin:4px 0 12px;"><span class="cat-label">Message above the photos <span
+              id="intro-count">0 / 500</span></span>
+          <textarea id="intro-text" maxlength="500" rows="2"></textarea></label>
+        <p class="muted" style="margin:-6px 0 12px;">Customers see: <em>Hello from Sharhan Broilers! <span
+              id="intro-preview"></span></em> &hellip; <em>Not interested? Reply STOP and we won&rsquo;t send these
+            again.</em> Your text goes in the middle; the start and the STOP line are fixed by WhatsApp&rsquo;s
+          approval. It needs the newest formats (&ldquo;up to date&rdquo; under WhatsApp approval) &mdash; until then the
+          older fixed message is sent.</p>
+        <div class="row-form" style="margin:-4px 0 14px;"><button class="btn secondary small" id="intro-save"
+            type="button">Save message</button></div>
+        <button class="btn" id="send-btn">Send Catalogue Now</button>
+        <div class="status" id="send-status" role="status"></div>
+      </section>
 
-// ---------- Auth ----------
-$("signin-btn").addEventListener("click", () => {
-  $("signin-error").textContent = "";
-  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch((e) => { $("signin-error").textContent = e.message; });
-});
-$("signout-btn").addEventListener("click", () => auth.signOut());
+      <section class="card" aria-labelledby="recip-title">
+        <h2 id="recip-title">Order recipients</h2>
+        <p class="muted">Where the website&rsquo;s order form sends orders. <strong>Email:</strong> one email goes to
+          both addresses. <strong>WhatsApp:</strong> the order opens for the first number; the customer is then asked to
+          send the same order to the second number with one more tap. Leave a second box empty to use only one.</p>
+        <div class="recip-grid">
+          <label class="site-field"><span class="cat-label">WhatsApp number 1</span><input type="text" id="recip-wa1"
+              inputmode="tel" placeholder="e.g. 9820132880"></label>
+          <label class="site-field"><span class="cat-label">WhatsApp number 2 (optional)</span><input type="text"
+              id="recip-wa2" inputmode="tel" placeholder="e.g. 9876543210"></label>
+          <label class="site-field"><span class="cat-label">Email 1</span><input type="text" id="recip-em1"
+              inputmode="email" placeholder="e.g. sharhanbroilers@gmail.com"></label>
+          <label class="site-field"><span class="cat-label">Email 2 (optional)</span><input type="text" id="recip-em2"
+              inputmode="email" placeholder="e.g. orders@gmail.com"></label>
+        </div>
+        <div class="row-form"><button class="btn" id="recip-save">Save recipients</button></div>
+        <div class="status" id="recip-status" role="status"></div>
+      </section>
 
-let inboxUnsub = null, customersUnsub = null;
-auth.onAuthStateChanged((user) => {
-  const ok = user && ALLOWED_EMAILS.includes((user.email || "").toLowerCase());
-  $("signin-gate").style.display = ok ? "none" : "block";
-  $("topbar").style.display = ok ? "flex" : "none";
-  $("app").style.display = ok ? "block" : "none";
-  if (ok) {
-    $("who").textContent = user.email;
-    startListeners();
-    loadCatalogue();
-    refreshTemplates();
-  } else {
-    if (user) { $("signin-error").textContent = "This Google account is not authorized for this dashboard."; auth.signOut(); }
-    if (inboxUnsub) inboxUnsub();
-    if (customersUnsub) customersUnsub();
-  }
-});
+      <section class="card" aria-labelledby="formitems-title">
+        <h2 id="formitems-title">Order form products <span class="badge" id="formitems-count">0</span></h2>
+        <p class="muted">The products in the website&rsquo;s order form, top to bottom. Tick <strong>Fresh</strong>
+          and/or <strong>Frozen</strong> for the tables each product appears in. Hindi and Marathi names are optional;
+          customers who pick that language see them next to the English name. Orders always arrive in English.</p>
+        <div class="fi-wrap">
+          <table class="fi-table">
+            <thead><tr><th>Product (English)</th><th>हिंदी</th><th>मराठी</th><th>Fresh</th><th>Frozen</th><th></th></tr></thead>
+            <tbody id="fi-rows"></tbody>
+          </table>
+        </div>
+        <div class="row-form">
+          <button class="btn secondary small" id="fi-add" type="button">+ Add product</button>
+          <button class="btn" id="fi-save" type="button">Save products</button>
+        </div>
+        <div class="status" id="fi-status" role="status"></div>
+      </section>
 
-// ---------- Catalogue editor ----------
-let items = [];          // [{id, name, spec, packs:[], image, placeholder, order}]
-let removed = new Set(); // ids deleted locally, removed from Firestore on save
-let dirty = false;
+      <section class="card" aria-labelledby="pay-title">
+        <h2 id="pay-title">Payments &amp; credit</h2>
+        <p class="muted"><strong>Bank QR / UPI:</strong> shown as &ldquo;Pay Sharhan Broilers&rdquo; in the order form
+          and on the website. Leave a box empty to hide that line.</p>
+        <div class="pay-grid">
+          <div class="pay-qr-box">
+            <img id="pay-qr-img" alt="Payment QR code" width="160" height="160" style="display:none;">
+            <span class="muted" id="pay-qr-empty">No QR code yet</span>
+            <label class="btn secondary small" for="pay-qr-file">Upload QR photo</label>
+            <input type="file" id="pay-qr-file" accept="image/*" hidden>
+            <button class="btn secondary small" id="pay-qr-remove" type="button" style="display:none;">Remove QR</button>
+          </div>
+          <div class="recip-grid" style="margin-top:0;">
+            <label class="site-field"><span class="cat-label">UPI ID</span><input type="text" id="pay-upi" placeholder="e.g. sharhan@okhdfcbank"></label>
+            <label class="site-field"><span class="cat-label">Account name</span><input type="text" id="pay-name" placeholder="e.g. Sharhan Broilers"></label>
+            <label class="site-field"><span class="cat-label">Bank</span><input type="text" id="pay-bank"></label>
+            <label class="site-field"><span class="cat-label">Account no.</span><input type="text" id="pay-account" inputmode="numeric"></label>
+            <label class="site-field"><span class="cat-label">IFSC</span><input type="text" id="pay-ifsc" style="text-transform:uppercase;"></label>
+            <label class="site-field"><span class="cat-label">Note (optional)</span><input type="text" id="pay-note" placeholder="e.g. Please share the payment screenshot on WhatsApp"></label>
+          </div>
+        </div>
+        <div class="row-form">
+          <label class="pay-check"><input type="checkbox" id="pay-show-form" checked> Show in the order form</label>
+          <label class="pay-check"><input type="checkbox" id="pay-show-site" checked> Show on the website</label>
+        </div>
+        <div class="row-form"><button class="btn" id="pay-save" type="button">Save payment details</button></div>
+        <div class="status" id="pay-status" role="status"></div>
 
-function markDirty() {
-  dirty = true;
-  $("save-cat-btn").disabled = false;
-  setStatus("cat-status", "Unsaved changes", "");
-}
+        <h3 class="pay-sub">Credit applications <span class="badge" id="capp-count">0 waiting</span></h3>
+        <p class="muted">Customers who chose credit in the order form and uploaded self-attested Aadhaar, PAN and a
+          business document. Check the photos, then <strong>Approve</strong> (adds them to the list below) or
+          <strong>Reject</strong>. These are sensitive documents: delete the photos once you no longer need them.</p>
+        <div id="capp-list"></div>
 
-async function loadCatalogue() {
-  const snap = await db.collection("catalogue").orderBy("order").get();
-  items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  removed = new Set();
-  dirty = false;
-  $("save-cat-btn").disabled = true;
-  renderCatalogue();
-}
+        <h3 class="pay-sub">Credit-approved customers <span class="badge" id="credit-count">0</span></h3>
+        <p class="muted">&ldquo;1-3 Days (credit)&rdquo; in the order form only works for these mobile numbers;
+          everyone else is asked to choose Same Day payment or apply with their documents (above). The list stays private: the form only learns
+          yes/no for the number the customer typed.</p>
+        <table>
+          <thead><tr><th>Customer</th><th>Mobile</th><th></th></tr></thead>
+          <tbody id="credit-rows"></tbody>
+        </table>
+        <div class="row-form">
+          <input type="text" id="credit-name" placeholder="Customer / billing name">
+          <input type="text" id="credit-mobile" inputmode="tel" placeholder="Mobile, e.g. 9820132880">
+          <button class="btn secondary small" id="credit-add" type="button">+ Add</button>
+        </div>
+        <div class="row-form"><button class="btn" id="credit-save" type="button">Save credit list</button></div>
+        <div class="status" id="credit-status" role="status"></div>
+      </section>
 
-function slugify(name) {
-  return name.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
-}
+      <section class="card" aria-labelledby="auto-title">
+        <h2 id="auto-title">Catalogue on request</h2>
+        <p class="muted">When a customer sends <strong>&ldquo;Catalogue&rdquo;</strong>, &ldquo;Hi&rdquo;,
+          &ldquo;Menu&rdquo; or &ldquo;Price list&rdquo; to your business WhatsApp (+91 83695 78332), they automatically
+          get the ticked items as <strong>tall photos, one per item</strong>, each with its details and an order link
+          &mdash; at most once every 12 hours each. Because the customer messaged first, WhatsApp delivers it even when
+          a sent-out catalogue would be held back, and doesn&rsquo;t charge for it. They&rsquo;re also added to
+          Customers.</p>
+        <label class="check" style="font-size:14px;margin:6px 0 14px;"><input type="checkbox" id="auto-reply-on">
+          <strong>Auto-reply is on</strong></label>
+        <div class="auto-share">
+          <div id="auto-qr" class="auto-qr" role="img"
+            aria-label="QR code that opens WhatsApp to ask for the catalogue"></div>
+          <div class="auto-share-text">
+            <p class="muted" style="margin-top:0;">Share this link (or print the QR code). It opens WhatsApp with
+              &ldquo;Catalogue&rdquo; already typed &mdash; the customer just taps Send.</p>
+            <input type="text" id="auto-link" readonly aria-label="Catalogue request link">
+            <div class="row-form">
+              <button class="btn secondary small" id="auto-copy">Copy link</button>
+              <a class="btn secondary small" id="auto-qr-download" download="sharhan-catalogue-qr.png">Download QR</a>
+            </div>
+          </div>
+        </div>
+        <p class="muted" style="margin:16px 0 4px;"><strong>Recent automatic replies</strong></p>
+        <div id="auto-recent" class="muted">None yet.</div>
+        <div class="status" id="auto-status" role="status"></div>
+      </section>
 
-function renderCatalogue() {
-  const list = $("cat-list");
-  list.innerHTML = "";
-  $("cat-count").textContent = items.length + " / " + MAX_ITEMS;
-  $("add-item-btn").disabled = items.length >= MAX_ITEMS;
+      <section class="card" aria-labelledby="cat-title">
+        <h2 id="cat-title">Catalogue <span class="badge" id="cat-count">0 / 15</span> <span class="badge"
+            id="wa-count">0 ticked for WhatsApp</span></h2>
+        <p class="muted">One list for both WhatsApp and the website&rsquo;s <strong>Fresh Stock</strong> section. Tick
+          <strong>Send on WhatsApp</strong> on 2&ndash;10 items to choose what &ldquo;Ticked items&rdquo; sends; their
+          photos, names and text go out exactly as saved here. <strong>Photos:</strong> tall (portrait) photos work best
+          &mdash; the whole photo is kept and white sides are added, like a shop catalogue. Each upload makes two
+          versions: a square one for the swipe carousel (WhatsApp always shows carousel cards wide/square) and a tall
+          9:16 one for the photo-by-photo catalogue customers get when they ask for it, and for the website&rsquo;s
+          full-screen product page. Items with a placeholder photo stay hidden on the website until a real photo is
+          uploaded.
+        </p>
+        <div id="cat-list"></div>
+        <div class="row-form">
+          <input type="text" id="new-item-name" maxlength="60" placeholder="New item name (e.g. Chicken Lollipop)"
+            aria-label="New item name">
+          <button class="btn secondary" id="add-item-btn">Add item</button>
+        </div>
+        <div class="sticky-save">
+          <button class="btn" id="save-cat-btn" disabled>Save catalogue changes</button>
+          <span class="status" id="cat-status" role="status" style="margin:0;"></span>
+        </div>
+      </section>
 
-  items.forEach((it, i) => {
-    const photo = el("div", { className: "cat-photo" + (it.image ? "" : " cat-photo-empty"), textContent: it.image ? "" : "No photo" });
-    if (it.image) photo.style.backgroundImage = "url('" + it.image + "')";
-    photo.setAttribute("role", "img");
-    photo.setAttribute("aria-label", (it.image ? "Photo of " : "No photo for ") + it.name);
+      <section class="card" aria-labelledby="site-title">
+        <h2 id="site-title">Website content</h2>
+        <p class="muted">Photos and text on the homepage. Open a section, make changes, then <strong>Save website
+            changes</strong> &mdash; visitors see them on their next page load. Products in Fresh Stock come from the
+          catalogue above.</p>
+        <div id="site-sections"></div>
+        <div class="sticky-save">
+          <button class="btn" id="save-site-btn" disabled>Save website changes</button>
+          <span class="status" id="site-status" role="status" style="margin:0;"></span>
+        </div>
+      </section>
 
-    const nameInput = el("input", { type: "text", value: it.name || "", maxLength: 60 });
-    nameInput.setAttribute("aria-label", "Item " + (i + 1) + " name");
-    nameInput.addEventListener("input", () => { it.name = nameInput.value; markDirty(); });
+      <section class="card" aria-labelledby="tpl-title">
+        <h2 id="tpl-title">WhatsApp approval</h2>
+        <p class="muted"><strong>Big-photo slider (no prices).</strong> One swipeable message: each card is a big square
+          photo with the item name on it, a small box with your website, and an <em>Enroll Now</em> button that opens
+          the order form with that item already marked. (WhatsApp writes the box&rsquo;s title from the web address:
+          &ldquo;Pages&rdquo; now, most likely &ldquo;Sharhan&rdquo; once sharhan.co.in is connected.) Approved once per
+          number of items (2&ndash;10). Sizes marked &ldquo;older version&rdquo; still work; submit the update and each
+          switches over by itself once WhatsApp approves it.</p>
+        <div id="tpl-photo" class="tpl"></div>
+        <div class="row-form">
+          <button class="btn" id="submit-photo-all-btn">Submit update for all sizes</button>
+          <button class="btn secondary" id="submit-photo-test-btn">Submit for current ticked count</button>
+        </div>
+        <p class="muted" style="margin-top:22px;"><strong>Photo + text slider.</strong> Wide photo with the item&rsquo;s
+          card text underneath (<em>your text</em>, then &ldquo;Tap Enroll Now to order, delivered fresh across
+          Mumbai.&rdquo;) and an <em>Enroll Now</em> button that opens the order form with that item marked. Used when
+          Card style is &ldquo;Photo + text below&rdquo;.</p>
+        <div id="tpl-text" class="tpl"></div>
+        <div class="row-form">
+          <button class="btn secondary" id="submit-text-all-btn">Submit photo + text style (all sizes)</button>
+        </div>
+        <details class="site-sec" style="margin-top:14px;">
+          <summary>Product cards with prices (not in use)</summary>
+          <p class="muted">Big square photo, name and price per kg, with a <em>View</em> button that opens
+            WhatsApp&rsquo;s own product page. WhatsApp requires a price on every product, so these are only used for
+            ticked items that have a price.</p>
+          <div id="tpl-products" class="tpl"></div>
+          <div class="row-form">
+            <button class="btn secondary" id="submit-products-btn">Submit product-card format</button>
+            <a class="btn secondary" id="sync-products-btn" target="_blank" rel="noopener"
+              href="https://business.facebook.com/commerce/catalogs/1625569935780449/data_sources?business_id=1298570663343048">Open
+              product feed in Commerce Manager</a>
+          </div>
+        </details>
+        <details class="site-sec">
+          <summary>Older formats (backup only)</summary>
+          <p class="muted"><strong>Photo + text slider.</strong> Used only if the big-photo slider isn&rsquo;t approved
+            for the number of ticked items.</p>
+          <div id="tpl-pick"></div>
+          <div class="row-form">
+            <button class="btn secondary" id="submit-pick-btn">Submit photo + text formats</button>
+          </div>
+          <p class="muted" style="margin-top:18px;"><strong>Old fixed full catalogue.</strong> No longer needed:
+            &ldquo;Full catalogue&rdquo; now sends every item as big-photo sliders (10 + 5). Its &ldquo;Shop now&rdquo;
+            links still point to the old Surge address.</p>
+          <div id="tpl-live"></div>
+          <div id="tpl-pending"></div>
+          <div class="row-form">
+            <button class="btn secondary" id="submit-cat-btn">Submit old full catalogue</button>
+          </div>
+        </details>
+        <div class="row-form">
+          <button class="btn secondary" id="status-btn">Check approval status</button>
+        </div>
+        <div class="status" id="tpl-status" role="status"></div>
+      </section>
 
-    const counter = el("span", {});
-    const spec = el("textarea", { value: it.spec || "", rows: 2 });
-    spec.setAttribute("aria-label", "Item " + (i + 1) + " card text");
-    const updateCounter = () => {
-      const n = spec.value.length;
-      counter.textContent = n + " / " + MAX_TEXT;
-      counter.className = n > MAX_TEXT ? "over" : "";
+      <section class="card" aria-labelledby="cust-title">
+        <h2 id="cust-title">Customers</h2>
+        <p class="muted">Only add customers who have agreed to receive the catalogue on WhatsApp. Tick who should get
+          the next catalogue &mdash; unticked customers are skipped.</p>
+        <div class="cust-tools">
+          <span class="badge" id="cust-count">0 of 0 ticked</span>
+          <button class="btn secondary small" id="cust-all">Tick all</button>
+          <button class="btn secondary small" id="cust-none">Untick all</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th><span class="visually-hidden">Send</span></th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Last catalogue</th>
+              <th><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="customers-body"></tbody>
+        </table>
+        <div class="row-form">
+          <input type="text" id="new-name" placeholder="Name (e.g. Ramesh Hotel)" aria-label="Customer name">
+          <input type="text" id="new-phone" placeholder="Phone (e.g. 919876543210)" aria-label="Customer phone"
+            inputmode="tel">
+          <button class="btn" id="add-customer-btn">Add</button>
+        </div>
+        <div class="status" id="cust-status" role="status"></div>
+
+        <h3 class="pay-sub">Unsubscribed <span class="badge" id="unsub-count">0</span></h3>
+        <p class="muted">Customers who replied <strong>STOP</strong> (or turned off marketing messages in WhatsApp).
+          They are never sent the catalogue again &mdash; not by &ldquo;Send Catalogue Now&rdquo; and not by the automatic
+          reply. Only the customer can undo it, by sending <strong>START</strong> to your WhatsApp.</p>
+        <table>
+          <thead><tr><th>Name</th><th>Phone</th><th>Unsubscribed</th><th>How</th></tr></thead>
+          <tbody id="unsub-body"></tbody>
+        </table>
+        <div class="row-form"><button class="btn secondary small" id="unsub-csv" type="button">Download list (CSV)</button></div>
+      </section>
+
+      <section class="card" aria-labelledby="inbox-title">
+        <h2 id="inbox-title">Inbox <span class="badge" id="inbox-count">0</span></h2>
+        <p class="muted">Replies from customers, newest first.</p>
+        <div id="inbox-list"></div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBf5aW_YupSVKp_eNVB5TALC4iC-TXFNdk",
+      authDomain: "sharhan-broilers.firebaseapp.com",
+      projectId: "sharhan-broilers",
+      storageBucket: "sharhan-broilers.firebasestorage.app",
+      messagingSenderId: "567739053091",
+      appId: "1:567739053091:web:61238d8206cc3d255c6d96"
     };
-    spec.addEventListener("input", () => { it.spec = spec.value; updateCounter(); markDirty(); });
-    updateCounter();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    const packs = el("input", { type: "text", value: (it.packs || []).join(", "), placeholder: "e.g. 5 kg, 20 kg" });
-    packs.setAttribute("aria-label", "Item " + (i + 1) + " pack sizes");
-    packs.addEventListener("input", () => {
-      it.packs = packs.value.split(",").map((s) => s.trim()).filter(Boolean);
-      markDirty();
+    const WORKER_BASE = "https://sharhan-whatsapp.waseemshaikh597.workers.dev";
+    const ALLOWED_EMAILS = ["waseemshaikh597@gmail.com",
+      'waseemsayeed01@gmail.com', 'bagbanhanif@gmail.com', 'sharhanbroilers@gmail.com'];
+    const MAX_ITEMS = 15;
+    const MAX_TEXT = 100;     // card text; leaves room for the ticked-items card's fixed wording (160 total)
+    const PICK_MIN = 2, PICK_MAX = 10;
+    const PHOTO_SIZE = 1080;
+    const SITE_IMAGE_WIDTH = 1600;
+
+    const $ = (id) => document.getElementById(id);
+    function setStatus(id, text, kind) {
+      const el = $(id);
+      el.textContent = text || "";
+      el.className = "status" + (kind ? " " + kind : "");
+    }
+    function el(tag, props, children) {
+      const e = document.createElement(tag);
+      Object.assign(e, props || {});
+      (children || []).forEach((c) => e.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
+      return e;
+    }
+    async function api(path, options) {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(WORKER_BASE + path, {
+        ...options,
+        headers: { Authorization: "Bearer " + token, ...((options && options.headers) || {}) },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Request failed (" + res.status + ")");
+      return data;
+    }
+
+    // ---------- Auth ----------
+    $("signin-btn").addEventListener("click", () => {
+      $("signin-error").textContent = "";
+      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch((e) => { $("signin-error").textContent = e.message; });
+    });
+    $("signout-btn").addEventListener("click", () => auth.signOut());
+
+    let inboxUnsub = null, customersUnsub = null;
+    auth.onAuthStateChanged((user) => {
+      const ok = user && ALLOWED_EMAILS.includes((user.email || "").toLowerCase());
+      $("signin-gate").style.display = ok ? "none" : "block";
+      $("topbar").style.display = ok ? "flex" : "none";
+      $("app").style.display = ok ? "block" : "none";
+      if (ok) {
+        $("who").textContent = user.email;
+        startListeners();
+        startAutoReplyListeners();
+        loadRecipients();
+        loadFormItems();
+        loadPayments();
+        loadCredit().then(startCreditApps);
+        loadCatalogue();
+        loadSiteContent();
+        refreshTemplates();
+      } else {
+        if (user) { $("signin-error").textContent = "This Google account is not authorized for this dashboard."; auth.signOut(); }
+        if (inboxUnsub) inboxUnsub();
+        if (customersUnsub) customersUnsub();
+        if (statusUnsub) statusUnsub();
+        if (autoUnsub) autoUnsub();
+      }
     });
 
-    const up = el("button", { className: "btn secondary small", textContent: "↑", disabled: i === 0 });
-    up.setAttribute("aria-label", "Move " + it.name + " up");
-    up.addEventListener("click", () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; markDirty(); renderCatalogue(); });
-    const down = el("button", { className: "btn secondary small", textContent: "↓", disabled: i === items.length - 1 });
-    down.setAttribute("aria-label", "Move " + it.name + " down");
-    down.addEventListener("click", () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; markDirty(); renderCatalogue(); });
+    // ---------- Catalogue editor ----------
+    let items = [];          // [{id, name, spec, packs:[], image, placeholder, order}]
+    let removed = new Set(); // ids deleted locally, removed from Firestore on save
+    let dirty = false;
 
-    const fileId = "photo-" + it.id;
-    const file = el("input", { type: "file", id: fileId, accept: "image/*" });
-    const fileLabel = el("label", { className: "btn secondary small", htmlFor: fileId, textContent: it.image && !it.placeholder ? "Change photo" : "Upload photo" });
-    file.addEventListener("change", () => file.files[0] && uploadPhoto(it, file.files[0], fileLabel));
+    function markDirty() {
+      dirty = true;
+      $("save-cat-btn").disabled = false;
+      setStatus("cat-status", "Unsaved changes", "");
+      updateWaCount();
+    }
 
-    const del = el("button", { className: "btn secondary small", textContent: "Remove" });
-    del.addEventListener("click", () => {
-      if (!confirm("Remove \"" + it.name + "\" from the catalogue?")) return;
-      removed.add(it.id);
-      items.splice(i, 1);
+    async function loadCatalogue() {
+      const snap = await db.collection("catalogue").orderBy("order").get();
+      items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      removed = new Set();
+      dirty = false;
+      $("save-cat-btn").disabled = true;
+      renderCatalogue();
+    }
+
+    function slugify(name) {
+      return name.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+    }
+
+    function renderCatalogue() {
+      const list = $("cat-list");
+      list.innerHTML = "";
+      $("cat-count").textContent = items.length + " / " + MAX_ITEMS;
+      $("add-item-btn").disabled = items.length >= MAX_ITEMS;
+      updateWaCount();
+
+      items.forEach((it, i) => {
+        const photo = el("div", { className: "cat-photo" + (it.image ? "" : " cat-photo-empty"), textContent: it.image ? "" : "No photo" });
+        if (it.image) photo.style.backgroundImage = "url('" + it.image + "')";
+        photo.setAttribute("role", "img");
+        photo.setAttribute("aria-label", (it.image ? "Photo of " : "No photo for ") + it.name);
+
+        const nameInput = el("input", { type: "text", value: it.name || "", maxLength: 60 });
+        nameInput.setAttribute("aria-label", "Item " + (i + 1) + " name");
+        nameInput.addEventListener("input", () => { it.name = nameInput.value; markDirty(); });
+
+        const counter = el("span", {});
+        const spec = el("textarea", { value: it.spec || "", rows: 2, placeholder: "Optional — if left empty, the item name is used" });
+        spec.setAttribute("aria-label", "Item " + (i + 1) + " card text");
+        const updateCounter = () => {
+          const n = spec.value.length;
+          counter.textContent = n + " / " + MAX_TEXT;
+          counter.className = n > MAX_TEXT ? "over" : "";
+        };
+        spec.addEventListener("input", () => { it.spec = spec.value; updateCounter(); markDirty(); });
+        updateCounter();
+
+        const packs = el("input", { type: "text", value: (it.packs || []).join(", "), placeholder: "e.g. 5 kg, 20 kg" });
+        packs.setAttribute("aria-label", "Item " + (i + 1) + " pack sizes");
+        packs.addEventListener("input", () => {
+          it.packs = packs.value.split(",").map((s) => s.trim()).filter(Boolean);
+          markDirty();
+        });
+
+        const price = el("input", { type: "number", min: "0", step: "1", inputMode: "decimal", value: typeof it.price === "number" ? String(it.price) : "", placeholder: "e.g. 320" });
+        price.className = "price-input";
+        price.setAttribute("aria-label", "Item " + (i + 1) + " price in rupees per kg");
+        price.addEventListener("input", () => {
+          const v = parseFloat(price.value);
+          it.price = isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : null;
+          markDirty();
+        });
+
+        const up = el("button", { className: "btn secondary small", textContent: "↑", disabled: i === 0 });
+        up.setAttribute("aria-label", "Move " + it.name + " up");
+        up.addEventListener("click", () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; markDirty(); renderCatalogue(); });
+        const down = el("button", { className: "btn secondary small", textContent: "↓", disabled: i === items.length - 1 });
+        down.setAttribute("aria-label", "Move " + it.name + " down");
+        down.addEventListener("click", () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; markDirty(); renderCatalogue(); });
+
+        const fileId = "photo-" + it.id;
+        const file = el("input", { type: "file", id: fileId, accept: "image/*" });
+        const fileLabel = el("label", { className: "btn secondary small", htmlFor: fileId, textContent: it.image && !it.placeholder ? "Change photo" : "Upload photo" });
+        file.addEventListener("change", () => file.files[0] && uploadPhoto(it, file.files[0], fileLabel));
+
+        const del = el("button", { className: "btn secondary small", textContent: "Remove" });
+        del.addEventListener("click", () => {
+          if (!confirm("Remove \"" + it.name + "\" from the catalogue?")) return;
+          removed.add(it.id);
+          items.splice(i, 1);
+          markDirty();
+          renderCatalogue();
+        });
+
+        const fitSel = selectEl(["", "Bone-In", "Boneless", "Offal", "Live"], it.fit || "", "No label", (v) => { it.fit = v; markDirty(); });
+        fitSel.setAttribute("aria-label", "Item " + (i + 1) + " website label");
+        const tagSel = selectEl(["", "Best Seller", "Daily", "Limited", "New"], it.tag || "", "No tag", (v) => { it.tag = v; markDirty(); });
+        tagSel.setAttribute("aria-label", "Item " + (i + 1) + " website tag");
+        const groupBox = (g, text) => checkEl(text, (it.groups || []).includes(g), (on) => {
+          const set = new Set(it.groups || []);
+          if (on) set.add(g); else set.delete(g);
+          it.groups = [...set];
+          markDirty();
+        });
+        const web = el("div", { className: "web-row" }, [
+          fitSel, tagSel, groupBox("daily", "Daily tab"), groupBox("bulk", "Bulk tab"),
+          checkEl("Show on website", it.onWebsite !== false, (on) => { it.onWebsite = on; markDirty(); }),
+        ]);
+
+        const waBox = checkEl("Send on WhatsApp", !!it.onWhatsApp, (on) => {
+          if (on && items.filter((x) => x.onWhatsApp).length >= PICK_MAX) {
+            alert("WhatsApp shows at most " + PICK_MAX + " items in one catalogue. Untick another item first.");
+            renderCatalogue();
+            return;
+          }
+          it.onWhatsApp = on;
+          markDirty();
+          updateWaCount();
+        });
+
+        const badges = [];
+        if (it.placeholder) badges.push(el("span", { className: "badge warn", textContent: "Placeholder photo — upload a real one" }));
+        if (!it.image) badges.push(el("span", { className: "badge err", textContent: "Photo needed" }));
+        else if (!it.placeholder && !it.imageTall) badges.push(el("span", { className: "badge warn", textContent: "Upload the photo again for the tall 9:16 version" }));
+
+        const head = el("div", { className: "cat-head" }, [el("span", { className: "cat-num", textContent: String(i + 1) }), nameInput]);
+        const part = el("span", { className: "part-tag", textContent: i < splitPoint() ? "Carousel 1" : "Carousel 2" });
+        const fields = el("div", { className: "cat-fields" }, [
+          head,
+          el("div", {}, badges),
+          el("div", { className: "cat-label" }, [el("span", { textContent: "Card text (under the photo in WhatsApp's “Photo + text” style, and in the website's photo view)" }), counter]),
+          spec,
+          el("div", { className: "cat-label" }, [el("span", { textContent: "Pack sizes (shown on the website)" })]),
+          packs,
+          el("div", { className: "cat-label" }, [el("span", { textContent: "Price ₹ per kg (shown on WhatsApp product cards)" })]),
+          el("div", { className: "price-row" }, [el("span", { textContent: "₹" }), price, el("span", { className: "muted", textContent: "per kg" })]),
+          el("div", { className: "cat-label" }, [el("span", { textContent: "Website label, tag and tabs" })]),
+          web,
+          el("div", { className: "wa-row" }, [waBox]),
+          el("div", { className: "cat-actions" }, [fileLabel, file, up, down, del, part]),
+        ]);
+        list.appendChild(el("div", { className: "cat-item" }, [photo, fields]));
+      });
+    }
+
+    // Mirrors the Worker: 10 per carousel, never leaving a 1-card carousel.
+    function splitPoint() {
+      const n = items.length;
+      if (n <= 10) return n;
+      return n - 10 < 2 ? n - 2 : 10;
+    }
+
+    $("add-item-btn").addEventListener("click", () => {
+      const name = $("new-item-name").value.trim();
+      if (!name) return;
+      if (items.length >= MAX_ITEMS) return alert("The catalogue can have at most " + MAX_ITEMS + " items.");
+      let id = slugify(name);
+      if (!id) return alert("Please use letters or numbers in the name.");
+      const taken = new Set(items.map((it) => it.id));
+      for (let n = 2; taken.has(id); n++) id = slugify(name) + "-" + n;
+      removed.delete(id);
+      items.push({ id, name, spec: "", packs: [], image: "", placeholder: false, fit: "", tag: "", groups: [], onWebsite: true, onWhatsApp: false });
+      $("new-item-name").value = "";
       markDirty();
       renderCatalogue();
     });
 
-    const badges = [];
-    if (it.placeholder) badges.push(el("span", { className: "badge warn", textContent: "Placeholder photo — upload a real one" }));
-    if (!it.image) badges.push(el("span", { className: "badge err", textContent: "Photo needed" }));
+    $("save-cat-btn").addEventListener("click", async () => {
+      for (const it of items) {
+        if (!it.name.trim()) return setStatus("cat-status", "Every item needs a name.", "err");
+        if ((it.spec || "").length > MAX_TEXT) return setStatus("cat-status", '"' + it.name + '" card text is over ' + MAX_TEXT + " characters.", "err");
+      }
+      $("save-cat-btn").disabled = true;
+      setStatus("cat-status", "Saving…", "");
+      try {
+        const batch = db.batch();
+        items.forEach((it, i) => {
+          batch.set(db.collection("catalogue").doc(it.id), {
+            order: i, name: it.name.trim(), spec: (it.spec || "").trim(), packs: it.packs || [],
+            image: it.image || "", imageTall: it.imageTall || "", placeholder: !!it.placeholder,
+            imageCard: it.imageCard || "", imageWide: it.imageWide || "", imageCardName: it.imageCardName || "", imageCardFrom: it.imageCardFrom || "", imageCardV: it.imageCardV || 1,
+            price: typeof it.price === "number" && it.price > 0 ? it.price : null,
+            fit: it.fit || "", tag: it.tag || "", groups: it.groups || [], onWebsite: it.onWebsite !== false, onWhatsApp: !!it.onWhatsApp,
+          });
+        });
+        removed.forEach((id) => batch.delete(db.collection("catalogue").doc(id)));
+        await batch.commit();
+        await loadCatalogue();
+        setStatus("cat-status", "Saved. Preparing WhatsApp slider photos…", "");
+        let made = 0;
+        try { made = await ensureCardImages(); } catch (e) { return setStatus("cat-status", "Saved, but a slider photo couldn't be made: " + e.message, "err"); }
+        setStatus("cat-status", "Saved." + (made ? " Updated " + made + " WhatsApp slider photo(s)." : ""), "ok");
+        renderProductsStatus();
+      } catch (e) {
+        $("save-cat-btn").disabled = false;
+        setStatus("cat-status", "Save failed: " + e.message, "err");
+      }
+    });
 
-    const head = el("div", { className: "cat-head" }, [el("span", { className: "cat-num", textContent: String(i + 1) }), nameInput]);
-    const part = el("span", { className: "part-tag", textContent: i < splitPoint() ? "Carousel 1" : "Carousel 2" });
-    const fields = el("div", { className: "cat-fields" }, [
-      head,
-      el("div", {}, badges),
-      el("div", { className: "cat-label" }, [el("span", { textContent: "Card text (shown under the photo in WhatsApp)" }), counter]),
-      spec,
-      el("div", { className: "cat-label" }, [el("span", { textContent: "Pack sizes (shown on the website)" })]),
-      packs,
-      el("div", { className: "cat-actions" }, [fileLabel, file, up, down, del, part]),
-    ]);
-    list.appendChild(el("div", { className: "cat-item" }, [photo, fields]));
-  });
-}
-
-// Mirrors the Worker: 10 per carousel, never leaving a 1-card carousel.
-function splitPoint() {
-  const n = items.length;
-  if (n <= 10) return n;
-  return n - 10 < 2 ? n - 2 : 10;
-}
-
-$("add-item-btn").addEventListener("click", () => {
-  const name = $("new-item-name").value.trim();
-  if (!name) return;
-  if (items.length >= MAX_ITEMS) return alert("The catalogue can have at most " + MAX_ITEMS + " items.");
-  let id = slugify(name);
-  if (!id) return alert("Please use letters or numbers in the name.");
-  const taken = new Set(items.map((it) => it.id));
-  for (let n = 2; taken.has(id); n++) id = slugify(name) + "-" + n;
-  removed.delete(id);
-  items.push({ id, name, spec: "", packs: [], image: "", placeholder: false });
-  $("new-item-name").value = "";
-  markDirty();
-  renderCatalogue();
-});
-
-$("save-cat-btn").addEventListener("click", async () => {
-  for (const it of items) {
-    if (!it.name.trim()) return setStatus("cat-status", "Every item needs a name.", "err");
-    if ((it.spec || "").length > MAX_TEXT) return setStatus("cat-status", '"' + it.name + '" card text is over ' + MAX_TEXT + " characters.", "err");
-  }
-  $("save-cat-btn").disabled = true;
-  setStatus("cat-status", "Saving…", "");
-  try {
-    const batch = db.batch();
-    items.forEach((it, i) => {
-      batch.set(db.collection("catalogue").doc(it.id), {
-        order: i, name: it.name.trim(), spec: (it.spec || "").trim(), packs: it.packs || [],
-        image: it.image || "", placeholder: !!it.placeholder,
+    // Draw the photo onto a canvas sized by `size(w, h)` and encode it as a JPEG under
+    // the Worker's 2 MB limit. The resizing happens in the browser, so uploads stay small.
+    function toJpeg(file, size) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const box = size(img.naturalWidth, img.naturalHeight);
+          canvas.width = box.w;
+          canvas.height = box.h;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(0, 0, box.w, box.h);
+          ctx.drawImage(img, box.sx, box.sy, box.sw, box.sh, box.dx || 0, box.dy || 0, box.dw || box.w, box.dh || box.h);
+          URL.revokeObjectURL(img.src);
+          const tryQ = (q) => canvas.toBlob((b) => (b.size > 1.8 * 1024 * 1024 && q > 0.5 ? tryQ(q - 0.1) : resolve(b)), "image/jpeg", q);
+          tryQ(0.86);
+        };
+        img.onerror = () => reject(new Error("That file couldn't be read as an image."));
+        img.src = URL.createObjectURL(file);
       });
-    });
-    removed.forEach((id) => batch.delete(db.collection("catalogue").doc(id)));
-    await batch.commit();
-    await loadCatalogue();
-    setStatus("cat-status", "Saved. If you changed names or card text, submit the catalogue for approval below.", "ok");
-  } catch (e) {
-    $("save-cat-btn").disabled = false;
-    setStatus("cat-status", "Save failed: " + e.message, "err");
-  }
-});
-
-// Square-crop to 1080×1080 JPEG in the browser (WhatsApp cards are square; keeps uploads small).
-function toSquareJpeg(file) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const s = Math.min(img.naturalWidth, img.naturalHeight);
-      const canvas = document.createElement("canvas");
-      canvas.width = canvas.height = PHOTO_SIZE;
-      canvas.getContext("2d").drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, PHOTO_SIZE, PHOTO_SIZE);
-      URL.revokeObjectURL(img.src);
-      const tryQ = (q) => canvas.toBlob((b) => (b.size > 1.8 * 1024 * 1024 && q > 0.5 ? tryQ(q - 0.1) : resolve(b)), "image/jpeg", q);
-      tryQ(0.86);
-    };
-    img.onerror = () => reject(new Error("That file couldn't be read as an image."));
-    img.src = URL.createObjectURL(file);
-  });
-}
-
-async function uploadPhoto(it, file, label) {
-  const original = label.textContent;
-  label.textContent = "Uploading…";
-  try {
-    const blob = await toSquareJpeg(file);
-    const { url } = await api("/catalogue-image/" + it.id, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: blob });
-    it.image = url;
-    it.placeholder = false;
-    const ref = db.collection("catalogue").doc(it.id);
-    const exists = (await ref.get()).exists;
-    if (exists) await ref.update({ image: url, placeholder: false });
-    else markDirty();
-    renderCatalogue();
-    setStatus("cat-status", 'Photo for "' + it.name + '" updated' + (exists ? "." : " — save to keep this new item."), "ok");
-  } catch (e) {
-    label.textContent = original;
-    setStatus("cat-status", "Photo upload failed: " + e.message, "err");
-  }
-}
-
-// ---------- WhatsApp templates ----------
-function describeTemplates(group, title) {
-  const box = el("div", { className: "tpl" });
-  box.appendChild(el("div", {}, [el("strong", { textContent: title })]));
-  group.templates.forEach((t, i) => {
-    const kind = t.status === "APPROVED" ? "ok" : t.status === "REJECTED" ? "err" : "warn";
-    box.appendChild(el("div", { className: "muted" }, [
-      "Carousel " + (i + 1) + ": " + t.slugs.length + " items · ",
-      el("span", { className: "badge " + kind, textContent: t.status }),
-      t.rejectedReason ? " " + t.rejectedReason : "",
-    ]));
-  });
-  return box;
-}
-
-async function refreshTemplates() {
-  try {
-    const meta = await api("/catalogue-status");
-    $("tpl-live").innerHTML = "";
-    $("tpl-pending").innerHTML = "";
-    if (meta.live) {
-      $("tpl-live").appendChild(describeTemplates(meta.live, "Live (approved) version " + meta.live.version));
-      const n = meta.live.templates.reduce((a, t) => a + t.slugs.length, 0);
-      $("live-summary").textContent = "Approved catalogue: " + n + " items in " + meta.live.templates.length + " message" + (meta.live.templates.length > 1 ? "s" : "") + ".";
-    } else {
-      $("live-summary").textContent = "No approved catalogue yet.";
     }
-    if (meta.pending) $("tpl-pending").appendChild(describeTemplates(meta.pending, "Waiting for approval: version " + meta.pending.version));
-    return meta;
-  } catch (e) {
-    setStatus("tpl-status", "Couldn't load approval status: " + e.message, "err");
-  }
-}
+    // WhatsApp cards are square: fit the whole photo inside a 1080×1080 white square
+    // (a tall photo gets white sides) instead of cropping it.
+    function toSquareJpeg(file) {
+      return toJpeg(file, (w, h) => {
+        const k = PHOTO_SIZE / Math.max(w, h);
+        const dw = Math.round(w * k), dh = Math.round(h * k);
+        return { sx: 0, sy: 0, sw: w, sh: h, w: PHOTO_SIZE, h: PHOTO_SIZE, dx: (PHOTO_SIZE - dw) / 2, dy: (PHOTO_SIZE - dh) / 2, dw, dh };
+      });
+    }
+    // 9:16 version (1080×1920, whole photo on white) for the photo-message catalogue and
+    // the website's full-screen product view.
+    function toTallJpeg(file) {
+      return toJpeg(file, (w, h) => {
+        const W = 1080, H = 1920, k = Math.min(W / w, H / h);
+        const dw = Math.round(w * k), dh = Math.round(h * k);
+        return { sx: 0, sy: 0, sw: w, sh: h, w: W, h: H, dx: (W - dw) / 2, dy: (H - dh) / 2, dw, dh };
+      });
+    }
+    // Big-photo slider card: the photo filling a square. Those WhatsApp cards have no text,
+    // because card text is what makes WhatsApp shrink the photo to a wide strip.
+    const CARD_SIZE = 1080;
+    const CARD_VERSION = 5; // v4: photo fills the whole square, item name on a soft dark shade; v5: + wide version
+    const WIDE_W = 1200, WIDE_H = 628; // WhatsApp shows photos with card text as a ~1.91:1 strip
 
-$("status-btn").addEventListener("click", async () => {
-  setStatus("tpl-status", "Checking with WhatsApp…", "");
-  const meta = await refreshTemplates();
-  if (meta) setStatus("tpl-status", meta.pending ? "Still in review." : "Up to date.", "ok");
-});
+    // Wide crop for the "photo + text" style, so WhatsApp's own crop doesn't cut it badly.
+    async function makeWideImage(src, name) {
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image();
+        i.crossOrigin = "anonymous";
+        i.onload = () => resolve(i);
+        i.onerror = () => reject(new Error("Couldn't load the photo for " + name));
+        i.src = src;
+      });
+      const b = photoBounds(img);
+      const canvas = document.createElement("canvas");
+      canvas.width = WIDE_W; canvas.height = WIDE_H;
+      const k = Math.max(WIDE_W / b.w, WIDE_H / b.h);
+      const w = b.w * k, h = b.h * k;
+      canvas.getContext("2d").drawImage(img, b.x, b.y, b.w, b.h, (WIDE_W - w) / 2, (WIDE_H - h) / 2, w, h);
+      return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.88));
+    }
 
-$("submit-cat-btn").addEventListener("click", async () => {
-  if (dirty) return setStatus("tpl-status", "Save your catalogue changes first.", "err");
-  const missing = items.filter((it) => !it.image).map((it) => it.name);
-  if (missing.length) return setStatus("tpl-status", "Add photos first: " + missing.join(", "), "err");
-  const placeholders = items.filter((it) => it.placeholder).map((it) => it.name);
-  const msg = "Submit all " + items.length + " items to WhatsApp for approval?" +
-    (placeholders.length ? "\n\nThese still use placeholder name tiles instead of real photos: " + placeholders.join(", ") + "." : "") +
-    "\n\nReview usually takes a few hours. The current approved catalogue keeps being used until then.";
-  if (!confirm(msg)) return;
-  $("submit-cat-btn").disabled = true;
-  setStatus("tpl-status", "Submitting… (uploading " + items.length + " photos to WhatsApp)", "");
-  try {
-    await api("/catalogue-submit", { method: "POST" });
-    await refreshTemplates();
-    setStatus("tpl-status", "Submitted. Check back later with “Check approval status”.", "ok");
-  } catch (e) {
-    setStatus("tpl-status", "Submit failed: " + e.message, "err");
-  } finally {
-    $("submit-cat-btn").disabled = false;
-  }
-});
+    // The stored photos are padded with white to fit their frame; find the real photo inside.
+    function photoBounds(img) {
+      const c = document.createElement("canvas");
+      const s = Math.min(1, 400 / Math.max(img.naturalWidth, img.naturalHeight));
+      c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+      const g = c.getContext("2d", { willReadFrequently: true });
+      g.drawImage(img, 0, 0, c.width, c.height);
+      const d = g.getImageData(0, 0, c.width, c.height).data;
+      // A row/column counts as border when it's almost all light (white or pale grey, incl.
+      // JPEG noise). Trimming stops at 35% from each side so a pale photo is never eaten.
+      const light = (i) => d[i] > 205 && d[i + 1] > 205 && d[i + 2] > 205;
+      const rowLight = (y) => { let n = 0; for (let x = 0; x < c.width; x++) if (light((y * c.width + x) * 4)) n++; return n > c.width * 0.9; };
+      const colLight = (x, y0, y1) => { let n = 0; for (let y = y0; y <= y1; y++) if (light((y * c.width + x) * 4)) n++; return n > (y1 - y0 + 1) * 0.9; };
+      // Cut up to the innermost light line near each edge, so a thin dark frame line outside a
+      // white border (seen in some photos) is removed together with it.
+      let top = 0, bottom = c.height - 1, left = 0, right = c.width - 1;
+      for (let y = 0; y < c.height * 0.35; y++) if (rowLight(y)) top = y + 1;
+      for (let y = c.height - 1; y > c.height * 0.65; y--) if (rowLight(y)) bottom = y - 1;
+      for (let x = 0; x < c.width * 0.35; x++) if (colLight(x, top, bottom)) left = x + 1;
+      for (let x = c.width - 1; x > c.width * 0.65; x--) if (colLight(x, top, bottom)) right = x - 1;
+      if (right - left < c.width * 0.2 || bottom - top < c.height * 0.2) return { x: 0, y: 0, w: img.naturalWidth, h: img.naturalHeight };
+      // Shave a further 1% so no light edge line from the original border survives.
+      const ix = (right - left + 1) * 0.01, iy = (bottom - top + 1) * 0.01;
+      return { x: (left + ix) / s, y: (top + iy) / s, w: (right - left + 1 - 2 * ix) / s, h: (bottom - top + 1 - 2 * iy) / s };
+    }
 
-// ---------- Send ----------
-$("send-btn").addEventListener("click", async () => {
-  if (!confirm("Send the approved catalogue to all customers now?")) return;
-  const btn = $("send-btn");
-  btn.disabled = true;
-  let offset = 0, sent = 0, failed = 0, total = 0;
-  const failures = [];
-  try {
-    do {
-      setStatus("send-status", total ? "Sending… " + (sent + failed) + " of " + total : "Sending…", "");
-      const data = await api("/send-catalogue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ offset }) });
-      total = data.total;
-      data.results.forEach((r) => (r.ok ? sent++ : (failed++, failures.push(r.to + ": " + r.error))));
-      offset = data.nextOffset;
-    } while (offset !== null && offset !== undefined);
-    setStatus("send-status", "Sent to " + sent + " customer(s)" + (failed ? ", " + failed + " failed — " + failures.slice(0, 3).join("; ") : "") + ".", failed ? "err" : "ok");
-  } catch (e) {
-    setStatus("send-status", "Error: " + e.message + (sent ? " (sent to " + sent + " before stopping)" : ""), "err");
-  } finally {
-    btn.disabled = false;
-  }
-});
+    async function makeCardImage(src, name) {
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image();
+        i.crossOrigin = "anonymous";
+        i.onload = () => resolve(i);
+        i.onerror = () => reject(new Error("Couldn't load the photo for " + name));
+        i.src = src;
+      });
+      const b = photoBounds(img);
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = CARD_SIZE;
+      const ctx = canvas.getContext("2d");
+      // The photo zoomed to fill the whole square card, centred (a tall photo loses a
+      // little at the top and bottom).
+      const S = CARD_SIZE;
+      const k = Math.max(S / b.w, S / b.h);
+      const w = b.w * k, h = b.h * k;
+      ctx.drawImage(img, b.x, b.y, b.w, b.h, (S - w) / 2, (S - h) / 2, w, h);
+      // Item name in white over a soft dark shade along the bottom. WhatsApp can't show the
+      // name as text without shrinking the photo, so it goes on the photo itself.
+      await document.fonts.load("600 72px 'Jost'").catch(() => { });
+      const shade = ctx.createLinearGradient(0, S * 0.66, 0, S);
+      shade.addColorStop(0, "rgba(0,0,0,0)");
+      shade.addColorStop(0.55, "rgba(0,0,0,0.45)");
+      shade.addColorStop(1, "rgba(0,0,0,0.72)");
+      ctx.fillStyle = shade;
+      ctx.fillRect(0, S * 0.66, S, S * 0.34);
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+      if ("letterSpacing" in ctx) ctx.letterSpacing = "3px";
+      ctx.shadowColor = "rgba(0,0,0,0.35)";
+      ctx.shadowBlur = 8;
+      const label = name.toUpperCase();
+      let size = 76;
+      do { ctx.font = `600 ${size}px 'Jost', Arial, sans-serif`; size -= 2; } while (ctx.measureText(label).width > S - 120 && size > 36);
+      ctx.fillText(label, 60, S - 64);
+      return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.88));
+    }
 
-// ---------- Customers + inbox ----------
-function startListeners() {
-  customersUnsub = db.collection("whatsapp_customers").orderBy("name").onSnapshot((snap) => {
-    const body = $("customers-body");
-    body.innerHTML = "";
-    snap.forEach((doc) => {
-      const c = doc.data();
-      const del = el("button", { className: "btn secondary small", textContent: "Remove" });
-      del.setAttribute("aria-label", "Remove " + (c.name || c.phone));
-      del.addEventListener("click", () => db.collection("whatsapp_customers").doc(doc.id).delete());
-      body.appendChild(el("tr", {}, [
-        el("td", { textContent: c.name || "(no name)" }),
-        el("td", { textContent: c.phone || "" }),
-        el("td", {}, [del]),
-      ]));
+    // Make (or remake after a rename/new photo) the slider card for every item with a real
+    // photo — ticked items go in "Ticked items", all of them in "Full catalogue".
+    async function ensureCardImages() {
+      // Made from the tall version when there is one: it holds the photo at full width, so
+      // the zoomed card stays sharp.
+      const sourceOf = (it) => it.imageTall || it.image;
+      const todo = items.filter((it) => it.image && !it.placeholder &&
+        (!it.imageCard || it.imageCardFrom !== sourceOf(it) || it.imageCardName !== it.name || (it.imageCardV || 1) < CARD_VERSION));
+      const post = (key, body) => api("/catalogue-image/" + key, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body });
+      for (const it of todo) {
+        const [card, wide] = await Promise.all([makeCardImage(sourceOf(it), it.name), makeWideImage(sourceOf(it), it.name)]);
+        const [{ url }, { url: wideUrl }] = await Promise.all([post(it.id.slice(0, 55) + "-card", card), post(it.id.slice(0, 55) + "-wide", wide)]);
+        const fields = { imageCard: url, imageWide: wideUrl, imageCardName: it.name, imageCardFrom: sourceOf(it), imageCardV: CARD_VERSION };
+        Object.assign(it, fields);
+        await db.collection("catalogue").doc(it.id).update(fields);
+      }
+      return todo.length;
+    }
+
+    // Website photos keep their shape (the page crops to fit); just cap the width.
+    function toWebJpeg(file) {
+      return toJpeg(file, (w, h) => {
+        const k = Math.min(1, SITE_IMAGE_WIDTH / w);
+        return { sx: 0, sy: 0, sw: w, sh: h, w: Math.round(w * k), h: Math.round(h * k) };
+      });
+    }
+
+    function selectEl(options, value, emptyLabel, onChange) {
+      const s = el("select", {});
+      if (value && !options.includes(value)) options = options.concat([value]);
+      options.forEach((o) => s.appendChild(el("option", { value: o, textContent: o || emptyLabel, selected: o === value })));
+      s.addEventListener("change", () => onChange(s.value));
+      return s;
+    }
+    function checkEl(text, checked, onChange) {
+      const box = el("input", { type: "checkbox", checked });
+      box.addEventListener("change", () => onChange(box.checked));
+      return el("label", { className: "check" }, [box, text]);
+    }
+
+    async function uploadPhoto(it, file, label) {
+      const original = label.textContent;
+      label.textContent = "Uploading…";
+      try {
+        const [square, tall] = await Promise.all([toSquareJpeg(file), toTallJpeg(file)]);
+        const post = (key, body) => api("/catalogue-image/" + key, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body });
+        const [{ url }, { url: tallUrl }] = await Promise.all([post(it.id, square), post(it.id.slice(0, 55) + "-tall", tall)]);
+        it.image = url;
+        it.imageTall = tallUrl;
+        it.placeholder = false;
+        const ref = db.collection("catalogue").doc(it.id);
+        const exists = (await ref.get()).exists;
+        if (exists) {
+          await ref.update({ image: url, imageTall: tallUrl, placeholder: false });
+          await ensureCardImages().catch(() => { }); // remade on the next Save if this fails
+        }
+        else markDirty();
+        renderCatalogue();
+        setStatus("cat-status", 'Photo for "' + it.name + '" updated' + (exists ? "." : " — save to keep this new item."), "ok");
+      } catch (e) {
+        label.textContent = original;
+        setStatus("cat-status", "Photo upload failed: " + e.message, "err");
+      }
+    }
+
+    // ---------- Website content (site_content/main) ----------
+    // Each section maps to one part of the homepage. Lists can be added to, reordered
+    // and trimmed; the homepage falls back to its built-in content if a list is empty.
+    const SITE_SECTIONS = [
+      {
+        key: "slides", title: "Top banner slides", noun: "slide", list: true, min: 1, max: 6, required: true,
+        hint: "The rotating banner at the top. Computers show both photos with the words between them; phones show only the left photo.",
+        fields: [{ k: "script", label: "Word in script", max: 30 }, { k: "sub", label: "Line under SHARHAN", max: 80 }],
+        images: [{ k: "left", label: "Left photo" }, { k: "right", label: "Right photo" }]
+      },
+      {
+        key: "about", title: "About us", list: false,
+        hint: "The About Us text near the top of the page.",
+        fields: [{ k: "heading", label: "Heading", max: 120 }, { k: "p1", label: "First paragraph", area: true, max: 600 }, { k: "p2", label: "Second paragraph", area: true, max: 900 }]
+      },
+      {
+        key: "categories", title: "Category strip", noun: "category", list: true, min: 1, max: 12, required: true,
+        hint: "The row of photos under About Us. On phones, tapping a photo opens it large with the short detail below it. Leave the detail empty to use the catalogue item with the same name.",
+        fields: [{ k: "name", label: "Name", max: 40 }, { k: "detail", label: "Short detail (optional)", area: true, max: 200 }], images: [{ k: "image", label: "Photo" }]
+      },
+      {
+        key: "packs", title: "Packs", noun: "pack", list: true, min: 1, max: 12, required: true,
+        hint: "The Packs row under Fresh Stock. Tall (portrait) photos look best.",
+        fields: [{ k: "name", label: "Name", max: 40 }], images: [{ k: "image", label: "Photo" }]
+      },
+      {
+        key: "cuts", title: "A Cut For Every Kitchen", noun: "cut", list: true, min: 1, max: 8, required: true,
+        hint: "One large photo at a time, with arrows to the next cut. Tall (portrait) photos look best.",
+        fields: [{ k: "label", label: "Cut name", max: 40 }], images: [{ k: "image", label: "Photo" }]
+      },
+      {
+        key: "bundle", title: "Frequently Ordered Together", noun: "product", list: true, min: 1, max: 8, required: true,
+        hint: "The product cards beside the large photo. Tall (portrait) photos look best.",
+        fields: [{ k: "fit", label: "Small label (e.g. Bone-In)", max: 20 }, { k: "name", label: "Name", max: 80 }], images: [{ k: "image", label: "Photo" }]
+      },
+      {
+        key: "extras", title: "Also From Our Floor", noun: "item", list: true, min: 1, max: 12, required: true,
+        hint: "The black-and-white row of square photos near the bottom. On phones, tapping a photo opens it large with the short detail below it. Leave the detail empty to use the catalogue item with the same name.",
+        fields: [{ k: "name", label: "Name", max: 40 }, { k: "detail", label: "Short detail (optional)", area: true, max: 200 }], images: [{ k: "image", label: "Photo" }]
+      },
+      {
+        key: "gallery", title: "Photo grid", noun: "photo", list: true, min: 1, max: 8, required: true,
+        hint: "The square photos at the very bottom, above the footer.",
+        fields: [], images: [{ k: "image", label: "Photo" }]
+      },
+      {
+        key: "visit", title: "Visit us", list: false,
+        hint: "The wide banner with the Locate Our Unit button. Wide (landscape) photos look best.",
+        fields: [{ k: "text", label: "Text", area: true, max: 400 }], images: [{ k: "image", label: "Background photo" }]
+      },
+    ];
+
+    let site = {};
+    let siteDirty = false;
+
+    function markSiteDirty() {
+      siteDirty = true;
+      $("save-site-btn").disabled = false;
+      setStatus("site-status", "Unsaved changes", "");
+    }
+
+    async function loadSiteContent() {
+      const snap = await db.collection("site_content").doc("main").get();
+      site = snap.exists ? snap.data() : {};
+      siteDirty = false;
+      $("save-site-btn").disabled = true;
+      renderSite();
+    }
+
+    function siteText(f, obj, label) {
+      const input = f.area ? el("textarea", { value: obj[f.k] || "", rows: 3 }) : el("input", { type: "text", value: obj[f.k] || "" });
+      if (f.max) input.maxLength = f.max;
+      input.setAttribute("aria-label", label);
+      input.addEventListener("input", () => { obj[f.k] = input.value; markSiteDirty(); });
+      return el("label", { className: "site-field" }, [el("span", { className: "cat-label", textContent: f.label }), input]);
+    }
+
+    function siteImage(obj, im, label) {
+      const src = obj[im.k];
+      const thumb = el("div", { className: "site-thumb" + (src ? "" : " cat-photo-empty"), textContent: src ? "" : "No photo" });
+      if (src) thumb.style.backgroundImage = "url('" + src + "')";
+      thumb.setAttribute("role", "img");
+      thumb.setAttribute("aria-label", label);
+      const fileId = "site-file-" + Math.random().toString(36).slice(2);
+      const file = el("input", { type: "file", id: fileId, accept: "image/*" });
+      const btn = el("label", { className: "btn secondary small", htmlFor: fileId, textContent: src ? "Change" : "Upload" });
+      file.addEventListener("change", () => file.files[0] && uploadSitePhoto(obj, im.k, file.files[0], btn));
+      return el("div", { className: "site-img" }, [el("span", { className: "cat-label", textContent: im.label }), thumb, btn, file]);
+    }
+
+    function renderSite() {
+      const root = $("site-sections");
+      const open = new Set([...root.querySelectorAll("details[open]")].map((d) => d.dataset.key));
+      root.innerHTML = "";
+
+      SITE_SECTIONS.forEach((sec) => {
+        const body = el("div", {});
+        if (sec.list) {
+          if (!Array.isArray(site[sec.key])) site[sec.key] = [];
+          const list = site[sec.key];
+          list.forEach((obj, i) => {
+            const name = sec.title + " " + (i + 1);
+            const up = el("button", { className: "btn secondary small", textContent: "↑", disabled: i === 0 });
+            up.setAttribute("aria-label", "Move " + name + " up");
+            up.addEventListener("click", () => { [list[i - 1], list[i]] = [list[i], list[i - 1]]; markSiteDirty(); renderSite(); });
+            const down = el("button", { className: "btn secondary small", textContent: "↓", disabled: i === list.length - 1 });
+            down.setAttribute("aria-label", "Move " + name + " down");
+            down.addEventListener("click", () => { [list[i + 1], list[i]] = [list[i], list[i + 1]]; markSiteDirty(); renderSite(); });
+            const del = el("button", { className: "btn secondary small", textContent: "Remove", disabled: list.length <= (sec.min || 0) });
+            del.setAttribute("aria-label", "Remove " + name);
+            del.addEventListener("click", () => { list.splice(i, 1); markSiteDirty(); renderSite(); });
+
+            body.appendChild(el("div", { className: "site-item" }, [
+              el("span", { className: "cat-num", textContent: String(i + 1) }),
+              el("div", { className: "site-imgs" }, (sec.images || []).map((im) => siteImage(obj, im, name + " " + im.label))),
+              el("div", { className: "cat-fields" }, sec.fields.map((f) => siteText(f, obj, name + " " + f.label))
+                .concat([el("div", { className: "cat-actions" }, [up, down, del])])),
+            ]));
+          });
+          const add = el("button", { className: "btn secondary small site-add", textContent: "Add " + sec.noun, disabled: list.length >= sec.max });
+          add.addEventListener("click", () => {
+            const obj = {};
+            sec.fields.forEach((f) => { obj[f.k] = ""; });
+            (sec.images || []).forEach((im) => { obj[im.k] = ""; });
+            list.push(obj);
+            markSiteDirty();
+            renderSite();
+          });
+          body.appendChild(add);
+        } else {
+          if (!site[sec.key] || typeof site[sec.key] !== "object") site[sec.key] = {};
+          const obj = site[sec.key];
+          body.appendChild(el("div", { className: "site-item" }, [
+            el("span", {}),
+            el("div", { className: "site-imgs" }, (sec.images || []).map((im) => siteImage(obj, im, sec.title + " " + im.label))),
+            el("div", { className: "cat-fields" }, sec.fields.map((f) => siteText(f, obj, sec.title + " " + f.label))),
+          ]));
+        }
+
+        const summary = el("summary", { textContent: sec.title + (sec.list ? " (" + site[sec.key].length + ")" : "") });
+        const det = el("details", { className: "site-sec", open: open.has(sec.key) }, [summary, el("p", { className: "muted", textContent: sec.hint }), body]);
+        det.dataset.key = sec.key;
+        root.appendChild(det);
+      });
+    }
+
+    async function uploadSitePhoto(obj, key, file, label) {
+      const original = label.textContent;
+      label.textContent = "Uploading…";
+      try {
+        const blob = await toWebJpeg(file);
+        const id = "site-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+        const { url } = await api("/catalogue-image/" + id, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: blob });
+        obj[key] = url;
+        markSiteDirty();
+        renderSite();
+        setStatus("site-status", "Photo uploaded — click Save website changes to publish it.", "ok");
+      } catch (e) {
+        label.textContent = original;
+        setStatus("site-status", "Photo upload failed: " + e.message, "err");
+      }
+    }
+
+    $("save-site-btn").addEventListener("click", async () => {
+      // Keep only the known fields, trimmed, so stray data never reaches the page.
+      const clean = {};
+      for (const sec of SITE_SECTIONS) {
+        const keys = sec.fields.map((f) => f.k).concat((sec.images || []).map((im) => im.k));
+        const tidy = (obj) => Object.fromEntries(keys.map((k) => [k, String(obj[k] || "").trim()]));
+        if (sec.list) {
+          const rows = site[sec.key].map(tidy);
+          for (let i = 0; i < rows.length; i++) {
+            for (const im of sec.images || []) {
+              if (sec.required && !rows[i][im.k]) return setStatus("site-status", sec.title + " " + (i + 1) + ": " + im.label.toLowerCase() + " is missing.", "err");
+            }
+          }
+          clean[sec.key] = rows;
+        } else {
+          clean[sec.key] = tidy(site[sec.key]);
+        }
+      }
+      $("save-site-btn").disabled = true;
+      setStatus("site-status", "Saving…", "");
+      try {
+        await db.collection("site_content").doc("main").set(clean);
+        site = clean;
+        siteDirty = false;
+        renderSite();
+        setStatus("site-status", "Saved. The website shows the changes on the next page load.", "ok");
+      } catch (e) {
+        $("save-site-btn").disabled = false;
+        setStatus("site-status", "Save failed: " + e.message, "err");
+      }
     });
-  });
 
-  inboxUnsub = db.collection("whatsapp_inbox").orderBy("timestamp", "desc").limit(100).onSnapshot((snap) => {
-    const list = $("inbox-list");
-    list.innerHTML = "";
-    $("inbox-count").textContent = snap.size;
-    if (snap.empty) { list.appendChild(el("p", { className: "muted", textContent: "No replies yet." })); return; }
-    snap.forEach((doc) => {
-      const m = doc.data();
-      list.appendChild(el("div", { className: "inbox-item" }, [
-        el("div", { className: "who", textContent: (m.name || m.from || "Unknown") + " — " + (m.from || "") }),
-        el("div", { className: "when", textContent: m.timestamp ? new Date(m.timestamp).toLocaleString() : "" }),
-        el("div", { className: "text", textContent: m.text || "[" + (m.type || "message") + "]" }),
-      ]));
+    window.addEventListener("beforeunload", (e) => {
+      if (dirty || siteDirty) { e.preventDefault(); e.returnValue = ""; }
     });
-  });
-}
 
-$("add-customer-btn").addEventListener("click", async () => {
-  const name = $("new-name").value.trim();
-  const phone = $("new-phone").value.replace(/\D/g, "");
-  if (!phone) return;
-  await db.collection("whatsapp_customers").add({ name, phone, addedAt: new Date().toISOString() });
-  $("new-name").value = "";
-  $("new-phone").value = "";
-});
-</script>
+    // ---------- WhatsApp templates ----------
+    let pickMeta = null; // catalogue_meta.whatsapp.pick: { templates: { s2: {name, status, ...}, ... } }
+
+    function pickTemplate(n) { return pickMeta && pickMeta.templates && pickMeta.templates["s" + n]; }
+
+    function updateWaCount() {
+      const ticked = items.filter((it) => it.onWhatsApp);
+      const n = ticked.length;
+      $("wa-count").textContent = n + " ticked for WhatsApp";
+      $("wa-count").className = "badge" + (n >= PICK_MIN && n <= PICK_MAX ? " ok" : " warn");
+      let text;
+      if (n < PICK_MIN) text = n + " ticked — tick at least " + PICK_MIN + " items with “Send on WhatsApp” in the catalogue.";
+      else if (catalogConnected && productsMeta && productsMeta.status === "APPROVED") {
+        const priced = ticked.filter((it) => typeof it.price === "number" && it.price > 0);
+        text = priced.length + " items as product cards with prices (" + priced.map((it) => it.name).join(", ") + ")" +
+          (priced.length < ticked.length ? " — " + (ticked.length - priced.length) + " ticked item(s) have no price and are left out" : "") +
+          (priced.length < PICK_MIN ? " — add prices to at least " + PICK_MIN + " ticked items" : "") + (dirty ? ". Save your catalogue changes first." : ".");
+      } else {
+        const t = pickTemplate(n);
+        const big = photoTemplate(n);
+        const state = big && big.status === "APPROVED" ? "ready to send as the big-photo slider"
+          : !t ? "the " + n + "-item format hasn’t been submitted yet (see WhatsApp approval)"
+            : t.status === "APPROVED" ? "ready to send"
+              : t.status === "REJECTED" ? "the " + n + "-item format was rejected — resubmit it under WhatsApp approval"
+                : "the " + n + "-item format is waiting for WhatsApp approval";
+        text = n + " items (" + ticked.map((it) => it.name).join(", ") + ") — " + state + (dirty ? ". Save your catalogue changes first." : ".");
+      }
+      $("pick-summary").textContent = text;
+      renderPhotoStatus(); // the "Submit test (N items)" label follows the ticked count
+    }
+
+    let productsMeta = null, catalogConnected = false, photoMeta = null;
+
+    const PHOTO_VERSION = 5; // editable intro + STOP line; mirrors the Worker
+    const photoTemplate = (n) => photoMeta && photoMeta.templates && photoMeta.templates["s" + n];
+    const photoNext = (n) => photoMeta && photoMeta.next && photoMeta.next["s" + n];
+    const photoIsCurrent = (n) => { const t = photoTemplate(n); return !!(t && t.status === "APPROVED" && (t.version || 1) >= PHOTO_VERSION); };
+
+    function renderPhotoStatus() {
+      const box = $("tpl-photo");
+      box.innerHTML = "";
+      const grid = el("div", { className: "pick-grid" });
+      for (let n = PICK_MIN; n <= PICK_MAX; n++) {
+        const t = photoTemplate(n), next = photoNext(n);
+        let text, kind;
+        if (photoIsCurrent(n)) { text = "up to date"; kind = "ok"; }
+        else if (next && next.status === "REJECTED") { text = "update rejected"; kind = "err"; }
+        else if (next) { text = "update in review"; kind = "warn"; }
+        else if (t && t.status === "APPROVED") { text = "older version"; kind = "warn"; }
+        else { text = t ? t.status.toLowerCase() : "not submitted"; kind = ""; }
+        const badge = el("span", { className: "badge" + (kind ? " " + kind : ""), textContent: n + " items: " + text });
+        if (next && next.rejectedReason) badge.title = next.rejectedReason;
+        grid.appendChild(badge);
+      }
+      box.appendChild(grid);
+      const n = items.filter((it) => it.onWhatsApp).length;
+      $("submit-photo-test-btn").textContent = "Submit for " + n + " items";
+    }
+
+    async function submitPhotoSizes(sizes) {
+      const todo = sizes.filter((n) => { const x = photoNext(n); return !photoIsCurrent(n) && !(x && ["APPROVED", "PENDING", "IN_APPEAL"].includes(x.status)); });
+      if (!todo.length) return setStatus("tpl-status", "Already approved or in review.", "ok");
+      if (dirty) return setStatus("tpl-status", "Save your catalogue changes first.", "err");
+      if (!confirm("Submit the big-photo slider for " + todo.join(", ") + " items to WhatsApp for approval?\n\nReview usually takes a few hours.")) return;
+      setStatus("tpl-status", "Preparing slider photos…", "");
+      try { await ensureCardImages(); } catch (e) { return setStatus("tpl-status", "Couldn't make slider photos: " + e.message, "err"); }
+      const failed = [];
+      for (const n of todo) {
+        setStatus("tpl-status", "Submitting the " + n + "-item slider…", "");
+        try { photoMeta = (await api("/photo-submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ size: n }) })).photo; }
+        catch (e) { failed.push(n + " items: " + e.message); }
+      }
+      renderPhotoStatus();
+      setStatus("tpl-status", failed.length ? "Some failed — " + failed.join("; ") : "Submitted. Check back later with “Check approval status”.", failed.length ? "err" : "ok");
+    }
+
+    let textMeta = null;
+    // Only the "Enroll Now" (website button) versions count; older "Enquire Now" entries are superseded.
+    const textTemplateOf = (n) => { const t = textMeta && textMeta.templates && textMeta.templates["s" + n]; return t && t.button === "url" ? t : null; };
+    const TEXT_VERSION = 2; // editable intro + STOP line; mirrors the Worker
+    const textNext = (n) => textMeta && textMeta.next && textMeta.next["s" + n];
+    const textIsCurrent = (n) => { const t = textTemplateOf(n); return !!(t && t.status === "APPROVED" && (t.version || 1) >= TEXT_VERSION); };
+
+    function renderTextStatus() {
+      const box = $("tpl-text");
+      box.innerHTML = "";
+      const grid = el("div", { className: "pick-grid" });
+      for (let n = PICK_MIN; n <= PICK_MAX; n++) {
+        const t = textTemplateOf(n), next = textNext(n);
+        let text, kind;
+        if (textIsCurrent(n)) { text = "up to date"; kind = "ok"; }
+        else if (next && next.status === "REJECTED") { text = "update rejected"; kind = "err"; }
+        else if (next) { text = "update in review"; kind = "warn"; }
+        else if (t && t.status === "APPROVED") { text = "older version"; kind = "warn"; }
+        else { text = t ? t.status.toLowerCase() : "not submitted"; kind = t && t.status === "REJECTED" ? "err" : ""; }
+        const badge = el("span", { className: "badge" + (kind ? " " + kind : ""), textContent: n + " items: " + text });
+        const why = (next && next.rejectedReason) || (t && t.rejectedReason);
+        if (why) badge.title = why;
+        grid.appendChild(badge);
+      }
+      box.appendChild(grid);
+    }
+
+    $("submit-text-all-btn").addEventListener("click", async () => {
+      const todo = [];
+      for (let n = PICK_MIN; n <= PICK_MAX; n++) { const x = textNext(n); if (!textIsCurrent(n) && !(x && ["APPROVED", "PENDING", "IN_APPEAL"].includes(x.status))) todo.push(n); }
+      if (!todo.length) return setStatus("tpl-status", "Already approved or in review.", "ok");
+      if (dirty) return setStatus("tpl-status", "Save your catalogue changes first.", "err");
+      if (!confirm("Submit the photo + text style for " + todo.join(", ") + " items to WhatsApp for approval?\n\nReview usually takes a few hours.")) return;
+      setStatus("tpl-status", "Preparing photos…", "");
+      try { await ensureCardImages(); } catch (e) { return setStatus("tpl-status", "Couldn't make the photos: " + e.message, "err"); }
+      const failed = [];
+      for (const n of todo) {
+        setStatus("tpl-status", "Submitting the " + n + "-item photo + text slider…", "");
+        try { textMeta = (await api("/text-submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ size: n }) })).text; }
+        catch (e) { failed.push(n + " items: " + e.message); }
+      }
+      renderTextStatus();
+      setStatus("tpl-status", failed.length ? "Some failed — " + failed.join("; ") : "Submitted. Check back later with “Check approval status”.", failed.length ? "err" : "ok");
+    });
+
+    // Editable message above the catalogue photos (settings/whatsapp.intro), sent as the
+    // newest formats' body parameter. WhatsApp refuses line breaks inside it.
+    const INTRO_DEFAULT = "Fresh stock from Mumbai. Swipe through the photos and tap Enroll Now to place your order.";
+    const cleanIntro = (t) => String(t || "").replace(/[\r\n\t]+/g, " ").replace(/ {2,}/g, " ").trim();
+    function showIntro() {
+      const v = cleanIntro($("intro-text").value);
+      $("intro-preview").textContent = v || INTRO_DEFAULT;
+      $("intro-count").textContent = v.length + " / 500";
+    }
+    $("intro-text").addEventListener("input", showIntro);
+    $("intro-save").addEventListener("click", async () => {
+      const intro = cleanIntro($("intro-text").value) || INTRO_DEFAULT;
+      $("intro-text").value = intro;
+      showIntro();
+      try {
+        await db.collection("settings").doc("whatsapp").set({ intro }, { merge: true });
+        setStatus("send-status", "Message saved. It's used for the next catalogue sent.", "ok");
+      } catch (e) {
+        setStatus("send-status", "Couldn't save the message: " + e.message, "err");
+      }
+    });
+
+    // Card style switch (settings/whatsapp.cardStyle), read by the Worker for every send.
+    document.querySelectorAll('input[name="card-style"]').forEach((r) => r.addEventListener("change", async () => {
+      const style = r.value;
+      try {
+        await db.collection("settings").doc("whatsapp").set({ cardStyle: style }, { merge: true });
+        setStatus("send-status", style === "text"
+          ? "Card style: photo + text below." + (textTemplateOf(items.filter((it) => it.onWhatsApp).length) ? "" : " (Until WhatsApp approves it, the big-photo style is sent.)")
+          : "Card style: big photo.", "ok");
+      } catch (e) {
+        setStatus("send-status", "Couldn't change the card style: " + e.message, "err");
+      }
+    }));
+
+    $("submit-photo-test-btn").addEventListener("click", () => {
+      const n = items.filter((it) => it.onWhatsApp).length;
+      if (n < PICK_MIN || n > PICK_MAX) return setStatus("tpl-status", "Tick 2–10 items for WhatsApp first.", "err");
+      submitPhotoSizes([n]);
+    });
+    $("submit-photo-all-btn").addEventListener("click", () => {
+      const sizes = [];
+      for (let n = PICK_MIN; n <= PICK_MAX; n++) sizes.push(n);
+      submitPhotoSizes(sizes);
+    });
+
+    function renderProductsStatus() {
+      const box = $("tpl-products");
+      box.innerHTML = "";
+      const priced = items.filter((it) => it.onWhatsApp && typeof it.price === "number" && it.price > 0).length;
+      const status = productsMeta ? productsMeta.status : "NOT SUBMITTED";
+      const kind = status === "APPROVED" ? "ok" : status === "REJECTED" ? "err" : status === "NOT SUBMITTED" ? "" : "warn";
+      box.appendChild(el("div", {}, [
+        el("span", { className: "badge " + (catalogConnected ? "ok" : "err"), textContent: catalogConnected ? "Catalogue connected" : "Catalogue not connected yet" }),
+        " ",
+        el("span", { className: "badge" + (kind ? " " + kind : ""), textContent: "Format: " + status.toLowerCase() }),
+        " ",
+        el("span", { className: "badge" + (priced >= PICK_MIN ? " ok" : " warn"), textContent: priced + " ticked items have a price" }),
+      ]));
+      if (productsMeta && productsMeta.rejectedReason) box.appendChild(el("div", { className: "muted", textContent: "Reason: " + productsMeta.rejectedReason }));
+      $("submit-products-btn").disabled = !catalogConnected || (productsMeta && ["APPROVED", "PENDING"].includes(productsMeta.status));
+    }
+
+    $("submit-products-btn").addEventListener("click", async () => {
+      if (!confirm("Submit the product-card format to WhatsApp for approval?\n\nOne approval covers any 2–10 products; prices and photos come from your catalogue. Review usually takes a few hours.")) return;
+      $("submit-products-btn").disabled = true;
+      setStatus("tpl-status", "Submitting…", "");
+      try {
+        const { products } = await api("/products-submit", { method: "POST" });
+        productsMeta = products;
+        setStatus("tpl-status", "Submitted. Check back later with “Check approval status”.", "ok");
+      } catch (e) {
+        setStatus("tpl-status", "Submit failed: " + e.message, "err");
+      }
+      renderProductsStatus();
+    });
+
+    function describePick() {
+      const box = el("div", { className: "tpl" });
+      const grid = el("div", { className: "pick-grid" });
+      for (let n = PICK_MIN; n <= PICK_MAX; n++) {
+        const t = pickTemplate(n);
+        const status = t ? t.status : "NOT SUBMITTED";
+        const kind = status === "APPROVED" ? "ok" : status === "REJECTED" ? "err" : status === "NOT SUBMITTED" ? "" : "warn";
+        const badge = el("span", { className: "badge" + (kind ? " " + kind : ""), textContent: n + " items: " + status.toLowerCase() });
+        if (t && t.rejectedReason) badge.title = t.rejectedReason;
+        grid.appendChild(badge);
+      }
+      box.appendChild(grid);
+      return box;
+    }
+
+    function describeTemplates(group, title) {
+      const box = el("div", { className: "tpl" });
+      box.appendChild(el("div", {}, [el("strong", { textContent: title })]));
+      group.templates.forEach((t, i) => {
+        const kind = t.status === "APPROVED" ? "ok" : t.status === "REJECTED" ? "err" : "warn";
+        box.appendChild(el("div", { className: "muted" }, [
+          "Carousel " + (i + 1) + ": " + t.slugs.length + " items · ",
+          el("span", { className: "badge " + kind, textContent: t.status }),
+          t.rejectedReason ? " " + t.rejectedReason : "",
+        ]));
+      });
+      return box;
+    }
+
+    async function refreshTemplates() {
+      try {
+        const meta = await api("/catalogue-status");
+        pickMeta = meta.pick || null;
+        productsMeta = meta.products || null;
+        photoMeta = meta.photo || null;
+        textMeta = meta.text || null;
+        catalogConnected = !!meta.catalogConnected;
+        renderProductsStatus();
+        renderPhotoStatus();
+        renderTextStatus();
+        if (!meta.autoReplyReady) setStatus("auto-status", "Not active yet: the WhatsApp app secret hasn't been added to the server, so automatic replies are switched off for safety.", "err");
+        $("tpl-pick").innerHTML = "";
+        $("tpl-pick").appendChild(describePick());
+        updateWaCount();
+        $("tpl-live").innerHTML = "";
+        $("tpl-pending").innerHTML = "";
+        if (meta.live) {
+          $("tpl-live").appendChild(describeTemplates(meta.live, "Live (approved) version " + meta.live.version));
+          const n = meta.live.templates.reduce((a, t) => a + t.slugs.length, 0);
+          $("live-summary").textContent = n + " items as approved, in " + meta.live.templates.length + " message" + (meta.live.templates.length > 1 ? "s" : "") + ".";
+        } else {
+          $("live-summary").textContent = "No approved catalogue yet.";
+        }
+        if (meta.pending) $("tpl-pending").appendChild(describeTemplates(meta.pending, "Waiting for approval: version " + meta.pending.version));
+        // Full catalogue = every item with a real photo as big-photo sliders (mirrors the Worker).
+        const all = items.filter((it) => it.image && !it.placeholder).length;
+        const split = all <= 10 ? [all] : (all - 10 < 2 ? [all - 2, 2] : [10, all - 10]);
+        if (all >= PICK_MIN && split.every((n) => { const t = photoTemplate(n); return t && t.status === "APPROVED"; })) {
+          $("live-summary").textContent = "all " + all + " items with photos as big-photo sliders (" + split.join(" + ") + (split.length > 1 ? ", two messages" : "") + ").";
+        }
+        return meta;
+      } catch (e) {
+        setStatus("tpl-status", "Couldn't load approval status: " + e.message, "err");
+      }
+    }
+
+    $("status-btn").addEventListener("click", async () => {
+      setStatus("tpl-status", "Checking with WhatsApp…", "");
+      const meta = await refreshTemplates();
+      if (meta) setStatus("tpl-status", meta.pending ? "Still in review." : "Up to date.", "ok");
+    });
+
+    // One template per item count; the Worker skips counts already approved or in review.
+    $("submit-pick-btn").addEventListener("click", async () => {
+      const todo = [];
+      for (let n = PICK_MIN; n <= PICK_MAX; n++) {
+        const t = pickTemplate(n);
+        if (!t || !["APPROVED", "PENDING", "IN_APPEAL"].includes(t.status)) todo.push(n);
+      }
+      if (!todo.length) return setStatus("tpl-status", "All ticked-items formats are already approved or in review.", "ok");
+      if (items.filter((it) => it.image).length < PICK_MAX) return setStatus("tpl-status", "Upload photos for at least " + PICK_MAX + " items first (WhatsApp needs sample photos).", "err");
+      if (!confirm("Submit " + todo.length + " ticked-items format(s) (" + todo.join(", ") + " items) to WhatsApp for approval?\n\nThis is a one-time setup. Review usually takes a few hours.")) return;
+      const btn = $("submit-pick-btn");
+      btn.disabled = true;
+      const failed = [];
+      for (const n of todo) {
+        setStatus("tpl-status", "Submitting the " + n + "-item format…", "");
+        try {
+          const { pick } = await api("/pick-submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ size: n }) });
+          pickMeta = pick;
+        } catch (e) {
+          failed.push(n + " items: " + e.message);
+        }
+      }
+      await refreshTemplates();
+      btn.disabled = false;
+      setStatus("tpl-status", failed.length ? "Some failed — " + failed.join("; ") : "Submitted. Check back later with “Check approval status”.", failed.length ? "err" : "ok");
+    });
+
+    $("submit-cat-btn").addEventListener("click", async () => {
+      if (dirty) return setStatus("tpl-status", "Save your catalogue changes first.", "err");
+      const missing = items.filter((it) => !it.image).map((it) => it.name);
+      if (missing.length) return setStatus("tpl-status", "Add photos first: " + missing.join(", "), "err");
+      const placeholders = items.filter((it) => it.placeholder).map((it) => it.name);
+      const msg = "Submit all " + items.length + " items to WhatsApp for approval?" +
+        (placeholders.length ? "\n\nThese still use placeholder name tiles instead of real photos: " + placeholders.join(", ") + "." : "") +
+        "\n\nReview usually takes a few hours. The current approved catalogue keeps being used until then.";
+      if (!confirm(msg)) return;
+      $("submit-cat-btn").disabled = true;
+      setStatus("tpl-status", "Submitting… (uploading " + items.length + " photos to WhatsApp)", "");
+      try {
+        await api("/catalogue-submit", { method: "POST" });
+        await refreshTemplates();
+        setStatus("tpl-status", "Submitted. Check back later with “Check approval status”.", "ok");
+      } catch (e) {
+        setStatus("tpl-status", "Submit failed: " + e.message, "err");
+      } finally {
+        $("submit-cat-btn").disabled = false;
+      }
+    });
+
+    // ---------- Send ----------
+    $("send-btn").addEventListener("click", async () => {
+      const targets = tickedCustomers();
+      if (!targets.length) return setStatus("send-status", "No customers are ticked. Tick who should get the catalogue in Customers below.", "err");
+      const recent = targets.filter((c) => {
+        const d = deliveryFor(c.phone);
+        return d && Date.now() - new Date(d.timestamp).getTime() < 24 * 3600 * 1000;
+      });
+      const warn = recent.length
+        ? "\n\n" + recent.length + " customer(s) already got the catalogue in the last 24 hours. WhatsApp usually refuses repeat marketing messages that soon, so it may not be delivered to them."
+        : "";
+      const mode = (document.querySelector('input[name="send-mode"]:checked') || {}).value || "pick";
+      if (mode === "pick" && dirty) return setStatus("send-status", "Save your catalogue changes first, so WhatsApp gets what you see.", "err");
+      const pickCount = items.filter((it) => it.onWhatsApp).length;
+      if (mode === "pick" && (pickCount < PICK_MIN || pickCount > PICK_MAX)) return setStatus("send-status", "Tick " + PICK_MIN + "–" + PICK_MAX + " catalogue items with “Send on WhatsApp” first (" + pickCount + " ticked now).", "err");
+      const what = mode === "pick"
+        ? "the " + items.filter((it) => it.onWhatsApp).length + " ticked items"
+        : "the full approved catalogue";
+      const who = targets.length === customers.length ? "all " + targets.length + " customers" : targets.length + " ticked customer(s) (" + targets.map((c) => c.name || c.phone).join(", ") + ")";
+      if (!confirm("Send " + what + " to " + who + " now?" + warn)) return;
+      const btn = $("send-btn");
+      btn.disabled = true;
+      let offset = 0, sent = 0, failed = 0, total = 0;
+      const failures = [];
+      try {
+        do {
+          setStatus("send-status", total ? "Sending… " + (sent + failed) + " of " + total : "Sending…", "");
+          const data = await api("/send-catalogue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ offset, mode }) });
+          total = data.total;
+          data.results.forEach((r) => (r.ok ? sent++ : (failed++, failures.push(r.to + ": " + r.error))));
+          offset = data.nextOffset;
+        } while (offset !== null && offset !== undefined);
+        setStatus("send-status", "WhatsApp accepted it for " + sent + " customer(s)" + (failed ? ", " + failed + " failed — " + failures.slice(0, 3).join("; ") : "") +
+          ". Whether each one was actually delivered shows under Last catalogue in Customers within a few seconds.", failed ? "err" : "ok");
+      } catch (e) {
+        setStatus("send-status", "Error: " + e.message + (sent ? " (sent to " + sent + " before stopping)" : ""), "err");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // ---------- Customers + inbox ----------
+    // Meta accepting a send doesn't mean it arrived: delivery reports come back later
+    // through the webhook into whatsapp_status_log. Show the latest one per customer.
+    let customers = [];          // [{id, name, phone}]
+    let latestStatus = {};       // last 10 digits of phone -> newest status-log entry
+    let statusUnsub = null;
+
+    const STATUS_RANK = { failed: 0, sent: 1, delivered: 2, read: 3 };
+    const ERROR_TEXT = {
+      131049: "WhatsApp held it back — it limits how many marketing messages one person gets. Try again in a day or two.",
+      131026: "Couldn't reach this number — it may not be on WhatsApp.",
+      131050: "This customer has turned off marketing messages from businesses.",
+      131047: "More than 24 hours since this customer last messaged.",
+    };
+    const phoneKey = (p) => String(p || "").replace(/\D/g, "").slice(-10);
+    function deliveryFor(phone) { return latestStatus[phoneKey(phone)] || null; }
+
+    function describeDelivery(d) {
+      if (!d) return { text: "Not sent yet", cls: "" };
+      const when = new Date(d.timestamp).toLocaleString([], { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+      if (d.status === "failed") {
+        const e = (d.errors || [])[0] || {};
+        return { text: "Not delivered · " + when, cls: "err", detail: ERROR_TEXT[e.code] || e.title || "Unknown reason" };
+      }
+      const label = { read: "Read", delivered: "Delivered", sent: "Sent" }[d.status] || d.status;
+      return { text: label + " · " + when, cls: d.status === "sent" ? "warn" : "ok" };
+    }
+
+    // rows: status-log entries, newest first. A catalogue is 1–2 messages, each reporting
+    // sent → delivered → read (or failed). Look only at the newest send (entries within a
+    // minute of the latest), take each message's furthest status, then the worst message,
+    // so a failed second carousel isn't hidden behind a delivered first one.
+    function summarizeStatuses(rows) {
+      const rank = (s) => (s.status === "failed" ? -1 : STATUS_RANK[s.status] ?? 0);
+      const byPhone = {};
+      rows.forEach((s) => { const k = phoneKey(s.recipient); (byPhone[k] = byPhone[k] || []).push(s); });
+      const out = {};
+      for (const k in byPhone) {
+        const list = byPhone[k];
+        const newest = new Date(list[0].timestamp).getTime();
+        const perMessage = {};
+        list.filter((s) => newest - new Date(s.timestamp).getTime() < 60 * 1000).forEach((s) => {
+          const prev = perMessage[s.waMessageId];
+          if (!prev || prev.status !== "failed" && (s.status === "failed" || rank(s) > rank(prev))) perMessage[s.waMessageId] = s;
+        });
+        const worst = Object.values(perMessage).sort((a, b) => rank(a) - rank(b))[0];
+        out[k] = { ...worst, timestamp: list[0].timestamp };
+      }
+      return out;
+    }
+
+    // A customer's last message to us opens a 24-hour window in which catalogues aren't
+    // held back by WhatsApp's per-person marketing limit.
+    let lastInbound = {}; // last 10 digits of phone -> ISO time of their latest message
+    function chatOpenHours(phone) {
+      const t = lastInbound[phoneKey(phone)];
+      if (!t) return 0;
+      const left = 24 - (Date.now() - new Date(t).getTime()) / 3600000;
+      return left > 0 ? Math.ceil(left) : 0;
+    }
+
+    // Customers without the field (added before ticking existed) count as ticked.
+    const isTicked = (c) => c.send !== false && !c.unsubscribed;
+    const tickedCustomers = () => customers.filter(isTicked);
+
+    function setCustomerSend(c, on) {
+      return db.collection("whatsapp_customers").doc(c.id).update({ send: on })
+        .catch((e) => setStatus("send-status", "Couldn't update " + (c.name || c.phone) + ": " + e.message, "err"));
+    }
+
+    function renderCustomers() {
+      const body = $("customers-body");
+      body.innerHTML = "";
+      const active = customers.filter((c) => !c.unsubscribed);
+      $("cust-count").textContent = tickedCustomers().length + " of " + active.length + " ticked";
+      renderUnsubscribed();
+      active.forEach((c) => {
+        const del = el("button", { className: "btn secondary small", textContent: "Remove" });
+        del.setAttribute("aria-label", "Remove " + (c.name || c.phone));
+        del.addEventListener("click", () => {
+          if (confirm("Remove " + (c.name || c.phone) + " from the customer list?")) db.collection("whatsapp_customers").doc(c.id).delete();
+        });
+        const tick = el("input", { type: "checkbox", className: "cust-send", checked: isTicked(c) });
+        tick.setAttribute("aria-label", "Send the catalogue to " + (c.name || c.phone));
+        tick.addEventListener("change", () => setCustomerSend(c, tick.checked));
+        const d = describeDelivery(deliveryFor(c.phone));
+        const cell = el("td", {}, [el("span", { className: "badge" + (d.cls ? " " + d.cls : ""), textContent: d.text })]);
+        const open = chatOpenHours(c.phone);
+        if (open) cell.insertBefore(el("span", { className: "badge ok", textContent: "Chat open · " + open + "h left", style: "margin-right:6px;", title: "They messaged you recently, so a catalogue sent now gets through." }), cell.firstChild);
+        if (d.detail) cell.appendChild(el("div", { className: "muted", textContent: d.detail, style: "margin-top:4px;" }));
+        body.appendChild(el("tr", { className: isTicked(c) ? "" : "cust-off" }, [
+          el("td", {}, [tick]),
+          el("td", { textContent: c.name || "(no name)" }),
+          el("td", { textContent: c.phone || "" }),
+          cell,
+          el("td", {}, [del]),
+        ]));
+      });
+    }
+
+    // Report: everyone who opted out (whatsapp_customers.unsubscribed, set by the Worker).
+    function renderUnsubscribed() {
+      const list = customers.filter((c) => c.unsubscribed).sort((a, b) => String(b.unsubscribedAt || "").localeCompare(String(a.unsubscribedAt || "")));
+      const body = $("unsub-body");
+      body.innerHTML = "";
+      $("unsub-count").textContent = list.length;
+      if (!list.length) body.appendChild(el("tr", {}, [el("td", { colSpan: 4, className: "muted", textContent: "No one has unsubscribed." })]));
+      list.forEach((c) => {
+        const when = c.unsubscribedAt ? new Date(c.unsubscribedAt).toLocaleString([], { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+        body.appendChild(el("tr", {}, [
+          el("td", { textContent: c.name || "(no name)" }),
+          el("td", { textContent: c.phone || "" }),
+          el("td", { textContent: when }),
+          el("td", { textContent: c.unsubscribedVia === "whatsapp-setting" ? "WhatsApp setting" : "Replied STOP" }),
+        ]));
+      });
+    }
+    $("unsub-csv").addEventListener("click", () => {
+      const q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+      const rows = [["Name", "Phone", "Unsubscribed at", "How"]].concat(customers.filter((c) => c.unsubscribed)
+        .map((c) => [c.name || "", c.phone || "", c.unsubscribedAt || "", c.unsubscribedVia === "whatsapp-setting" ? "WhatsApp setting" : "Replied STOP"]));
+      const blob = new Blob([rows.map((r) => r.map(q).join(",")).join("\r\n")], { type: "text/csv" });
+      const a = el("a", { href: URL.createObjectURL(blob), download: "sharhan-unsubscribed.csv" });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    function startListeners() {
+      customersUnsub = db.collection("whatsapp_customers").orderBy("name").onSnapshot((snap) => {
+        customers = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        renderCustomers();
+      });
+
+      statusUnsub = db.collection("whatsapp_status_log").orderBy("timestamp", "desc").limit(300).onSnapshot((snap) => {
+        latestStatus = summarizeStatuses(snap.docs.map((doc) => doc.data()));
+        renderCustomers();
+      });
+
+      inboxUnsub = db.collection("whatsapp_inbox").orderBy("timestamp", "desc").limit(100).onSnapshot((snap) => {
+        lastInbound = {};
+        snap.forEach((doc) => {
+          const m = doc.data();
+          const k = phoneKey(m.from);
+          if (k && !lastInbound[k]) lastInbound[k] = m.timestamp; // newest first
+        });
+        renderCustomers();
+        const list = $("inbox-list");
+        list.innerHTML = "";
+        $("inbox-count").textContent = snap.size;
+        if (snap.empty) { list.appendChild(el("p", { className: "muted", textContent: "No replies yet." })); return; }
+        snap.forEach((doc) => {
+          const m = doc.data();
+          list.appendChild(el("div", { className: "inbox-item" }, [
+            el("div", { className: "who", textContent: (m.name || m.from || "Unknown") + " — " + (m.from || "") }),
+            el("div", { className: "when", textContent: m.timestamp ? new Date(m.timestamp).toLocaleString() : "" }),
+            el("div", { className: "text", textContent: m.text || "[" + (m.type || "message") + "]" }),
+          ]));
+        });
+      });
+    }
+
+    // ---------- Order recipients (site_content/orders, read by the website's order form) ----------
+    const RECIP_DEFAULT = { whatsapp: ["919820132880"], emails: ["sharhanbroilers@gmail.com"] };
+    // "98201 32880" or "+91 98201-32880" → "919820132880"; 10-digit numbers get India's 91.
+    const normPhone = (v) => { const d = String(v || "").replace(/\D/g, ""); return d.length === 10 ? "91" + d : d; };
+    const showPhone = (d) => (d && d.length === 12 && d.startsWith("91") ? d.slice(2) : d || "");
+
+    async function loadRecipients() {
+      let r = RECIP_DEFAULT;
+      try { const s = await db.collection("site_content").doc("orders").get(); if (s.exists) r = { ...RECIP_DEFAULT, ...s.data() }; } catch (e) { /* keep defaults */ }
+      $("recip-wa1").value = showPhone((r.whatsapp || [])[0]);
+      $("recip-wa2").value = showPhone((r.whatsapp || [])[1]);
+      $("recip-em1").value = (r.emails || [])[0] || "";
+      $("recip-em2").value = (r.emails || [])[1] || "";
+    }
+
+    $("recip-save").addEventListener("click", async () => {
+      const phones = [$("recip-wa1").value, $("recip-wa2").value].map(normPhone);
+      const emails = [$("recip-em1").value, $("recip-em2").value].map((e) => e.trim());
+      if (phones[0].length < 11 || phones[0].length > 15) return setStatus("recip-status", "WhatsApp number 1 doesn't look right (10-digit mobile, or with country code).", "err");
+      if (phones[1] && (phones[1].length < 11 || phones[1].length > 15)) return setStatus("recip-status", "WhatsApp number 2 doesn't look right.", "err");
+      const emailOk = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+      if (!emailOk(emails[0])) return setStatus("recip-status", "Email 1 doesn't look right.", "err");
+      if (emails[1] && !emailOk(emails[1])) return setStatus("recip-status", "Email 2 doesn't look right.", "err");
+      $("recip-save").disabled = true;
+      try {
+        await db.collection("site_content").doc("orders").set({ whatsapp: phones.filter(Boolean), emails: emails.filter(Boolean), updatedAt: new Date().toISOString() });
+        setStatus("recip-status", "Saved. The order form uses these from the next page load.", "ok");
+        loadRecipients();
+      } catch (e) {
+        setStatus("recip-status", "Couldn't save: " + e.message, "err");
+      } finally {
+        $("recip-save").disabled = false;
+      }
+    });
+
+    // ---------- Order form products (site_content/form, read by the website's order form) ----------
+    const FORM_DEFAULT = ["Live Broiler", "Whole Chicken", "Chicken Tandoori", "Breast Boneless", "Leg Boneless", "Curry Cut", "Chicken Wings", "Drumstick", "Thigh Boneless", "Boneless Trimming", "Chicken Keema", "Soup Piece", "Chicken Liver", "Gizzard", "Chicken Skin"]
+      .map((name) => ({ name, hi: "", mr: "", fresh: true, frozen: true }));
+    let formItems = [];
+
+    function renderFormItems() {
+      const body = $("fi-rows");
+      body.innerHTML = "";
+      formItems.forEach((it, i) => {
+        const text = (key, ph) => {
+          const inp = el("input", { type: "text", value: it[key] || "", placeholder: ph });
+          inp.addEventListener("input", () => { it[key] = inp.value; });
+          return el("td", {}, [inp]);
+        };
+        const tick = (key) => {
+          const inp = el("input", { type: "checkbox", checked: it[key] !== false });
+          inp.setAttribute("aria-label", (key === "fresh" ? "Fresh: " : "Frozen: ") + (it.name || "new product"));
+          inp.addEventListener("change", () => { it[key] = inp.checked; });
+          return el("td", { className: "fi-tick" }, [inp]);
+        };
+        const btn = (label, title, disabled, fn) => {
+          const b = el("button", { type: "button", textContent: label, title, disabled });
+          b.setAttribute("aria-label", title);
+          b.addEventListener("click", fn);
+          return b;
+        };
+        const move = (d) => () => { const t = formItems[i]; formItems[i] = formItems[i + d]; formItems[i + d] = t; renderFormItems(); };
+        body.appendChild(el("tr", {}, [
+          text("name", "Product name"), text("hi", "हिंदी नाम"), text("mr", "मराठी नाव"), tick("fresh"), tick("frozen"),
+          el("td", { className: "fi-actions" }, [
+            btn("↑", "Move up", i === 0, move(-1)),
+            btn("↓", "Move down", i === formItems.length - 1, move(1)),
+            btn("✕", "Remove " + (it.name || "this product"), false, () => { formItems.splice(i, 1); renderFormItems(); }),
+          ]),
+        ]));
+      });
+      $("formitems-count").textContent = formItems.length;
+    }
+
+    async function loadFormItems() {
+      let items = null;
+      try { const s = await db.collection("site_content").doc("form").get(); if (s.exists) items = s.data().items; } catch (e) { /* use defaults */ }
+      formItems = (Array.isArray(items) && items.length ? items : FORM_DEFAULT).map((i) => ({ name: i.name || "", hi: i.hi || "", mr: i.mr || "", fresh: i.fresh !== false, frozen: i.frozen !== false }));
+      renderFormItems();
+    }
+
+    $("fi-add").addEventListener("click", () => {
+      formItems.push({ name: "", hi: "", mr: "", fresh: true, frozen: true });
+      renderFormItems();
+      const inputs = $("fi-rows").querySelectorAll("tr:last-child input[type=text]");
+      if (inputs[0]) inputs[0].focus();
+    });
+
+    $("fi-save").addEventListener("click", async () => {
+      const clean = (t) => String(t || "").replace(/["<>\\]/g, "").trim();
+      const items = formItems.map((i) => ({ name: clean(i.name), hi: clean(i.hi), mr: clean(i.mr), fresh: !!i.fresh, frozen: !!i.frozen })).filter((i) => i.name);
+      const seen = new Set();
+      for (const i of items) {
+        const k = i.name.toLowerCase();
+        if (seen.has(k)) return setStatus("fi-status", "\"" + i.name + "\" is listed twice.", "err");
+        seen.add(k);
+        if (!i.fresh && !i.frozen) return setStatus("fi-status", "Tick Fresh or Frozen (or both) for \"" + i.name + "\", or remove it.", "err");
+      }
+      if (!items.length) return setStatus("fi-status", "Add at least one product.", "err");
+      $("fi-save").disabled = true;
+      try {
+        await db.collection("site_content").doc("form").set({ items, updatedAt: new Date().toISOString() });
+        setStatus("fi-status", "Saved " + items.length + " products. The order form shows them from the next page load.", "ok");
+        loadFormItems();
+      } catch (e) {
+        setStatus("fi-status", "Couldn't save: " + e.message, "err");
+      } finally {
+        $("fi-save").disabled = false;
+      }
+    });
+
+    // ---------- Payments: bank QR / UPI / account (site_content/payment, public) ----------
+    const PAY_FIELDS = ["upi", "name", "bank", "account", "ifsc", "note"];
+    let payQr = "";
+    function showPayQr() {
+      $("pay-qr-img").style.display = payQr ? "" : "none";
+      if (payQr) $("pay-qr-img").src = payQr;
+      $("pay-qr-empty").style.display = payQr ? "none" : "";
+      $("pay-qr-remove").style.display = payQr ? "" : "none";
+    }
+    async function loadPayments() {
+      let p = {};
+      try { const s = await db.collection("site_content").doc("payment").get(); if (s.exists) p = s.data(); } catch (e) { /* empty form */ }
+      PAY_FIELDS.forEach((k) => { $("pay-" + k).value = p[k] || ""; });
+      $("pay-show-form").checked = p.showForm !== false;
+      $("pay-show-site").checked = p.showSite !== false;
+      payQr = p.qr || "";
+      showPayQr();
+    }
+    $("pay-qr-file").addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!file) return;
+      setStatus("pay-status", "Uploading the QR photo…");
+      try {
+        // Up to 1000 px on the long side keeps the QR crisp and the file small.
+        const blob = await toJpeg(file, (w, h) => {
+          const k = Math.min(1, 1000 / Math.max(w, h));
+          return { w: Math.round(w * k), h: Math.round(h * k), sx: 0, sy: 0, sw: w, sh: h };
+        });
+        const { url } = await api("/catalogue-image/site-qr", { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: blob });
+        payQr = url;
+        showPayQr();
+        setStatus("pay-status", "QR uploaded. Press Save payment details to publish it.", "ok");
+      } catch (err) {
+        setStatus("pay-status", "Upload failed: " + err.message, "err");
+      }
+    });
+    $("pay-qr-remove").addEventListener("click", () => { payQr = ""; showPayQr(); setStatus("pay-status", "QR removed. Press Save payment details to publish."); });
+    $("pay-save").addEventListener("click", async () => {
+      const doc = { qr: payQr, showForm: $("pay-show-form").checked, showSite: $("pay-show-site").checked, updatedAt: new Date().toISOString() };
+      PAY_FIELDS.forEach((k) => { doc[k] = $("pay-" + k).value.trim(); });
+      doc.ifsc = doc.ifsc.toUpperCase();
+      if (doc.upi && !/^[\w.-]{2,}@[a-zA-Z][\w.-]*$/.test(doc.upi)) return setStatus("pay-status", "The UPI ID doesn't look right (it looks like name@bank).", "err");
+      if (doc.ifsc && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(doc.ifsc)) return setStatus("pay-status", "The IFSC doesn't look right (11 characters, e.g. HDFC0001234).", "err");
+      $("pay-save").disabled = true;
+      try {
+        await db.collection("site_content").doc("payment").set(doc);
+        setStatus("pay-status", "Saved. The form and website show it from the next page load.", "ok");
+      } catch (e) {
+        setStatus("pay-status", "Couldn't save: " + e.message, "err");
+      } finally {
+        $("pay-save").disabled = false;
+      }
+    });
+
+    // ---------- Credit applications (credit_applications/{mobile}, KYC photos in the Worker's KV) ----------
+    const KYC_LABELS = { aadhaar_front: "Aadhaar (front)", aadhaar_back: "Aadhaar (back)", pan: "PAN card", business: "Business document" };
+    let cappUnsub = null, capps = [];
+    const cappShown = {}; // mobile -> object URLs of loaded photos
+    function startCreditApps() {
+      if (cappUnsub) cappUnsub();
+      cappUnsub = db.collection("credit_applications").orderBy("submittedAt", "desc").limit(60).onSnapshot((snap) => {
+        capps = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderCreditApps();
+      }, (e) => { $("capp-list").textContent = "Couldn't load applications: " + e.message; });
+    }
+    async function kycPhoto(mobile, slot) {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(WORKER_BASE + "/kyc/" + mobile + "/" + slot, { headers: { Authorization: "Bearer " + token } });
+      if (!res.ok) throw new Error("photo not found");
+      return URL.createObjectURL(await res.blob());
+    }
+    function renderCreditApps() {
+      const box = $("capp-list");
+      box.innerHTML = "";
+      const waiting = capps.filter((a) => a.status === "pending").length;
+      $("capp-count").textContent = waiting + " waiting";
+      if (!capps.length) { box.appendChild(el("p", { className: "muted", textContent: "No applications yet." })); return; }
+      capps.forEach((a) => {
+        const when = a.submittedAt ? new Date(a.submittedAt).toLocaleString([], { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+        const label = a.status === "approved" ? "Approved" : a.status === "rejected" ? "Rejected" : "Waiting for check";
+        const kind = a.status === "approved" ? "ok" : a.status === "rejected" ? "err" : "warn";
+        const card = el("div", { className: "capp" + (a.status === "pending" ? " capp-pending" : "") }, [
+          el("div", { className: "capp-head" }, [
+            el("strong", { textContent: (a.name || "(no name)") + " · " + a.mobile }),
+            el("span", { className: "badge " + kind, textContent: label }),
+          ]),
+          el("div", { className: "muted", textContent: [a.owner && "Owner: " + a.owner, a.contact && "Contact: " + a.contact, a.location && "Location: " + a.location, "Sent " + when, a.reapplied ? "re-applied" : ""].filter(Boolean).join(" · ") }),
+        ]);
+        if (a.status === "rejected" && a.rejectReason) card.appendChild(el("div", { className: "muted", textContent: "Reason: " + a.rejectReason }));
+        if (a.decidedBy) card.appendChild(el("div", { className: "muted", textContent: label + " by " + a.decidedBy + (a.decidedAt ? " on " + new Date(a.decidedAt).toLocaleDateString() : "") }));
+        const docs = el("div", { className: "capp-docs" });
+        const docList = Array.isArray(a.docs) ? a.docs : [];
+        if (!docList.length) docs.appendChild(el("span", { className: "muted", textContent: a.docsDeletedAt ? "Photos deleted on " + new Date(a.docsDeletedAt).toLocaleDateString() + "." : "No photos." }));
+        const shown = cappShown[a.mobile];
+        if (docList.length && !shown) docs.appendChild(el("span", { className: "muted", textContent: "Uploaded: " + docList.map((d) => KYC_LABELS[d] || d).join(", ") + "." }));
+        if (shown) docList.forEach((slot) => {
+          const img = el("img", { alt: KYC_LABELS[slot] || slot, src: shown[slot], title: "Open full size" });
+          img.addEventListener("click", () => window.open(shown[slot], "_blank"));
+          docs.appendChild(el("figure", {}, [img, el("figcaption", { textContent: KYC_LABELS[slot] || slot })]));
+        });
+        card.appendChild(docs);
+        const actions = el("div", { className: "row-form" });
+        const button = (text, cls, fn) => { const b = el("button", { type: "button", className: "btn small " + cls, textContent: text }); b.addEventListener("click", () => fn(b)); actions.appendChild(b); return b; };
+        if (docList.length && !shown) button("View documents", "secondary", async (b) => {
+          b.disabled = true; b.textContent = "Loading…";
+          try {
+            const urls = {};
+            for (const slot of docList) urls[slot] = await kycPhoto(a.mobile, slot);
+            cappShown[a.mobile] = urls;
+            renderCreditApps();
+          } catch (e) { b.disabled = false; b.textContent = "View documents"; setStatus("credit-status", "Couldn't load the photos: " + e.message, "err"); }
+        });
+        if (a.status !== "approved") button("Approve credit", "", () => decideCredit(a, "approved"));
+        if (a.status === "pending") button("Reject", "secondary", () => decideCredit(a, "rejected"));
+        if (docList.length) button("Delete photos", "secondary", async (b) => {
+          if (!confirm("Permanently delete the document photos of " + (a.name || a.mobile) + "? The application and decision stay in the list.")) return;
+          b.disabled = true;
+          try { await api("/kyc-delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mobile: a.mobile }) }); delete cappShown[a.mobile]; }
+          catch (e) { b.disabled = false; setStatus("credit-status", "Couldn't delete the photos: " + e.message, "err"); }
+        });
+        const msg = a.status === "approved" ? "Your credit account with Sharhan Broilers is approved. You can now choose 1-3 Days (credit) in the order form."
+          : a.status === "rejected" ? "About your credit application with Sharhan Broilers: we couldn't approve it this time." + (a.rejectReason ? " Reason: " + a.rejectReason : "") : "";
+        if (msg) actions.appendChild(el("a", { className: "btn small secondary", href: "https://wa.me/91" + a.mobile + "?text=" + encodeURIComponent(msg), target: "_blank", rel: "noopener", textContent: "Tell customer on WhatsApp" }));
+        card.appendChild(actions);
+        box.appendChild(card);
+      });
+    }
+    async function decideCredit(a, status) {
+      let reason = "";
+      if (status === "rejected") {
+        reason = prompt("Reason for rejecting (the customer can see it if you message them):", "");
+        if (reason === null) return;
+      } else if (!confirm("Approve credit (1-3 days) for " + (a.name || a.mobile) + " · " + a.mobile + "?")) return;
+      try {
+        if (status === "approved" && !creditList.some((c) => c.mobile === a.mobile)) {
+          creditList.push({ name: a.name || "", mobile: a.mobile });
+          await db.collection("settings").doc("credit").set({ customers: creditList, updatedAt: new Date().toISOString() });
+          renderCredit();
+        }
+        await db.collection("credit_applications").doc(a.id).update({ status, rejectReason: reason.trim(), decidedBy: auth.currentUser.email, decidedAt: new Date().toISOString() });
+        setStatus("credit-status", status === "approved" ? (a.name || a.mobile) + " approved for credit — the order form allows it within a minute." : "Application rejected.", "ok");
+      } catch (e) {
+        setStatus("credit-status", "Couldn't save the decision: " + e.message, "err");
+      }
+    }
+
+    // ---------- Credit-approved customers (settings/credit, private; the Worker answers yes/no) ----------
+    let creditList = [];
+    function renderCredit() {
+      const body = $("credit-rows");
+      body.innerHTML = "";
+      if (!creditList.length) body.appendChild(el("tr", {}, [el("td", { colSpan: 3, className: "muted", textContent: "No one yet: credit is closed for everyone." })]));
+      creditList.forEach((c, i) => {
+        const rm = el("button", { type: "button", className: "btn secondary small", textContent: "Remove" });
+        rm.addEventListener("click", () => { creditList.splice(i, 1); renderCredit(); setStatus("credit-status", "Removed. Press Save credit list to apply."); });
+        body.appendChild(el("tr", {}, [el("td", { textContent: c.name || "—" }), el("td", { textContent: c.mobile }), el("td", {}, [rm])]));
+      });
+      $("credit-count").textContent = creditList.length;
+    }
+    async function loadCredit() {
+      let list = [];
+      try { const s = await db.collection("settings").doc("credit").get(); if (s.exists) list = s.data().customers || []; } catch (e) { /* empty */ }
+      creditList = list.map((c) => ({ name: c.name || "", mobile: c.mobile || "" }));
+      renderCredit();
+    }
+    $("credit-add").addEventListener("click", () => {
+      const mobile = $("credit-mobile").value.replace(/\D/g, "").slice(-10);
+      const name = $("credit-name").value.trim();
+      if (mobile.length !== 10) return setStatus("credit-status", "Enter a 10-digit mobile number.", "err");
+      if (creditList.some((c) => c.mobile === mobile)) return setStatus("credit-status", mobile + " is already on the list.", "err");
+      creditList.push({ name, mobile });
+      $("credit-name").value = ""; $("credit-mobile").value = "";
+      renderCredit();
+      setStatus("credit-status", "Added. Press Save credit list to apply.");
+    });
+    $("credit-save").addEventListener("click", async () => {
+      $("credit-save").disabled = true;
+      try {
+        await db.collection("settings").doc("credit").set({ customers: creditList, updatedAt: new Date().toISOString() });
+        setStatus("credit-status", "Saved. The order form checks this list within a minute.", "ok");
+      } catch (e) {
+        setStatus("credit-status", "Couldn't save: " + e.message, "err");
+      } finally {
+        $("credit-save").disabled = false;
+      }
+    });
+
+    // ---------- Catalogue on request (auto-reply) ----------
+    const BUSINESS_WA = "918369578332";
+    const AUTO_LINK = "https://wa.me/" + BUSINESS_WA + "?text=" + encodeURIComponent("Catalogue");
+    let autoUnsub = null;
+
+    function drawQr() {
+      if (typeof qrcode !== "function") return;
+      const qr = qrcode(0, "M");
+      qr.addData(AUTO_LINK);
+      qr.make();
+      const n = qr.getModuleCount(), cell = 10, margin = 4 * cell;
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = n * cell + margin * 2;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#1c1c22";
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) ctx.fillRect(margin + c * cell, margin + r * cell, cell, cell);
+      const png = canvas.toDataURL("image/png");
+      $("auto-qr").style.backgroundImage = "url('" + png + "')";
+      $("auto-qr-download").href = png;
+    }
+    $("auto-link").value = AUTO_LINK;
+    drawQr();
+    $("auto-copy").addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(AUTO_LINK); setStatus("auto-status", "Link copied.", "ok"); }
+      catch (e) { $("auto-link").select(); setStatus("auto-status", "Press Ctrl+C to copy the selected link.", ""); }
+    });
+
+    $("auto-reply-on").addEventListener("change", async () => {
+      const on = $("auto-reply-on").checked;
+      try {
+        await db.collection("settings").doc("whatsapp").set({ autoReply: on }, { merge: true });
+        setStatus("auto-status", on ? "Auto-reply turned on." : "Auto-reply turned off.", "ok");
+      } catch (e) {
+        $("auto-reply-on").checked = !on;
+        setStatus("auto-status", "Couldn't change it: " + e.message, "err");
+      }
+    });
+
+    function startAutoReplyListeners() {
+      db.collection("settings").doc("whatsapp").get()
+        .then((d) => {
+          $("auto-reply-on").checked = !(d.exists && d.data().autoReply === false);
+          const style = d.exists && d.data().cardStyle === "text" ? "text" : "photo";
+          $("intro-text").value = (d.exists && d.data().intro) || INTRO_DEFAULT;
+          showIntro();
+          const radio = document.querySelector('input[name="card-style"][value="' + style + '"]');
+          if (radio) radio.checked = true;
+        })
+        .catch(() => { $("auto-reply-on").checked = true; });
+      autoUnsub = db.collection("whatsapp_autoreply").orderBy("lastSentAt", "desc").limit(8).onSnapshot((snap) => {
+        const box = $("auto-recent");
+        box.innerHTML = "";
+        if (snap.empty) { box.textContent = "None yet."; return; }
+        snap.forEach((doc) => {
+          const a = doc.data();
+          const when = new Date(a.lastSentAt).toLocaleString([], { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+          box.appendChild(el("div", { className: "auto-row" }, [
+            el("span", { className: "badge " + (a.ok ? "ok" : "err"), textContent: a.ok ? "Sent" : "Not sent" }),
+            " " + (a.name || a.phone) + " · " + a.phone + " · " + when + " · said “" + (a.trigger || "") + "”",
+            a.error ? el("div", { textContent: a.error, style: "color:var(--err);margin-top:2px;" }) : "",
+          ]));
+        });
+      });
+    }
+
+    async function setAllCustomers(on) {
+      const batch = db.batch();
+      customers.filter((c) => !c.unsubscribed && isTicked(c) !== on).forEach((c) => batch.update(db.collection("whatsapp_customers").doc(c.id), { send: on }));
+      try { await batch.commit(); } catch (e) { setStatus("send-status", "Couldn't update customers: " + e.message, "err"); }
+    }
+    $("cust-all").addEventListener("click", () => setAllCustomers(true));
+    $("cust-none").addEventListener("click", () => setAllCustomers(false));
+
+    $("add-customer-btn").addEventListener("click", async () => {
+      const name = $("new-name").value.trim();
+      const phone = $("new-phone").value.replace(/\D/g, "");
+      if (!phone) return;
+      const same = customers.find((c) => String(c.phone || "").replace(/\D/g, "").slice(-10) === phone.slice(-10));
+      if (same && same.unsubscribed) return setStatus("cust-status", (same.name || same.phone) + " unsubscribed (replied STOP), so they can't be added back. They can send START to your WhatsApp to rejoin.", "err");
+      if (same) return setStatus("cust-status", phone + " is already on the list" + (same.name ? " as " + same.name : "") + ".", "err");
+      setStatus("cust-status", "");
+      await db.collection("whatsapp_customers").add({ name, phone, send: true, addedAt: new Date().toISOString() });
+      $("new-name").value = "";
+      $("new-phone").value = "";
+    });
+  </script>
 </body>
+
 </html>

@@ -12,3 +12,14 @@ _backup/
 tools/.fonts/
 
 tools/.seed/
+
+# Cloudflare Pages build output (tools/build_public.py)
+dist/
+
+# Tool caches / local state
+.wrangler/
+.firebase/
+package-lock.json
+
+# Raw source photos (some are third-party images; the site uses the processed copies)
+catalogue images/

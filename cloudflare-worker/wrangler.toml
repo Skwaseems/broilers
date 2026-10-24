@@ -5,13 +5,17 @@ account_id = "e9e9acda46a0218cfcce4959677d8601"
 
 [vars]
 FIREBASE_PROJECT_ID = "sharhan-broilers"
-ALLOWED_EMAILS = "waseemshaikh597@gmail.com"
+ALLOWED_EMAILS = "waseemshaikh597@gmail.com,waseemsayeed01@gmail.com,bagbanhanif@gmail.com,sharhanbroilers@gmail.com"
 TEMPLATE_LANGUAGE = "en"
 META_WABA_ID = "27938981485780059"
 META_APP_ID = "1135339285509297"
 # Catalogue card "Shop now" buttons link here. Baked into each template at
 # submission, so changing it means resubmitting the catalogue for approval.
-SITE_URL = "https://sharhan-broilers.surge.sh"
+SITE_URL = "https://sharhan-broilers.pages.dev"
+# Meta Commerce catalogue connected to the WhatsApp number (product cards). Empty = not set up yet.
+META_CATALOG_ID = "1625569935780449"
+# Product cards need a price on every product; the owner chose no prices (2026-10-20).
+PRODUCT_CARDS = "off"
 
 [[kv_namespaces]]
 binding = "CATALOGUE_IMAGES"
