@@ -1,0 +1,114 @@
+# Every push to main publishes what changed:
+#   website  -> Cloudflare Pages (sharhan-broilers.pages.dev) + Firebase Hosting (sharhan-broilers.web.app)
+#   cloudflare-worker/ -> the WhatsApp/credit Worker (sharhan-whatsapp)
+#   firestore.rules    -> Firestore security rules
+# "Run workflow" on the Actions tab deploys all three.
+#
+# Repository secrets (Settings -> Secrets and variables -> Actions):
+#   CLOUDFLARE_API_TOKEN      - Cloudflare token: "Edit Cloudflare Workers" template + Cloudflare Pages: Edit
+#   FIREBASE_SERVICE_ACCOUNT  - JSON key of a Google service account with the "Firebase Admin" role
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: e9e9acda46a0218cfcce4959677d8601
+  WRANGLER: wrangler@4.152.0
+  FIREBASE_TOOLS: firebase-tools@15.30.2
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      site: ${{ steps.filter.outputs.site }}
+      worker: ${{ steps.filter.outputs.worker }}
+      rules: ${{ steps.filter.outputs.rules }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            site:
+              - '*.html'
+              - '*.ico'
+              - '*.png'
+              - '*.jpg'
+              - '*.txt'
+              - '*.xml'
+              - '*.webmanifest'
+              - 'assets/**'
+              - 'images/**'
+              - 'functions/**'
+              - 'firebase.json'
+              - 'tools/build_public.py'
+              - '.github/workflows/deploy.yml'
+            worker:
+              - 'cloudflare-worker/**'
+            rules:
+              - 'firestore.rules'
+
+  site:
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.site == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build dist/ (allowlist copy of the public site)
+        run: python tools/build_public.py
+      - name: Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes ${WRANGLER} pages deploy dist --project-name sharhan-broilers --branch main --commit-dirty=true
+      - name: Firebase Hosting
+        env:
+          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$SERVICE_ACCOUNT" > "$RUNNER_TEMP/gcp.json"
+          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/gcp.json" npx --yes ${FIREBASE_TOOLS} deploy --only hosting --project sharhan-broilers --non-interactive
+          rm -f "$RUNNER_TEMP/gcp.json"
+
+  worker:
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.worker == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Deploy the Worker (its secrets stay on Cloudflare)
+        working-directory: cloudflare-worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes ${WRANGLER} deploy
+
+  rules:
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.rules == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Firestore rules
+        env:
+          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$SERVICE_ACCOUNT" > "$RUNNER_TEMP/gcp.json"
+          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/gcp.json" npx --yes ${FIREBASE_TOOLS} deploy --only firestore:rules --project sharhan-broilers --non-interactive
+          rm -f "$RUNNER_TEMP/gcp.json"
