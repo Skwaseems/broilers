@@ -1,7 +1,7 @@
 {
   "_note": "Single source of truth for the domain and business details. Edit here, then run: python tools/build_seo.py. Only verified facts belong here (source: Udyam Registration UDYAM-MH-19-0381986).",
 
-  "site_url": "https://sharhan-broilers.surge.sh",
+  "site_url": "https://sharhan-broilers.pages.dev",
 
   "name": "Sharhan Broilers",
   "title": "Sharhan Broilers – Wholesale Chicken Supplier in Mumbai",

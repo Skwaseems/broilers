@@ -25,5 +25,7 @@ images/hero.jpeg
 .gitignore
 .gitattributes
 .claude
+.vscode
+dist
 .surgeignore
 *.py

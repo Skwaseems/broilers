@@ -34,9 +34,9 @@ Business customers fill in their approximate weekly requirement on the website (
 
 ## Pages
 
-- [Home](https://sharhan-broilers.surge.sh/): Product categories, today's fresh stock, packs and the weekly order form
-- [Product categories](https://sharhan-broilers.surge.sh/#categories)
-- [Today's fresh stock](https://sharhan-broilers.surge.sh/#stock)
-- [Packs](https://sharhan-broilers.surge.sh/#packs)
-- [Visit us](https://sharhan-broilers.surge.sh/#visit)
-- [Contact](https://sharhan-broilers.surge.sh/#contact)
+- [Home](https://sharhan-broilers.pages.dev/): Product categories, today's fresh stock, packs and the weekly order form
+- [Product categories](https://sharhan-broilers.pages.dev/#categories)
+- [Today's fresh stock](https://sharhan-broilers.pages.dev/#stock)
+- [Packs](https://sharhan-broilers.pages.dev/#packs)
+- [Visit us](https://sharhan-broilers.pages.dev/#visit)
+- [Contact](https://sharhan-broilers.pages.dev/#contact)

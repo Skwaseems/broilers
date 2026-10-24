@@ -7,11 +7,18 @@ service cloud.firestore {
 
     function isAdmin() {
       return request.auth != null &&
-        request.auth.token.email in ['waseemshaikh597@gmail.com'];
+        request.auth.token.email in ['waseemshaikh597@gmail.com', 'waseemsayeed01@gmail.com',
+                                     'bagbanhanif@gmail.com', 'sharhanbroilers@gmail.com'];
     }
 
+    // Someone who replied STOP (unsubscribed: true, set by the Worker) can't be ticked,
+    // re-subscribed or deleted from the admin; only their own "START" undoes it.
     match /whatsapp_customers/{docId} {
-      allow read, write: if isAdmin();
+      allow read: if isAdmin();
+      allow create: if isAdmin() && request.resource.data.get('unsubscribed', false) == false;
+      allow update: if isAdmin() && (resource.data.get('unsubscribed', false) != true
+        || (request.resource.data.get('unsubscribed', false) == true && request.resource.data.get('send', false) == false));
+      allow delete: if isAdmin() && resource.data.get('unsubscribed', false) != true;
     }
     match /whatsapp_inbox/{docId} {
       allow read: if isAdmin();
@@ -33,6 +40,26 @@ service cloud.firestore {
         && request.resource.data.name is string && request.resource.data.name.size() <= 60
         && request.resource.data.spec is string && request.resource.data.spec.size() <= 160;
       allow delete: if isAdmin();
+    }
+    // Editable homepage content (slides, about, categories, packs...). Public read.
+    match /site_content/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    // Credit applications (customer details + which KYC photos were sent) - created by the
+    // Worker; admins read them and record approve / reject.
+    match /credit_applications/{mobile} {
+      allow read, update: if isAdmin();
+      allow create, delete: if false;
+    }
+    // Admin switches (e.g. settings/whatsapp.autoReply) - read by the Worker.
+    match /settings/{docId} {
+      allow read, write: if isAdmin();
+    }
+    // Last automatic catalogue reply per phone number - written by the Worker only.
+    match /whatsapp_autoreply/{phone} {
+      allow read: if isAdmin();
+      allow write: if false;
     }
     // Which WhatsApp templates are live / pending - written by the Worker only.
     match /catalogue_meta/{docId} {
