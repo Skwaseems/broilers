@@ -551,13 +551,19 @@ function productsMessage(env, meta, items) {
 // webhook as an enquiry for that item and gets an instant reply (enquiryReply).
 // v2: "Enquire Now" website button; v3: reply button (kept in meta.photo.alt, unused);
 // v4: "Enroll Now" website button → /p/<item> → the order form opens with the item marked.
-// v5 (current): as v4, plus the message above the photos is editable in Admin (body
-// variable, settings/whatsapp.intro) and ends with how to unsubscribe. Only v3 uses a
-// reply button.
-const PHOTO_VERSION = 5;
+// v5: as v4, plus the message above the photos is editable in Admin (body variable,
+// settings/whatsapp.intro) and ends with how to unsubscribe.
+// v6 (current): as v5, plus a "Stop" reply button under every photo (second button,
+// payload STOP); a tap comes back as a button message with text "Stop" → unsubscribed.
+const PHOTO_VERSION = 6;
 const PHOTO_BUTTON = "Enroll Now";
 const PHOTO_BODY_V4 = "Fresh stock from Sharhan Broilers, Mumbai. Swipe through the photos and tap Enroll Now to place your order.";
 const PHOTO_BODY_V5 = "Hello from Sharhan Broilers! {{1}}\n\nNot interested? Reply STOP and we won't send these again.";
+// Fresh wording: Meta auto-rejects templates that echo an existing one.
+const PHOTO_BODY_V6 = "Sharhan Broilers here! {{1}}\n\nTap Stop under any photo if you'd rather not get these offers.";
+const STOP_BUTTON = "Stop";
+// Formats submitted with the Stop button (entry.stop) need its payload at send time, at index 1.
+const stopButton = (t) => (t.stop ? [{ type: "button", sub_type: "quick_reply", index: "1", parameters: [{ type: "payload", payload: "STOP" }] }] : []);
 // Default for the editable part, and the example shown to Meta for approval.
 const DEFAULT_INTRO = "Fresh stock from Mumbai. Swipe through the photos and tap Enroll Now to place your order.";
 // WhatsApp rejects template values with line breaks, tabs or long runs of spaces.
@@ -566,9 +572,9 @@ function cleanIntro(t) {
 }
 // Formats with an editable intro (photo v5, line-up v2) take it as the body's parameter.
 const introParams = (t, intro) => (t.intro ? [{ type: "body", parameters: [{ type: "text", text: cleanIntro(intro) }] }] : []);
-const photoButton = (t, it) => ((t.version || 1) === 3
+const photoButtons = (t, it) => [(t.version || 1) === 3
   ? { type: "button", sub_type: "quick_reply", index: "0", parameters: [{ type: "payload", payload: it.id }] }
-  : { type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: it.id }] });
+  : { type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: it.id }] }, ...stopButton(t)];
 const PHOTO_BODY = "Sharhan Broilers — today's catalogue. Swipe to see every item and tap Enquire Now to send us your requirement.";
 const photoKey = (size) => "s" + size;
 
@@ -608,9 +614,10 @@ async function submitPhotoTemplate(env, size) {
     cards.push({
       components: [
         { type: "HEADER", format: "IMAGE", example: { header_handle: [handle] } },
-        { type: "BUTTONS", buttons: [PHOTO_VERSION === 3
-          ? { type: "QUICK_REPLY", text: PHOTO_BUTTON }
-          : { type: "URL", text: PHOTO_BUTTON, url: `${site}/p/{{1}}`, example: [`${site}/p/${it.id}`] }] },
+        { type: "BUTTONS", buttons: [
+          { type: "URL", text: PHOTO_BUTTON, url: `${site}/p/{{1}}`, example: [`${site}/p/${it.id}`] },
+          { type: "QUICK_REPLY", text: STOP_BUTTON },
+        ] },
       ],
     });
   }
@@ -621,10 +628,10 @@ async function submitPhotoTemplate(env, size) {
       name,
       language: env.TEMPLATE_LANGUAGE,
       category: "MARKETING",
-      components: [{ type: "BODY", text: PHOTO_BODY_V5, example: { body_text: [[DEFAULT_INTRO]] } }, { type: "CAROUSEL", cards }],
+      components: [{ type: "BODY", text: PHOTO_BODY_V6, example: { body_text: [[DEFAULT_INTRO]] } }, { type: "CAROUSEL", cards }],
     }),
   });
-  const entry = { name, id: created.id, status: created.status || "PENDING", attempt, size, version: PHOTO_VERSION, intro: true, submittedAt: new Date().toISOString() };
+  const entry = { name, id: created.id, status: created.status || "PENDING", attempt, size, version: PHOTO_VERSION, intro: true, stop: true, submittedAt: new Date().toISOString() };
   if (entry.status === "APPROVED") photo.templates[photoKey(size)] = entry;
   else photo.next[photoKey(size)] = entry;
   await setDocument(env, "catalogue_meta", "whatsapp", { ...meta, photo });
@@ -642,10 +649,12 @@ const TEXT_PREFIX = "";
 const TEXT_SUFFIX = "\nTap Enroll Now to order, delivered fresh across Mumbai.";
 const TEXT_MAX = MAX_CARD_TEXT - TEXT_PREFIX.length - TEXT_SUFFIX.length;
 const TEXT_BODY = "Our line-up for your kitchen this week. Swipe the cards and tap Enroll Now on any item to order it.";
-// v2 (sharhan_lineup_v2_{n}): editable intro + unsubscribe line. Waits in text.next until
-// approved, so the approved v1 keeps sending meanwhile.
-const TEXT_VERSION = 2;
+// v2 (sharhan_lineup_v2_{n}): editable intro + unsubscribe line. v3 (current): plus a
+// "Stop" reply button on every card. A new version waits in text.next until approved, so
+// the approved older one keeps sending meanwhile.
+const TEXT_VERSION = 3;
 const TEXT_BODY_V2 = "This week at Sharhan Broilers: {{1}}\n\nReply STOP anytime to unsubscribe from these updates.";
+const TEXT_BODY_V3 = "Today's pick from Sharhan Broilers, Mumbai: {{1}}\n\nTo stop these offers, tap Stop on any card.";
 
 function textCardText(it) {
   const t = pickCardText(it); // one line, without the old call to action
@@ -663,8 +672,17 @@ async function submitTextTemplate(env, size) {
   const live = text.templates[photoKey(size)];
   if (live && (live.version || 1) >= TEXT_VERSION && live.status === "APPROVED") return text;
   const prev = text.next[photoKey(size)];
-  if (prev && (prev.status === "APPROVED" || prev.status === "PENDING")) return text;
-  const attempt = prev ? (prev.attempt || 1) + 1 : 1;
+  if (prev && (prev.version || 1) >= TEXT_VERSION && (prev.status === "APPROVED" || prev.status === "PENDING")) return text;
+  // An older version waiting in "next" may have been approved since the last status check:
+  // make it live before this submission takes its place.
+  if (prev && (prev.version || 1) < TEXT_VERSION && prev.status !== "APPROVED") {
+    const data = await graph(env, `${env.META_WABA_ID}/message_templates?name=${prev.name}&fields=name,status`).catch(() => ({}));
+    const found = (data.data || []).find((d) => d.name === prev.name);
+    if (found && found.status === "APPROVED") text.templates[photoKey(size)] = { ...prev, status: "APPROVED" };
+  } else if (prev && (prev.version || 1) < TEXT_VERSION && prev.status === "APPROVED") {
+    text.templates[photoKey(size)] = prev;
+  }
+  const attempt = prev && (prev.version || 1) === TEXT_VERSION ? (prev.attempt || 1) + 1 : 1;
   const name = `sharhan_lineup_v${TEXT_VERSION}_${size}` + (attempt > 1 ? `_r${attempt}` : "");
   const site = env.SITE_URL.replace(/\/$/, "");
   const examples = items.filter((it) => it.onWhatsApp).concat(items.filter((it) => !it.onWhatsApp)).slice(0, size);
@@ -677,16 +695,19 @@ async function submitTextTemplate(env, size) {
       components: [
         { type: "HEADER", format: "IMAGE", example: { header_handle: [await uploadExampleImage(env, bytes)] } },
         { type: "BODY", text: TEXT_PREFIX + "{{1}}" + TEXT_SUFFIX, example: { body_text: [[textCardText(it)]] } },
-        { type: "BUTTONS", buttons: [{ type: "URL", text: "Enroll Now", url: `${site}/p/{{1}}`, example: [`${site}/p/${it.id}`] }] },
+        { type: "BUTTONS", buttons: [
+          { type: "URL", text: "Enroll Now", url: `${site}/p/{{1}}`, example: [`${site}/p/${it.id}`] },
+          { type: "QUICK_REPLY", text: STOP_BUTTON },
+        ] },
       ],
     });
   }
   const created = await graph(env, `${env.META_WABA_ID}/message_templates`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, language: env.TEMPLATE_LANGUAGE, category: "MARKETING", components: [{ type: "BODY", text: TEXT_BODY_V2, example: { body_text: [[DEFAULT_INTRO]] } }, { type: "CAROUSEL", cards }] }),
+    body: JSON.stringify({ name, language: env.TEMPLATE_LANGUAGE, category: "MARKETING", components: [{ type: "BODY", text: TEXT_BODY_V3, example: { body_text: [[DEFAULT_INTRO]] } }, { type: "CAROUSEL", cards }] }),
   });
-  const entry = { name, id: created.id, status: created.status || "PENDING", attempt, size, button: "url", version: TEXT_VERSION, intro: true, submittedAt: new Date().toISOString() };
+  const entry = { name, id: created.id, status: created.status || "PENDING", attempt, size, button: "url", version: TEXT_VERSION, intro: true, stop: true, submittedAt: new Date().toISOString() };
   if (entry.status === "APPROVED") text.templates[photoKey(size)] = entry;
   else text.next[photoKey(size)] = entry;
   await setDocument(env, "catalogue_meta", "whatsapp", { ...meta, text });
@@ -707,6 +728,7 @@ function textCards(t, list, intro) {
           t.button === "url"
             ? { type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: it.id }] }
             : { type: "button", sub_type: "quick_reply", index: "0", parameters: [{ type: "payload", payload: it.id }] },
+          ...stopButton(t),
         ],
       })),
     }],
@@ -742,7 +764,7 @@ function photoMessage(env, meta, items, intro) {
         card_index: i,
         components: [
           { type: "header", parameters: [{ type: "image", image: { link: it.imageCard || it.image } }] },
-          photoButton(t, it),
+          ...photoButtons(t, it),
         ],
       })),
     }],
@@ -774,7 +796,7 @@ function fullPhotoMessages(env, meta, items, style, intro) {
           card_index: i,
           components: [
             { type: "header", parameters: [{ type: "image", image: { link: it.imageCard || it.image } }] },
-            photoButton(t, it),
+            ...photoButtons(t, it),
           ],
         })),
       }],
