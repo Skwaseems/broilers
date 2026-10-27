@@ -5,7 +5,7 @@ account_id = "e9e9acda46a0218cfcce4959677d8601"
 
 [vars]
 FIREBASE_PROJECT_ID = "sharhan-broilers"
-ALLOWED_EMAILS = "waseemshaikh597@gmail.com,waseemsayeed01@gmail.com,bagbanhanif@gmail.com,sharhanbroilers@gmail.com"
+ALLOWED_EMAILS = "waseemshaikh597@gmail.com,waseemsayeed01@gmail.com,bagbanhanif@gmail.com,farixashk06@gmail.com"
 TEMPLATE_LANGUAGE = "en"
 META_WABA_ID = "27938981485780059"
 META_APP_ID = "1135339285509297"

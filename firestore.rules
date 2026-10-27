@@ -8,7 +8,7 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null &&
         request.auth.token.email in ['waseemshaikh597@gmail.com', 'waseemsayeed01@gmail.com',
-                                     'bagbanhanif@gmail.com', 'sharhanbroilers@gmail.com'];
+                                     'bagbanhanif@gmail.com', 'farixashk06@gmail.com'];
     }
 
     // Someone who replied STOP (unsubscribed: true, set by the Worker) can't be ticked,
