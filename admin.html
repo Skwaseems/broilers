@@ -893,7 +893,7 @@
       <button type="button" role="tab" id="tab-orders" aria-controls="panel-orders" data-tab="orders">Order form</button>
       <button type="button" role="tab" id="tab-website" aria-controls="panel-website" data-tab="website">Website</button>
       <button type="button" role="tab" id="tab-whatsapp" aria-controls="panel-whatsapp" data-tab="whatsapp">WhatsApp setup</button>
-      <button type="button" role="tab" id="tab-inbox" aria-controls="panel-inbox" data-tab="inbox">Inbox <span class="tab-badge" id="tab-badge-inbox" hidden></span></button>
+      <button type="button" role="tab" id="tab-inbox" aria-controls="panel-inbox" data-tab="inbox">Inbox</button>
     </nav>
     <div class="wrap">
 
@@ -1283,7 +1283,7 @@
     });
     window.addEventListener("hashchange", () => showTab(location.hash.slice(1)));
     showTab(location.hash.slice(1));
-    // Red counters on the tabs: credit applications waiting, messages in the inbox.
+    // Red counter on the Credit tab: applications waiting for a check.
     function mirrorBadge(sourceId, badgeId) {
       const src = $(sourceId), badge = $(badgeId);
       const sync = () => { const n = parseInt(src.textContent, 10) || 0; badge.textContent = n; badge.hidden = !n; };
@@ -1291,7 +1291,6 @@
       sync();
     }
     mirrorBadge("capp-count", "tab-badge-credit");
-    mirrorBadge("inbox-count", "tab-badge-inbox");
 
     // ---------- Auth ----------
     $("signin-btn").addEventListener("click", () => {
