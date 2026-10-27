@@ -69,6 +69,102 @@
       padding: 20px 16px 60px;
     }
 
+    /* Tabs: one job per screen */
+    .tabs {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 8px max(12px, calc((100% - 860px) / 2 + 16px));
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tabs button {
+      flex: none;
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid transparent;
+      border-radius: 20px;
+      background: none;
+      font-family: 'Jost', sans-serif;
+      font-size: 14px;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .tabs button:hover {
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .tabs button[aria-selected="true"] {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    .tab-badge {
+      display: inline-block;
+      min-width: 20px;
+      margin-left: 4px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: var(--err);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .step {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: #fff;
+      font-family: 'Jost', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      vertical-align: 3px;
+    }
+
+    .card h2 .badge {
+      font-family: 'Jost', sans-serif;
+      vertical-align: 4px;
+    }
+
+    @media (max-width:600px) {
+      .card table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .card table td,
+      .card table th {
+        white-space: nowrap;
+      }
+    }
+
+    .send-now #send-btn {
+      width: 100%;
+      min-height: 50px;
+      font-size: 15px;
+    }
+
     .card {
       background: #fff;
       border: 1px solid var(--line);
@@ -790,11 +886,21 @@
   </div>
 
   <div id="app">
+    <nav class="tabs" role="tablist" aria-label="Admin sections">
+      <button type="button" role="tab" id="tab-send" aria-controls="panel-send" data-tab="send">Send catalogue</button>
+      <button type="button" role="tab" id="tab-credit" aria-controls="panel-credit" data-tab="credit">Credit &amp; payments <span class="tab-badge" id="tab-badge-credit" hidden></span></button>
+      <button type="button" role="tab" id="tab-products" aria-controls="panel-products" data-tab="products">Products</button>
+      <button type="button" role="tab" id="tab-orders" aria-controls="panel-orders" data-tab="orders">Order form</button>
+      <button type="button" role="tab" id="tab-website" aria-controls="panel-website" data-tab="website">Website</button>
+      <button type="button" role="tab" id="tab-whatsapp" aria-controls="panel-whatsapp" data-tab="whatsapp">WhatsApp setup</button>
+      <button type="button" role="tab" id="tab-inbox" aria-controls="panel-inbox" data-tab="inbox">Inbox <span class="tab-badge" id="tab-badge-inbox" hidden></span></button>
+    </nav>
     <div class="wrap">
 
+      <div class="tab-panel" role="tabpanel" id="panel-send" aria-labelledby="tab-send" hidden>
       <section class="card" aria-labelledby="send-title">
-        <h2 id="send-title">Send the catalogue</h2>
-        <p class="muted">Sends a WhatsApp catalogue to every customer below.</p>
+        <h2 id="send-title"><span class="step">1</span> Choose what to send</h2>
+        <p class="muted">Pick the items and the look. Then check who gets it (step 2) and press Send (step 3).</p>
         <div class="send-modes" role="radiogroup" aria-label="What to send">
           <label class="check"><input type="radio" name="send-mode" value="pick" checked> <span><strong>Ticked
                 items</strong> &mdash; <span id="pick-summary">loading&hellip;</span></span></label>
@@ -812,55 +918,90 @@
               id="intro-count">0 / 500</span></span>
           <textarea id="intro-text" maxlength="500" rows="2"></textarea></label>
         <p class="muted" style="margin:-6px 0 12px;">Customers see: <em>Hello from Sharhan Broilers! <span
-              id="intro-preview"></span></em> &hellip; <em>Not interested? Reply STOP and we won&rsquo;t send these
-            again.</em> Your text goes in the middle; the start and the STOP line are fixed by WhatsApp&rsquo;s
-          approval. It needs the newest formats (&ldquo;up to date&rdquo; under WhatsApp approval) &mdash; until then the
-          older fixed message is sent.</p>
+              id="intro-preview"></span></em> &hellip; <em>Reply STOP to stop.</em> (Shows once the new designs are
+          approved in the WhatsApp setup tab.)</p>
         <div class="row-form" style="margin:-4px 0 14px;"><button class="btn secondary small" id="intro-save"
             type="button">Save message</button></div>
+      </section>
+
+      <section class="card" aria-labelledby="cust-title">
+        <h2 id="cust-title"><span class="step">2</span> Choose who gets it</h2>
+        <p class="muted">Only add customers who have agreed to receive the catalogue on WhatsApp. Tick who should get
+          the next catalogue &mdash; unticked customers are skipped.</p>
+        <div class="cust-tools">
+          <span class="badge" id="cust-count">0 of 0 ticked</span>
+          <button class="btn secondary small" id="cust-all">Tick all</button>
+          <button class="btn secondary small" id="cust-none">Untick all</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th><span class="visually-hidden">Send</span></th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Last catalogue</th>
+              <th><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="customers-body"></tbody>
+        </table>
+        <div class="row-form">
+          <input type="text" id="new-name" placeholder="Name (e.g. Ramesh Hotel)" aria-label="Customer name">
+          <input type="text" id="new-phone" placeholder="Phone (e.g. 919876543210)" aria-label="Customer phone"
+            inputmode="tel">
+          <button class="btn" id="add-customer-btn">Add</button>
+        </div>
+        <div class="status" id="cust-status" role="status"></div>
+
+      </section>
+
+      <section class="card send-now" aria-labelledby="sendnow-title">
+        <h2 id="sendnow-title"><span class="step">3</span> Send</h2>
+        <p class="muted">Sends to everyone ticked in step 2.</p>
         <button class="btn" id="send-btn">Send Catalogue Now</button>
         <div class="status" id="send-status" role="status"></div>
       </section>
 
-      <section class="card" aria-labelledby="recip-title">
-        <h2 id="recip-title">Order recipients</h2>
-        <p class="muted">Where the website&rsquo;s order form sends orders. <strong>Email:</strong> one email goes to
-          both addresses. <strong>WhatsApp:</strong> the order opens for the first number; the customer is then asked to
-          send the same order to the second number with one more tap. Leave a second box empty to use only one.</p>
-        <div class="recip-grid">
-          <label class="site-field"><span class="cat-label">WhatsApp number 1</span><input type="text" id="recip-wa1"
-              inputmode="tel" placeholder="e.g. 9820132880"></label>
-          <label class="site-field"><span class="cat-label">WhatsApp number 2 (optional)</span><input type="text"
-              id="recip-wa2" inputmode="tel" placeholder="e.g. 9876543210"></label>
-          <label class="site-field"><span class="cat-label">Email 1</span><input type="text" id="recip-em1"
-              inputmode="email" placeholder="e.g. sharhanbroilers@gmail.com"></label>
-          <label class="site-field"><span class="cat-label">Email 2 (optional)</span><input type="text" id="recip-em2"
-              inputmode="email" placeholder="e.g. orders@gmail.com"></label>
-        </div>
-        <div class="row-form"><button class="btn" id="recip-save">Save recipients</button></div>
-        <div class="status" id="recip-status" role="status"></div>
+      <section class="card" aria-labelledby="unsub-title">
+        <h2 id="unsub-title">Said STOP (unsubscribed) <span class="badge" id="unsub-count">0</span></h2>
+        <p class="muted">Customers who replied <strong>STOP</strong> (or turned off marketing messages in WhatsApp).
+          They are never sent the catalogue again &mdash; not by &ldquo;Send Catalogue Now&rdquo; and not by the automatic
+          reply. Only the customer can undo it, by sending <strong>START</strong> to your WhatsApp.</p>
+        <table>
+          <thead><tr><th>Name</th><th>Phone</th><th>Unsubscribed</th><th>How</th></tr></thead>
+          <tbody id="unsub-body"></tbody>
+        </table>
+        <div class="row-form"><button class="btn secondary small" id="unsub-csv" type="button">Download list (CSV)</button></div>
       </section>
+      </div>
 
-      <section class="card" aria-labelledby="formitems-title">
-        <h2 id="formitems-title">Order form products <span class="badge" id="formitems-count">0</span></h2>
-        <p class="muted">The products in the website&rsquo;s order form, top to bottom. Tick <strong>Fresh</strong>
-          and/or <strong>Frozen</strong> for the tables each product appears in. Hindi and Marathi names are optional;
-          customers who pick that language see them next to the English name. Orders always arrive in English.</p>
-        <div class="fi-wrap">
-          <table class="fi-table">
-            <thead><tr><th>Product (English)</th><th>हिंदी</th><th>मराठी</th><th>Fresh</th><th>Frozen</th><th></th></tr></thead>
-            <tbody id="fi-rows"></tbody>
-          </table>
-        </div>
+      <div class="tab-panel" role="tabpanel" id="panel-credit" aria-labelledby="tab-credit" hidden>
+      <section class="card" aria-labelledby="capp-title">
+        <h2 id="capp-title">Credit applications <span class="badge" id="capp-count">0 waiting</span></h2>
+        <p class="muted">Customers who chose credit in the order form and uploaded self-attested Aadhaar, PAN and a
+          business document. Check the photos, then <strong>Approve</strong> (adds them to the list below) or
+          <strong>Reject</strong>. These are sensitive documents: delete the photos once you no longer need them.</p>
+        <div id="capp-list"></div>
+
+        <h3 class="pay-sub">Credit-approved customers <span class="badge" id="credit-count">0</span></h3>
+        <p class="muted">&ldquo;1-3 Days (credit)&rdquo; in the order form only works for these mobile numbers;
+          everyone else is asked to choose Same Day payment or apply with their documents (above). The list stays private: the form only learns
+          yes/no for the number the customer typed.</p>
+        <table>
+          <thead><tr><th>Customer</th><th>Mobile</th><th></th></tr></thead>
+          <tbody id="credit-rows"></tbody>
+        </table>
         <div class="row-form">
-          <button class="btn secondary small" id="fi-add" type="button">+ Add product</button>
-          <button class="btn" id="fi-save" type="button">Save products</button>
+          <input type="text" id="credit-name" placeholder="Customer / billing name">
+          <input type="text" id="credit-mobile" inputmode="tel" placeholder="Mobile, e.g. 9820132880">
+          <button class="btn secondary small" id="credit-add" type="button">+ Add</button>
         </div>
-        <div class="status" id="fi-status" role="status"></div>
+        <div class="row-form"><button class="btn" id="credit-save" type="button">Save credit list</button></div>
+        <div class="status" id="credit-status" role="status"></div>
       </section>
 
       <section class="card" aria-labelledby="pay-title">
-        <h2 id="pay-title">Payments &amp; credit</h2>
+        <h2 id="pay-title">Bank QR &amp; UPI</h2>
         <p class="muted"><strong>Bank QR / UPI:</strong> shown as &ldquo;Pay Sharhan Broilers&rdquo; in the order form
           and on the website. Leave a box empty to hide that line.</p>
         <div class="pay-grid">
@@ -887,29 +1028,89 @@
         <div class="row-form"><button class="btn" id="pay-save" type="button">Save payment details</button></div>
         <div class="status" id="pay-status" role="status"></div>
 
-        <h3 class="pay-sub">Credit applications <span class="badge" id="capp-count">0 waiting</span></h3>
-        <p class="muted">Customers who chose credit in the order form and uploaded self-attested Aadhaar, PAN and a
-          business document. Check the photos, then <strong>Approve</strong> (adds them to the list below) or
-          <strong>Reject</strong>. These are sensitive documents: delete the photos once you no longer need them.</p>
-        <div id="capp-list"></div>
+      </section>
+      </div>
 
-        <h3 class="pay-sub">Credit-approved customers <span class="badge" id="credit-count">0</span></h3>
-        <p class="muted">&ldquo;1-3 Days (credit)&rdquo; in the order form only works for these mobile numbers;
-          everyone else is asked to choose Same Day payment or apply with their documents (above). The list stays private: the form only learns
-          yes/no for the number the customer typed.</p>
-        <table>
-          <thead><tr><th>Customer</th><th>Mobile</th><th></th></tr></thead>
-          <tbody id="credit-rows"></tbody>
-        </table>
+      <div class="tab-panel" role="tabpanel" id="panel-products" aria-labelledby="tab-products" hidden>
+      <section class="card" aria-labelledby="cat-title">
+        <h2 id="cat-title">Catalogue <span class="badge" id="cat-count">0 / 15</span> <span class="badge"
+            id="wa-count">0 ticked for WhatsApp</span></h2>
+        <p class="muted">One list for both WhatsApp and the website&rsquo;s <strong>Fresh Stock</strong> section. Tick
+          <strong>Send on WhatsApp</strong> on 2&ndash;10 items to choose what &ldquo;Ticked items&rdquo; sends; their
+          photos, names and text go out exactly as saved here. <strong>Photos:</strong> tall (portrait) photos work best
+          &mdash; the whole photo is kept and white sides are added, like a shop catalogue. Each upload makes two
+          versions: a square one for the swipe carousel (WhatsApp always shows carousel cards wide/square) and a tall
+          9:16 one for the photo-by-photo catalogue customers get when they ask for it, and for the website&rsquo;s
+          full-screen product page. Items with a placeholder photo stay hidden on the website until a real photo is
+          uploaded.
+        </p>
+        <div id="cat-list"></div>
         <div class="row-form">
-          <input type="text" id="credit-name" placeholder="Customer / billing name">
-          <input type="text" id="credit-mobile" inputmode="tel" placeholder="Mobile, e.g. 9820132880">
-          <button class="btn secondary small" id="credit-add" type="button">+ Add</button>
+          <input type="text" id="new-item-name" maxlength="60" placeholder="New item name (e.g. Chicken Lollipop)"
+            aria-label="New item name">
+          <button class="btn secondary" id="add-item-btn">Add item</button>
         </div>
-        <div class="row-form"><button class="btn" id="credit-save" type="button">Save credit list</button></div>
-        <div class="status" id="credit-status" role="status"></div>
+        <div class="sticky-save">
+          <button class="btn" id="save-cat-btn" disabled>Save catalogue changes</button>
+          <span class="status" id="cat-status" role="status" style="margin:0;"></span>
+        </div>
+      </section>
+      </div>
+
+      <div class="tab-panel" role="tabpanel" id="panel-orders" aria-labelledby="tab-orders" hidden>
+      <section class="card" aria-labelledby="formitems-title">
+        <h2 id="formitems-title">Order form products <span class="badge" id="formitems-count">0</span></h2>
+        <p class="muted">The products in the website&rsquo;s order form, top to bottom. Tick <strong>Fresh</strong>
+          and/or <strong>Frozen</strong> for the tables each product appears in. Hindi and Marathi names are optional;
+          customers who pick that language see them next to the English name. Orders always arrive in English.</p>
+        <div class="fi-wrap">
+          <table class="fi-table">
+            <thead><tr><th>Product (English)</th><th>हिंदी</th><th>मराठी</th><th>Fresh</th><th>Frozen</th><th></th></tr></thead>
+            <tbody id="fi-rows"></tbody>
+          </table>
+        </div>
+        <div class="row-form">
+          <button class="btn secondary small" id="fi-add" type="button">+ Add product</button>
+          <button class="btn" id="fi-save" type="button">Save products</button>
+        </div>
+        <div class="status" id="fi-status" role="status"></div>
       </section>
 
+      <section class="card" aria-labelledby="recip-title">
+        <h2 id="recip-title">Order recipients</h2>
+        <p class="muted">Where the website&rsquo;s order form sends orders. <strong>Email:</strong> one email goes to
+          both addresses. <strong>WhatsApp:</strong> the order opens for the first number; the customer is then asked to
+          send the same order to the second number with one more tap. Leave a second box empty to use only one.</p>
+        <div class="recip-grid">
+          <label class="site-field"><span class="cat-label">WhatsApp number 1</span><input type="text" id="recip-wa1"
+              inputmode="tel" placeholder="e.g. 9820132880"></label>
+          <label class="site-field"><span class="cat-label">WhatsApp number 2 (optional)</span><input type="text"
+              id="recip-wa2" inputmode="tel" placeholder="e.g. 9876543210"></label>
+          <label class="site-field"><span class="cat-label">Email 1</span><input type="text" id="recip-em1"
+              inputmode="email" placeholder="e.g. sharhanbroilers@gmail.com"></label>
+          <label class="site-field"><span class="cat-label">Email 2 (optional)</span><input type="text" id="recip-em2"
+              inputmode="email" placeholder="e.g. orders@gmail.com"></label>
+        </div>
+        <div class="row-form"><button class="btn" id="recip-save">Save recipients</button></div>
+        <div class="status" id="recip-status" role="status"></div>
+      </section>
+      </div>
+
+      <div class="tab-panel" role="tabpanel" id="panel-website" aria-labelledby="tab-website" hidden>
+      <section class="card" aria-labelledby="site-title">
+        <h2 id="site-title">Website content</h2>
+        <p class="muted">Photos and text on the homepage. Open a section, make changes, then <strong>Save website
+            changes</strong> &mdash; visitors see them on their next page load. Products in Fresh Stock come from the
+          catalogue above.</p>
+        <div id="site-sections"></div>
+        <div class="sticky-save">
+          <button class="btn" id="save-site-btn" disabled>Save website changes</button>
+          <span class="status" id="site-status" role="status" style="margin:0;"></span>
+        </div>
+      </section>
+      </div>
+
+      <div class="tab-panel" role="tabpanel" id="panel-whatsapp" aria-labelledby="tab-whatsapp" hidden>
       <section class="card" aria-labelledby="auto-title">
         <h2 id="auto-title">Catalogue on request</h2>
         <p class="muted">When a customer sends <strong>&ldquo;Catalogue&rdquo;</strong>, &ldquo;Hi&rdquo;,
@@ -936,42 +1137,6 @@
         <p class="muted" style="margin:16px 0 4px;"><strong>Recent automatic replies</strong></p>
         <div id="auto-recent" class="muted">None yet.</div>
         <div class="status" id="auto-status" role="status"></div>
-      </section>
-
-      <section class="card" aria-labelledby="cat-title">
-        <h2 id="cat-title">Catalogue <span class="badge" id="cat-count">0 / 15</span> <span class="badge"
-            id="wa-count">0 ticked for WhatsApp</span></h2>
-        <p class="muted">One list for both WhatsApp and the website&rsquo;s <strong>Fresh Stock</strong> section. Tick
-          <strong>Send on WhatsApp</strong> on 2&ndash;10 items to choose what &ldquo;Ticked items&rdquo; sends; their
-          photos, names and text go out exactly as saved here. <strong>Photos:</strong> tall (portrait) photos work best
-          &mdash; the whole photo is kept and white sides are added, like a shop catalogue. Each upload makes two
-          versions: a square one for the swipe carousel (WhatsApp always shows carousel cards wide/square) and a tall
-          9:16 one for the photo-by-photo catalogue customers get when they ask for it, and for the website&rsquo;s
-          full-screen product page. Items with a placeholder photo stay hidden on the website until a real photo is
-          uploaded.
-        </p>
-        <div id="cat-list"></div>
-        <div class="row-form">
-          <input type="text" id="new-item-name" maxlength="60" placeholder="New item name (e.g. Chicken Lollipop)"
-            aria-label="New item name">
-          <button class="btn secondary" id="add-item-btn">Add item</button>
-        </div>
-        <div class="sticky-save">
-          <button class="btn" id="save-cat-btn" disabled>Save catalogue changes</button>
-          <span class="status" id="cat-status" role="status" style="margin:0;"></span>
-        </div>
-      </section>
-
-      <section class="card" aria-labelledby="site-title">
-        <h2 id="site-title">Website content</h2>
-        <p class="muted">Photos and text on the homepage. Open a section, make changes, then <strong>Save website
-            changes</strong> &mdash; visitors see them on their next page load. Products in Fresh Stock come from the
-          catalogue above.</p>
-        <div id="site-sections"></div>
-        <div class="sticky-save">
-          <button class="btn" id="save-site-btn" disabled>Save website changes</button>
-          <span class="status" id="site-status" role="status" style="margin:0;"></span>
-        </div>
       </section>
 
       <section class="card" aria-labelledby="tpl-title">
@@ -1030,52 +1195,15 @@
         </div>
         <div class="status" id="tpl-status" role="status"></div>
       </section>
+      </div>
 
-      <section class="card" aria-labelledby="cust-title">
-        <h2 id="cust-title">Customers</h2>
-        <p class="muted">Only add customers who have agreed to receive the catalogue on WhatsApp. Tick who should get
-          the next catalogue &mdash; unticked customers are skipped.</p>
-        <div class="cust-tools">
-          <span class="badge" id="cust-count">0 of 0 ticked</span>
-          <button class="btn secondary small" id="cust-all">Tick all</button>
-          <button class="btn secondary small" id="cust-none">Untick all</button>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th><span class="visually-hidden">Send</span></th>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Last catalogue</th>
-              <th><span class="visually-hidden">Actions</span></th>
-            </tr>
-          </thead>
-          <tbody id="customers-body"></tbody>
-        </table>
-        <div class="row-form">
-          <input type="text" id="new-name" placeholder="Name (e.g. Ramesh Hotel)" aria-label="Customer name">
-          <input type="text" id="new-phone" placeholder="Phone (e.g. 919876543210)" aria-label="Customer phone"
-            inputmode="tel">
-          <button class="btn" id="add-customer-btn">Add</button>
-        </div>
-        <div class="status" id="cust-status" role="status"></div>
-
-        <h3 class="pay-sub">Unsubscribed <span class="badge" id="unsub-count">0</span></h3>
-        <p class="muted">Customers who replied <strong>STOP</strong> (or turned off marketing messages in WhatsApp).
-          They are never sent the catalogue again &mdash; not by &ldquo;Send Catalogue Now&rdquo; and not by the automatic
-          reply. Only the customer can undo it, by sending <strong>START</strong> to your WhatsApp.</p>
-        <table>
-          <thead><tr><th>Name</th><th>Phone</th><th>Unsubscribed</th><th>How</th></tr></thead>
-          <tbody id="unsub-body"></tbody>
-        </table>
-        <div class="row-form"><button class="btn secondary small" id="unsub-csv" type="button">Download list (CSV)</button></div>
-      </section>
-
+      <div class="tab-panel" role="tabpanel" id="panel-inbox" aria-labelledby="tab-inbox" hidden>
       <section class="card" aria-labelledby="inbox-title">
         <h2 id="inbox-title">Inbox <span class="badge" id="inbox-count">0</span></h2>
         <p class="muted">Replies from customers, newest first.</p>
         <div id="inbox-list"></div>
       </section>
+      </div>
 
     </div>
   </div>
@@ -1128,6 +1256,42 @@
       if (!res.ok) throw new Error(data.error || "Request failed (" + res.status + ")");
       return data;
     }
+
+    // ---------- Tabs: one job per screen; the open tab is kept in the address (#credit) ----------
+    const TAB_NAMES = [...document.querySelectorAll(".tabs [data-tab]")].map((b) => b.dataset.tab);
+    function showTab(name, focus) {
+      if (!TAB_NAMES.includes(name)) name = TAB_NAMES[0];
+      document.querySelectorAll(".tabs [data-tab]").forEach((b) => {
+        const on = b.dataset.tab === name;
+        b.setAttribute("aria-selected", on ? "true" : "false");
+        b.tabIndex = on ? 0 : -1;
+        if (on) { b.scrollIntoView({ block: "nearest", inline: "nearest" }); if (focus) b.focus(); }
+      });
+      document.querySelectorAll(".tab-panel").forEach((p) => { p.hidden = p.id !== "panel-" + name; });
+      if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
+      window.scrollTo(0, 0);
+    }
+    document.querySelector(".tabs").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-tab]");
+      if (b) showTab(b.dataset.tab);
+    });
+    document.querySelector(".tabs").addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const i = TAB_NAMES.indexOf(document.activeElement.dataset.tab);
+      if (i < 0) return;
+      showTab(TAB_NAMES.at((i + (e.key === "ArrowRight" ? 1 : -1) + TAB_NAMES.length) % TAB_NAMES.length), true);
+    });
+    window.addEventListener("hashchange", () => showTab(location.hash.slice(1)));
+    showTab(location.hash.slice(1));
+    // Red counters on the tabs: credit applications waiting, messages in the inbox.
+    function mirrorBadge(sourceId, badgeId) {
+      const src = $(sourceId), badge = $(badgeId);
+      const sync = () => { const n = parseInt(src.textContent, 10) || 0; badge.textContent = n; badge.hidden = !n; };
+      new MutationObserver(sync).observe(src, { childList: true, characterData: true, subtree: true });
+      sync();
+    }
+    mirrorBadge("capp-count", "tab-badge-credit");
+    mirrorBadge("inbox-count", "tab-badge-inbox");
 
     // ---------- Auth ----------
     $("signin-btn").addEventListener("click", () => {
