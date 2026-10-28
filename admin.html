@@ -186,8 +186,105 @@
     }
 
     #signin-gate {
+      padding: 40px 16px 60px;
+    }
+
+    .login-box {
+      max-width: 400px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 24px 22px;
+    }
+
+    .login-box h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 600;
+      margin: 0 0 16px;
       text-align: center;
-      padding: 60px 16px;
+    }
+
+    .login-box .btn[type=submit] {
+      width: 100%;
+      min-height: 50px;
+      margin-top: 6px;
+    }
+
+    .login-field {
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .login-field .cat-label {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .login-show {
+      margin: -2px 0 10px;
+    }
+
+    .login-links {
+      text-align: center;
+      margin: 10px 0 0;
+    }
+
+    .linkish {
+      background: none;
+      border: 0;
+      padding: 6px;
+      font: inherit;
+      font-size: 16px;
+      color: var(--gold);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .forgot-box {
+      margin-top: 8px;
+      padding: 12px 14px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .forgot-box p {
+      margin: 0 0 10px;
+    }
+
+    .pw-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0 12px;
+      margin-top: 10px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .user-card {
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 12px 14px;
+      margin-top: 10px;
+    }
+
+    .user-card .row-form {
+      margin-top: 8px;
+    }
+
+    .user-edit {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--line);
     }
 
     .btn {
@@ -249,6 +346,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
       max-width: 860px;
       margin: 0 auto;
       padding: 10px 16px;
@@ -285,6 +383,7 @@
     }
 
     input[type=text],
+    input[type=password],
     textarea {
       width: 100%;
       padding: 9px 10px;
@@ -876,14 +975,34 @@
   </header>
 
   <div id="signin-gate">
-    <p class="muted">Sign in with your authorized Google account to continue.</p>
-    <button class="btn" id="signin-btn">Sign in with Google</button>
-    <p id="signin-error" class="muted" style="color:#b3302c;"></p>
+    <form class="login-box" id="login-form" novalidate>
+      <h2>Admin sign in</h2>
+      <label class="login-field"><span class="cat-label">Admin ID</span>
+        <input type="text" id="login-id" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+      <label class="login-field"><span class="cat-label">Password</span>
+        <input type="password" id="login-pw" autocomplete="current-password" required></label>
+      <label class="check login-show"><input type="checkbox" data-show="login-pw"> Show password</label>
+      <button class="btn" type="submit" id="login-btn">Sign in</button>
+      <p id="signin-error" class="status err" role="alert"></p>
+      <p class="login-links"><button type="button" class="linkish" id="forgot-btn" aria-expanded="false">Forgot
+          password?</button></p>
+      <div id="forgot-box" class="forgot-box" hidden>
+        <p><strong>Main admin:</strong> we'll email a recovery link to <span id="owner-mail"></span>. Open it on any
+          phone or computer and you can set a new password.</p>
+        <button type="button" class="btn secondary small" id="recover-btn">Email the recovery link</button>
+        <p class="status" id="recover-status" role="status"></p>
+        <p><strong>Other users:</strong> ask the main admin to set a new password for you (Users tab).</p>
+      </div>
+      <p class="login-links"><button type="button" class="linkish" id="signin-btn">Sign in with Google instead</button></p>
+    </form>
   </div>
 
   <div id="topbar" style="display:none;">
     <span id="who"></span>
-    <button class="btn secondary small" id="signout-btn">Sign out</button>
+    <span class="topbar-actions">
+      <button class="btn secondary small" id="mypw-btn" type="button" hidden>Change password</button>
+      <button class="btn secondary small" id="signout-btn">Sign out</button>
+    </span>
   </div>
 
   <div id="app">
@@ -895,6 +1014,7 @@
       <button type="button" role="tab" id="tab-website" aria-controls="panel-website" data-tab="website">Website</button>
       <button type="button" role="tab" id="tab-whatsapp" aria-controls="panel-whatsapp" data-tab="whatsapp">WhatsApp setup</button>
       <button type="button" role="tab" id="tab-inbox" aria-controls="panel-inbox" data-tab="inbox">Inbox</button>
+      <button type="button" role="tab" id="tab-users" aria-controls="panel-users" data-tab="users" hidden>Users</button>
     </nav>
     <div class="wrap">
 
@@ -1206,6 +1326,65 @@
       </section>
       </div>
 
+      <div class="tab-panel" role="tabpanel" id="panel-users" aria-labelledby="tab-users" hidden>
+      <section class="card" aria-labelledby="mypw-title" id="mypw-card" hidden>
+        <h2 id="mypw-title">My password</h2>
+        <p class="muted">Changing it signs you out on your other phones and computers.</p>
+        <div class="pw-grid">
+          <label class="login-field"><span class="cat-label">Current password</span>
+            <input type="password" id="mypw-current" autocomplete="current-password"></label>
+          <label class="login-field"><span class="cat-label">New password (8 or more characters)</span>
+            <input type="password" id="mypw-new" autocomplete="new-password"></label>
+          <label class="login-field"><span class="cat-label">New password again</span>
+            <input type="password" id="mypw-again" autocomplete="new-password"></label>
+        </div>
+        <label class="check"><input type="checkbox" data-show="mypw-current mypw-new mypw-again"> Show passwords</label>
+        <div class="row-form"><button class="btn" type="button" id="mypw-save">Change password</button></div>
+        <div class="status" id="mypw-status" role="status"></div>
+      </section>
+
+      <section class="card" aria-labelledby="mainadm-title" id="mainadm-card" hidden>
+        <h2 id="mainadm-title">Main admin ID &amp; password</h2>
+        <p class="muted">You're signed in with the owner's email, so you can set the main admin's ID and a new
+          password here &mdash; for example after &ldquo;Forgot password?&rdquo;. The main admin can add, edit and
+          remove the other users.</p>
+        <p class="muted" id="mainadm-now"></p>
+        <div class="pw-grid">
+          <label class="login-field"><span class="cat-label">Main admin ID</span>
+            <input type="text" id="mainadm-id" autocapitalize="none" spellcheck="false" autocomplete="off"
+              placeholder="e.g. admin"></label>
+          <label class="login-field"><span class="cat-label">Name</span>
+            <input type="text" id="mainadm-name" maxlength="60" placeholder="e.g. Waseem"></label>
+          <label class="login-field"><span class="cat-label">New password (8 or more characters)</span>
+            <input type="password" id="mainadm-pw" autocomplete="new-password"></label>
+        </div>
+        <label class="check"><input type="checkbox" data-show="mainadm-pw"> Show password</label>
+        <div class="row-form"><button class="btn" type="button" id="mainadm-save">Save main admin</button></div>
+        <div class="status" id="mainadm-status" role="status"></div>
+      </section>
+
+      <section class="card" aria-labelledby="users-title" id="users-card" hidden>
+        <h2 id="users-title">Users <span class="badge" id="users-count">0</span></h2>
+        <p class="muted">Everyone who can sign in to this admin panel with an ID and password. After 5 wrong
+          passwords in a row an ID is locked for 15 minutes &mdash; you can unlock it here. Switching a user off or
+          setting a new password signs them out straight away.</p>
+        <div id="users-list"></div>
+        <h3 class="pay-sub">Add a user</h3>
+        <div class="pw-grid">
+          <label class="login-field"><span class="cat-label">ID (they type this to sign in)</span>
+            <input type="text" id="user-new-id" autocapitalize="none" spellcheck="false" autocomplete="off"
+              placeholder="e.g. sadiya"></label>
+          <label class="login-field"><span class="cat-label">Name</span>
+            <input type="text" id="user-new-name" maxlength="60" placeholder="e.g. Sadiya"></label>
+          <label class="login-field"><span class="cat-label">Password (8 or more characters)</span>
+            <input type="password" id="user-new-pw" autocomplete="new-password"></label>
+        </div>
+        <label class="check"><input type="checkbox" data-show="user-new-pw"> Show password</label>
+        <div class="row-form"><button class="btn" type="button" id="user-add">Add user</button></div>
+        <div class="status" id="users-status" role="status"></div>
+      </section>
+      </div>
+
     </div>
   </div>
 
@@ -1229,6 +1408,8 @@
     const WORKER_BASE = "https://sharhan-whatsapp.waseemshaikh597.workers.dev";
     const ALLOWED_EMAILS = ["waseemshaikh597@gmail.com",
       'sadiyanalband16@gmail.com', 'bagbanhanif@gmail.com', 'farixashk06@gmail.com'];
+    // Owner: may set the main admin ID & password; "Forgot password?" emails a link here.
+    const OWNER_EMAIL = "waseemshaikh597@gmail.com";
     const MAX_ITEMS = 15;
     const MAX_TEXT = 100;     // card text; leaves room for the ticked-items card's fixed wording (160 total)
     const PICK_MIN = 2, PICK_MAX = 10;
@@ -1293,21 +1474,118 @@
     }
     mirrorBadge("capp-count", "tab-badge-credit");
 
-    // ---------- Auth ----------
+    // ---------- Auth: admin ID + password (checked by the Worker), Google as a backup ----------
+    // me.staff: the signed-in ID's account ({id, name, role}); null for Google sign-in.
+    let me = { staff: null, manager: false, owner: false, label: "" };
+    const whoLabel = () => me.label;
+    // Opened from the recovery email: signs in as the owner's email, then shows Users.
+    const RECOVERY_LINK = auth.isSignInWithEmailLink(location.href);
+    if (RECOVERY_LINK) {
+      auth.signInWithEmailLink(OWNER_EMAIL, location.href)
+        .then(() => history.replaceState(null, "", location.pathname + "#users"))
+        .catch(() => { $("signin-error").textContent = "This recovery link didn't work (it may be old or already used). Ask for a new one under “Forgot password?”."; });
+    }
+    $("owner-mail").textContent = OWNER_EMAIL.replace(/^(.).*?(.{3})@/, (m, a, b) => a + "•••••" + b + "@");
+
+    document.addEventListener("change", (e) => {
+      const ids = e.target.dataset && e.target.dataset.show;
+      if (ids) ids.split(" ").forEach((id) => { $(id).type = e.target.checked ? "text" : "password"; });
+    });
+
+    function loginMessage(data) {
+      if (data.error === "locked") return "Too many wrong passwords. This ID is locked until " + new Date(data.until).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ". Wait, or ask the main admin to unlock it.";
+      if (data.error === "blocked") return "Too many wrong tries from this phone or computer. Try again in an hour.";
+      if (data.error === "wrong") return "Wrong ID or password." + (data.left ? " " + data.left + (data.left === 1 ? " try" : " tries") + " left, then this ID is locked for 15 minutes." : "");
+      return data.error || "Couldn't sign in. Check your internet and try again.";
+    }
+
+    $("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = $("login-id").value.trim(), password = $("login-pw").value;
+      if (!id || !password) { $("signin-error").textContent = "Enter your admin ID and password."; return; }
+      $("login-btn").disabled = true;
+      $("signin-error").textContent = "";
+      try {
+        const res = await fetch(WORKER_BASE + "/staff-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, password }) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(loginMessage(data));
+        $("login-pw").value = "";
+        await auth.signInWithCustomToken(data.token);
+      } catch (err) {
+        $("signin-error").textContent = err.message === "Failed to fetch" ? "No internet connection. Try again." : err.message;
+        $("login-pw").select();
+      } finally {
+        $("login-btn").disabled = false;
+      }
+    });
+
+    $("forgot-btn").addEventListener("click", () => {
+      const box = $("forgot-box");
+      box.hidden = !box.hidden;
+      $("forgot-btn").setAttribute("aria-expanded", String(!box.hidden));
+    });
+    $("recover-btn").addEventListener("click", async () => {
+      $("recover-btn").disabled = true;
+      setStatus("recover-status", "Sending…", "");
+      try {
+        await auth.sendSignInLinkToEmail(OWNER_EMAIL, { url: location.origin + location.pathname + "?recover=1", handleCodeInApp: true });
+        setStatus("recover-status", "Sent. Open the email from Firebase (check Spam too) and tap the link.", "ok");
+      } catch (err) {
+        setStatus("recover-status", err.code === "auth/operation-not-allowed" ? "Email recovery isn't switched on yet. Use “Sign in with Google instead” with the owner's email." : "Couldn't send: " + err.message, "err");
+      } finally {
+        $("recover-btn").disabled = false;
+      }
+    });
+
     $("signin-btn").addEventListener("click", () => {
       $("signin-error").textContent = "";
       auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch((e) => { $("signin-error").textContent = e.message; });
     });
     $("signout-btn").addEventListener("click", () => auth.signOut());
+    $("mypw-btn").addEventListener("click", () => { showTab("users"); $("mypw-current").focus(); });
 
-    let inboxUnsub = null, customersUnsub = null;
-    auth.onAuthStateChanged((user) => {
-      const ok = user && ALLOWED_EMAILS.includes((user.email || "").toLowerCase());
+    // Who is signed in, and may they use the panel? Staff sessions are confirmed by the Worker
+    // (an ID switched off, or whose password changed, is signed out).
+    async function resolveUser(user) {
+      if (!user) return false;
+      const claims = (await user.getIdTokenResult()).claims;
+      if (claims.sb_user) {
+        try {
+          const d = await api("/staff-me");
+          me = { staff: d.user, manager: d.manager, owner: false, label: (d.user.name ? d.user.name + " (" + d.user.id + ")" : d.user.id) };
+          return true;
+        } catch (e) {
+          if (e.message === "Failed to fetch") { // offline: let the rules decide
+            me = { staff: { id: claims.sb_user, name: "", role: claims.sb_role }, manager: claims.sb_role === "main", owner: false, label: claims.sb_user };
+            return true;
+          }
+          $("signin-error").textContent = /switched off/i.test(e.message) ? "This admin ID has been switched off." : "Your password was changed. Please sign in again.";
+          return false;
+        }
+      }
+      const email = (user.email || "").toLowerCase();
+      if (!ALLOWED_EMAILS.includes(email)) {
+        $("signin-error").textContent = "This Google account is not authorized for this dashboard.";
+        return false;
+      }
+      const owner = email === OWNER_EMAIL;
+      me = { staff: null, manager: owner, owner, label: email };
+      return true;
+    }
+
+    let inboxUnsub = null, customersUnsub = null, shownUid = null;
+    auth.onAuthStateChanged(async (user) => {
+      const ok = await resolveUser(user);
+      if (user && !ok) auth.signOut();
+      if (ok && user.uid === shownUid) return; // same person signed in again (new password): already set up
+      shownUid = ok ? user.uid : null;
+      if (ok) $("signin-error").textContent = "";
       $("signin-gate").style.display = ok ? "none" : "block";
       $("topbar").style.display = ok ? "flex" : "none";
       $("app").style.display = ok ? "block" : "none";
       if (ok) {
-        $("who").textContent = user.email;
+        $("who").textContent = me.label + (me.staff && me.staff.role === "main" ? " · main admin" : "");
+        setupUsersTab();
         startListeners();
         startAutoReplyListeners();
         loadRecipients();
@@ -1323,6 +1601,137 @@
         if (customersUnsub) customersUnsub();
         if (statusUnsub) statusUnsub();
         if (autoUnsub) autoUnsub();
+      }
+    });
+
+    // ---------- Users tab: my password; the main admin manages IDs (Worker /staff-*) ----------
+    let staffUsers = [], editingUser = null;
+    function setupUsersTab() {
+      const staff = !!me.staff;
+      $("tab-users").hidden = !staff && !me.manager;
+      $("tab-users").firstChild.textContent = me.manager ? "Users" : "My password";
+      $("mypw-btn").hidden = !staff;
+      $("mypw-card").hidden = !staff;
+      $("mainadm-card").hidden = !me.owner;
+      $("users-card").hidden = !me.manager;
+      if (me.manager) loadUsers();
+      if (location.hash === "#users") showTab($("tab-users").hidden ? "send" : "users");
+      if (RECOVERY_LINK && me.owner) { showTab("users"); setStatus("mainadm-status", "Signed in with the recovery link. Set a new main admin password below.", "ok"); $("mainadm-pw").focus(); }
+    }
+
+    async function loadUsers() {
+      try {
+        const d = await api("/staff-users");
+        staffUsers = d.users || [];
+        const main = staffUsers.find((u) => u.role === "main");
+        $("mainadm-now").textContent = main ? "Main admin now: " + main.id + (main.name ? " (" + main.name + ")" : "") + "." : "No main admin ID yet — set one up below.";
+        if (main && !$("mainadm-id").value) { $("mainadm-id").value = main.id; $("mainadm-name").value = main.name || ""; }
+        renderUsers();
+      } catch (e) {
+        setStatus("users-status", "Couldn't load users: " + e.message, "err");
+      }
+    }
+
+    const when = (iso) => (iso ? new Date(iso).toLocaleString([], { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "never");
+
+    function renderUsers() {
+      const box = $("users-list");
+      box.innerHTML = "";
+      $("users-count").textContent = staffUsers.length;
+      if (!staffUsers.length) box.appendChild(el("p", { className: "muted", textContent: "No users yet." }));
+      staffUsers.forEach((u) => {
+        const locked = u.lockedUntil > Date.now();
+        const status = u.role === "main" ? ["Main admin", "ok"] : !u.active ? ["Switched off", "err"] : ["Active", "ok"];
+        const head = el("div", { className: "capp-head" }, [el("strong", { textContent: u.id + (u.name ? " · " + u.name : "") }), el("span", { className: "badge " + status[1], textContent: status[0] })]);
+        const info = el("div", { className: "muted", textContent: "Last sign-in: " + when(u.lastLoginAt) });
+        if (locked) info.append(" ", el("span", { className: "badge warn", textContent: "Locked till " + new Date(u.lockedUntil).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) }));
+        const actions = el("div", { className: "row-form" });
+        const btn = (text, fn, cls) => { const b = el("button", { type: "button", className: "btn small " + (cls || "secondary"), textContent: text }); b.addEventListener("click", fn); actions.appendChild(b); };
+        btn("Edit", () => { editingUser = editingUser === u.id ? null : u.id; renderUsers(); });
+        if (locked) btn("Unlock", () => saveUser({ action: "edit", id: u.id, unlock: true }, u.id + " unlocked."));
+        if (u.role !== "main") btn("Remove", () => {
+          if (confirm("Remove " + u.id + (u.name ? " (" + u.name + ")" : "") + "? They can't sign in any more.")) saveUser({ action: "remove", id: u.id }, u.id + " removed.");
+        });
+        const card = el("div", { className: "user-card" }, [head, info, actions]);
+        if (editingUser === u.id) card.appendChild(userEditRow(u));
+        box.appendChild(card);
+      });
+    }
+
+    function userEditRow(u) {
+      const name = el("input", { type: "text", value: u.name || "", maxLength: 60 });
+      name.setAttribute("aria-label", "Name");
+      const pw = el("input", { type: "password", placeholder: "New password (leave empty to keep)", autocomplete: "new-password" });
+      pw.setAttribute("aria-label", "New password");
+      const parts = [name, pw];
+      let on = null;
+      if (u.role !== "main") {
+        on = el("input", { type: "checkbox", checked: u.active });
+        parts.push(el("label", { className: "check" }, [on, " Can sign in"]));
+      }
+      const save = el("button", { type: "button", className: "btn small", textContent: "Save" });
+      save.addEventListener("click", () => {
+        const change = { action: "edit", id: u.id, name: name.value.trim() };
+        if (pw.value) change.password = pw.value;
+        if (on) change.active = on.checked;
+        saveUser(change, u.id + " saved." + (pw.value ? " Give them the new password." : ""));
+      });
+      const cancel = el("button", { type: "button", className: "btn small secondary", textContent: "Cancel" });
+      cancel.addEventListener("click", () => { editingUser = null; renderUsers(); });
+      return el("div", { className: "user-edit" }, [el("div", { className: "row-form" }, [...parts, save, cancel])]);
+    }
+
+    async function saveUser(change, done) {
+      setStatus("users-status", "Saving…", "");
+      try {
+        await api("/staff-users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(change) });
+        editingUser = null;
+        await loadUsers();
+        setStatus("users-status", done, "ok");
+        return true;
+      } catch (e) {
+        setStatus("users-status", e.message, "err");
+        return false;
+      }
+    }
+
+    $("user-add").addEventListener("click", async () => {
+      const id = $("user-new-id").value.trim().toLowerCase(), pw = $("user-new-pw").value;
+      if (!id || !pw) return setStatus("users-status", "Enter an ID and a password.", "err");
+      if (await saveUser({ action: "add", id, name: $("user-new-name").value.trim(), password: pw }, id + " added. Give them their ID and password.")) {
+        ["user-new-id", "user-new-name", "user-new-pw"].forEach((k) => { $(k).value = ""; });
+      }
+    });
+
+    $("mainadm-save").addEventListener("click", async () => {
+      const id = $("mainadm-id").value.trim().toLowerCase(), pw = $("mainadm-pw").value;
+      if (!id || !pw) return setStatus("mainadm-status", "Enter the main admin ID and a new password.", "err");
+      setStatus("mainadm-status", "Saving…", "");
+      try {
+        await api("/staff-users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "setup-main", id, name: $("mainadm-name").value.trim(), password: pw }) });
+        $("mainadm-pw").value = "";
+        setStatus("mainadm-status", "Saved. The main admin can now sign in with ID “" + id + "” and the new password.", "ok");
+        loadUsers();
+      } catch (e) {
+        setStatus("mainadm-status", e.message, "err");
+      }
+    });
+
+    $("mypw-save").addEventListener("click", async () => {
+      const current = $("mypw-current").value, next = $("mypw-new").value;
+      if (!current || !next) return setStatus("mypw-status", "Fill in your current and new password.", "err");
+      if (next !== $("mypw-again").value) return setStatus("mypw-status", "The two new passwords don't match.", "err");
+      setStatus("mypw-status", "Saving…", "");
+      try {
+        const token = await auth.currentUser.getIdToken();
+        const res = await fetch(WORKER_BASE + "/staff-password", { method: "POST", headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" }, body: JSON.stringify({ current, next }) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error === "wrong" ? "Current password is wrong." + (data.left ? " " + data.left + " tries left." : "") : loginMessage(data));
+        await auth.signInWithCustomToken(data.token); // a fresh session: the old ones are now refused
+        ["mypw-current", "mypw-new", "mypw-again"].forEach((k) => { $(k).value = ""; });
+        setStatus("mypw-status", "Password changed.", "ok");
+      } catch (e) {
+        setStatus("mypw-status", e.message, "err");
       }
     });
 
@@ -2687,7 +3096,7 @@
           await db.collection("settings").doc("credit").set({ customers: creditList, updatedAt: new Date().toISOString() });
           renderCredit();
         }
-        await db.collection("credit_applications").doc(a.id).update({ status, rejectReason: reason.trim(), decidedBy: auth.currentUser.email, decidedAt: new Date().toISOString() });
+        await db.collection("credit_applications").doc(a.id).update({ status, rejectReason: reason.trim(), decidedBy: whoLabel(), decidedAt: new Date().toISOString() });
         setStatus("credit-status", status === "approved" ? (a.name || a.mobile) + " approved for credit — the order form allows it within a minute." : "Application rejected.", "ok");
       } catch (e) {
         setStatus("credit-status", "Couldn't save the decision: " + e.message, "err");

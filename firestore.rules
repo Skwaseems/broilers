@@ -1,14 +1,31 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Customers' saved order forms. Verified emails only (Google sign-in): an unverified
+    // email/password account must not be able to claim someone else's address.
     match /requisitions/{email} {
-      allow read, write: if request.auth != null && request.auth.token.email == email;
+      allow read, write: if request.auth != null && request.auth.token.get('email_verified', false) == true
+        && request.auth.token.email == email;
     }
 
+    // Google sign-in (backup) for these emails, or an admin ID + password session issued by
+    // the Worker (custom token with sb_user) while that ID is switched on and the session
+    // started after its last password change.
     function isAdmin() {
-      return request.auth != null &&
-        request.auth.token.email in ['waseemshaikh597@gmail.com', 'sadiyanalband16@gmail.com',
-                                     'bagbanhanif@gmail.com', 'farixashk06@gmail.com'];
+      return request.auth != null && (
+        request.auth.token.get('email', '') in ['waseemshaikh597@gmail.com', 'sadiyanalband16@gmail.com',
+                                                'bagbanhanif@gmail.com', 'farixashk06@gmail.com']
+        || (request.auth.token.get('sb_user', '') != '' && staffActive()));
+    }
+
+    function staffActive() {
+      let u = get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data;
+      return u.get('active', false) == true && request.auth.token.auth_time >= u.get('validAfter', 0);
+    }
+
+    // Admin IDs and password hashes: only the Worker (service account) reads or writes them.
+    match /admin_users/{docId} {
+      allow read, write: if false;
     }
 
     // Someone who replied STOP (unsubscribed: true, set by the Worker) can't be ticked,

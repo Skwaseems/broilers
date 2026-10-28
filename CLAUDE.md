@@ -42,8 +42,12 @@ Live: https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (s
 
 - This repo is PUBLIC. Never commit secrets: `whatsapp/config.json` (Meta token) is gitignored;
   Worker secrets live only on Cloudflare (`wrangler secret put`).
-- An admin email must be in all three lists: `ALLOWED_EMAILS` in admin.html, `isAdmin()` in
-  firestore.rules, `ALLOWED_EMAILS` in cloudflare-worker/wrangler.toml.
+- Admins normally sign in with an admin ID + password (Worker `src/staff.js`, accounts in Firestore
+  `admin_users`, managed by the main admin in Admin → Users; 5 wrong tries lock an ID for 15 min).
+  The owner (`OWNER_EMAIL` = waseemshaikh597@gmail.com) can always set up / reset the main admin,
+  via Google sign-in or the "Forgot password?" email link. Never set passwords yourself.
+- Google sign-in is the backup. A Google admin email must be in all three lists: `ALLOWED_EMAILS` in
+  admin.html, `isAdmin()` in firestore.rules, `ALLOWED_EMAILS` in cloudflare-worker/wrangler.toml.
 - Don't invent business facts (certifications, years, prices); only use what the owner gives.
 - The owner prefers free options over paid services.
 - WhatsApp template wording that echoes an existing template gets auto-rejected by Meta

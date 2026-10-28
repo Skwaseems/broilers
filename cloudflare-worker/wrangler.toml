@@ -6,6 +6,8 @@ account_id = "e9e9acda46a0218cfcce4959677d8601"
 [vars]
 FIREBASE_PROJECT_ID = "sharhan-broilers"
 ALLOWED_EMAILS = "waseemshaikh597@gmail.com,sadiyanalband16@gmail.com,bagbanhanif@gmail.com,farixashk06@gmail.com"
+# Owner: may set up / reset the main admin ID (Admin → Users); password recovery emails go here.
+OWNER_EMAIL = "waseemshaikh597@gmail.com"
 TEMPLATE_LANGUAGE = "en"
 META_WABA_ID = "27938981485780059"
 META_APP_ID = "1135339285509297"
