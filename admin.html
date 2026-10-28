@@ -270,6 +270,24 @@
       justify-content: flex-end;
     }
 
+    .act-item {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .act-item .act-when {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .act-item ul {
+      margin: 4px 0 0;
+      padding-left: 20px;
+      font-size: 15px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
     .user-card {
       border: 1px solid var(--line);
       border-radius: 4px;
@@ -1383,6 +1401,20 @@
         <div class="row-form"><button class="btn" type="button" id="user-add">Add user</button></div>
         <div class="status" id="users-status" role="status"></div>
       </section>
+
+      <section class="card" aria-labelledby="activity-title" id="activity-card" hidden>
+        <h2 id="activity-title">Activity</h2>
+        <p class="muted">Who changed what, newest first: saves in every tab, catalogues sent, credit decisions,
+          sign-ins and user changes. Entries can't be edited or deleted.</p>
+        <div class="row-form">
+          <label class="check">Show <select id="activity-who" aria-label="Show activity of">
+              <option value="">everyone</option>
+            </select></label>
+        </div>
+        <div id="activity-list"></div>
+        <div class="row-form"><button class="btn secondary small" type="button" id="activity-more" hidden>Show
+            older</button></div>
+      </section>
       </div>
 
     </div>
@@ -1552,11 +1584,11 @@
       if (claims.sb_user) {
         try {
           const d = await api("/staff-me");
-          me = { staff: d.user, manager: d.manager, owner: false, label: (d.user.name ? d.user.name + " (" + d.user.id + ")" : d.user.id) };
+          me = { staff: d.user, manager: d.manager, owner: false, user: claims.sb_user, label: (d.user.name ? d.user.name + " (" + d.user.id + ")" : d.user.id) };
           return true;
         } catch (e) {
           if (e.message === "Failed to fetch") { // offline: let the rules decide
-            me = { staff: { id: claims.sb_user, name: "", role: claims.sb_role }, manager: claims.sb_role === "main", owner: false, label: claims.sb_user };
+            me = { staff: { id: claims.sb_user, name: "", role: claims.sb_role }, manager: claims.sb_role === "main", owner: false, user: claims.sb_user, label: claims.sb_user };
             return true;
           }
           $("signin-error").textContent = /switched off/i.test(e.message) ? "This admin ID has been switched off." : "Your password was changed. Please sign in again.";
@@ -1569,7 +1601,7 @@
         return false;
       }
       const owner = email === OWNER_EMAIL;
-      me = { staff: null, manager: owner, owner, label: email };
+      me = { staff: null, manager: owner, owner, user: user.email, label: email };
       return true;
     }
 
@@ -1599,22 +1631,146 @@
         if (user) { $("signin-error").textContent = "This Google account is not authorized for this dashboard."; auth.signOut(); }
         if (inboxUnsub) inboxUnsub();
         if (customersUnsub) customersUnsub();
+        if (activityUnsub) { activityUnsub(); activityUnsub = null; }
         if (statusUnsub) statusUnsub();
         if (autoUnsub) autoUnsub();
       }
     });
+
+    // ---------- Activity log (activity_log): who changed what ----------
+    // Every save in the panel adds an entry; firestore.rules check that `user` is really the
+    // signed-in person and the time is the server's, and nobody can edit or delete entries.
+    // The Worker adds sign-ins and user/password changes. Only the main admin can read it.
+    function logChange(area, action, changes) {
+      return db.collection("activity_log").add({
+        at: firebase.firestore.FieldValue.serverTimestamp(), user: me.user, name: String(me.label).slice(0, 120), area, action: String(action).slice(0, 500),
+        changes: (changes || []).slice(0, 40).map((c) => String(c).slice(0, 300)),
+      }).catch((e) => console.warn("Activity log:", e.message));
+    }
+
+    // Field names that change on every save, or are made automatically: not worth listing.
+    const QUIET_FIELDS = new Set(["updatedAt", "order", "imageTall", "imageCard", "imageWide", "imageCardName", "imageCardFrom", "imageCardV"]);
+    const FIELD_LABELS = {
+      spec: "card text", packs: "packs", onWhatsApp: "Send on WhatsApp", onWebsite: "on website", fit: "photo fit", tag: "tag",
+      image: "photo", groups: "groups", price: "price", placeholder: "no photo yet", autoReply: "Auto-reply", cardStyle: "card style",
+      intro: "message above the photos", whatsapp: "WhatsApp numbers", emails: "emails", items: "products", customers: "customers",
+      showForm: "show in order form", showSite: "show on website", qr: "QR photo", upi: "UPI ID", ifsc: "IFSC", hi: "Hindi", mr: "Marathi",
+    };
+    const isObj = (v) => v && typeof v === "object" && !Array.isArray(v);
+    // Missing, empty and "off" all mean the same thing in these documents.
+    const blank = (v) => v === undefined || v === null || v === "" || v === false || (Array.isArray(v) && !v.length);
+    const shortVal = (v) => {
+      if (typeof v === "boolean") return v ? "on" : "off";
+      if (v === undefined || v === null || v === "") return "(empty)";
+      // A row such as {name, hi, fresh: true, frozen: false} reads "name · hi · fresh".
+      const t = isObj(v) ? Object.entries(v).map(([k, x]) => (x === true ? k : typeof x === "string" || typeof x === "number" ? String(x) : "")).filter(Boolean).join(" · ")
+        : typeof v === "string" ? v : JSON.stringify(v);
+      return "“" + (t.length > 80 ? t.slice(0, 77) + "…" : t) + "”";
+    };
+    // Plain-language list of what differs between two versions of a document.
+    function diffObjects(before, after, prefix, out) {
+      out = out || [];
+      const keys = new Set([...Object.keys(before || {}), ...Object.keys(after || {})]);
+      for (const k of keys) {
+        if (QUIET_FIELDS.has(k)) continue;
+        const a = before ? before[k] : undefined, b = after ? after[k] : undefined;
+        const label = prefix ? prefix + " › " + (FIELD_LABELS[k] || k) : FIELD_LABELS[k] || k;
+        if (JSON.stringify(a) === JSON.stringify(b) || (blank(a) && blank(b))) continue;
+        const rowKey = (x) => (isObj(x) ? x.name || x.mobile || x.title || x.id || "" : "");
+        if (isObj(a) && isObj(b)) diffObjects(a, b, label, out);
+        else if (Array.isArray(a) && Array.isArray(b) && [...a, ...b].every((x) => rowKey(x)) && new Set(a.map(rowKey)).size === a.length && new Set(b.map(rowKey)).size === b.length) {
+          // Rows with a name (products, credit customers…): match them by it.
+          const old = new Map(a.map((x) => [rowKey(x), x])), now = new Map(b.map((x) => [rowKey(x), x]));
+          now.forEach((x, key) => { if (!old.has(key)) out.push(label + ": added " + shortVal(x)); else diffObjects(old.get(key), x, key, out); });
+          old.forEach((x, key) => { if (!now.has(key)) out.push(label + ": removed " + shortVal(x)); });
+          if ([...old.keys()].filter((key) => now.has(key)).join() !== [...now.keys()].filter((key) => old.has(key)).join()) out.push(label + ": order changed");
+        }
+        else if (Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every(isObj) && b.every(isObj)) a.forEach((x, i) => diffObjects(x, b[i], label + " " + (i + 1), out));
+        else if (Array.isArray(a) && Array.isArray(b)) {
+          const as = a.map((x) => JSON.stringify(x)), bs = b.map((x) => JSON.stringify(x));
+          b.forEach((x, i) => { if (!as.includes(bs[i])) out.push(label + ": added " + shortVal(x)); });
+          a.forEach((x, i) => { if (!bs.includes(as[i])) out.push(label + ": removed " + shortVal(x)); });
+          if (as.length === bs.length && as.every((x) => bs.includes(x))) out.push(label + ": order changed");
+        } else if (/^(image|imageTall|qr|photo)$/i.test(k) || /photo|image/i.test(k)) out.push(label + ": changed");
+        else out.push(label + ": " + shortVal(a) + " → " + shortVal(b));
+      }
+      return out;
+    }
+
+    // set() that records the difference from what was saved before.
+    async function trackedSet(ref, data, opts, area, action) {
+      const before = await ref.get().then((d) => d.data() || {}, () => ({}));
+      await (opts ? ref.set(data, opts) : ref.set(data));
+      const changes = diffObjects(before, opts && opts.merge ? { ...before, ...data } : data);
+      if (changes.length) logChange(area, action, changes);
+    }
+
+    function catalogueChanges(before, after) {
+      const out = [];
+      const nameOf = (id) => (after[id] || before[id] || {}).name || id;
+      Object.keys(after).forEach((id) => { if (!before[id]) out.push("Added item: " + nameOf(id)); });
+      Object.keys(before).forEach((id) => { if (!after[id]) out.push("Removed item: " + nameOf(id)); });
+      Object.keys(after).forEach((id) => { if (before[id]) diffObjects(before[id], after[id], nameOf(id), out); });
+      const orderOf = (m) => Object.keys(m).filter((id) => before[id] && after[id]).sort((x, y) => (m[x].order || 0) - (m[y].order || 0)).join();
+      if (orderOf(before) !== orderOf(after)) out.push("Order of items changed");
+      return out;
+    }
+
+    // Viewer (main admin): newest first, 100 at a time.
+    let activityUnsub = null, activityLimit = 100, activity = [];
+    function startActivity() {
+      if (activityUnsub) activityUnsub();
+      activityUnsub = db.collection("activity_log").orderBy("at", "desc").limit(activityLimit).onSnapshot((snap) => {
+        activity = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        $("activity-more").hidden = snap.size < activityLimit;
+        renderActivity();
+      }, (e) => { $("activity-list").textContent = "Couldn't load the activity: " + e.message; });
+    }
+    function renderActivity() {
+      const sel = $("activity-who"), pick = sel.value;
+      const people = [...new Map(activity.map((a) => [a.user, a.name || a.user])).entries()];
+      sel.innerHTML = "";
+      sel.appendChild(el("option", { value: "", textContent: "everyone" }));
+      people.forEach(([u, n]) => sel.appendChild(el("option", { value: u, textContent: n, selected: u === pick })));
+      const box = $("activity-list");
+      box.innerHTML = "";
+      const list = activity.filter((a) => !pick || a.user === pick);
+      if (!list.length) box.appendChild(el("p", { className: "muted", textContent: "Nothing recorded yet." }));
+      list.forEach((a) => {
+        const at = a.at && a.at.toDate ? a.at.toDate().toLocaleString([], { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "just now";
+        const item = el("div", { className: "act-item" }, [
+          el("div", { className: "act-when", textContent: at + " · " + (a.name || a.user) + " · " + (a.area || "") }),
+          el("div", {}, [el("strong", { textContent: a.action || "" })]),
+        ]);
+        const changes = Array.isArray(a.changes) ? a.changes : [];
+        if (changes.length) {
+          const ul = el("ul");
+          changes.slice(0, 6).forEach((c) => ul.appendChild(el("li", { textContent: c })));
+          if (changes.length > 6) {
+            const more = el("button", { type: "button", className: "linkish", textContent: "Show all " + changes.length + " changes" });
+            more.addEventListener("click", () => { ul.innerHTML = ""; changes.forEach((c) => ul.appendChild(el("li", { textContent: c }))); });
+            ul.appendChild(el("li", { style: "list-style:none;margin-left:-20px;" }, [more]));
+          }
+          item.appendChild(ul);
+        }
+        box.appendChild(item);
+      });
+    }
+    $("activity-who").addEventListener("change", renderActivity);
+    $("activity-more").addEventListener("click", () => { activityLimit += 100; startActivity(); });
 
     // ---------- Users tab: my password; the main admin manages IDs (Worker /staff-*) ----------
     let staffUsers = [], editingUser = null;
     function setupUsersTab() {
       const staff = !!me.staff;
       $("tab-users").hidden = !staff && !me.manager;
-      $("tab-users").firstChild.textContent = me.manager ? "Users" : "My password";
+      $("tab-users").firstChild.textContent = me.manager ? "Users & activity" : "My password";
+      $("activity-card").hidden = !me.manager;
       $("mypw-btn").hidden = !staff;
       $("mypw-card").hidden = !staff;
       $("mainadm-card").hidden = !me.owner;
       $("users-card").hidden = !me.manager;
-      if (me.manager) loadUsers();
+      if (me.manager) { loadUsers(); startActivity(); }
       if (location.hash === "#users") showTab($("tab-users").hidden ? "send" : "users");
       if (RECOVERY_LINK && me.owner) { showTab("users"); setStatus("mainadm-status", "Signed in with the recovery link. Set a new main admin password below.", "ok"); $("mainadm-pw").focus(); }
     }
@@ -1906,9 +2062,13 @@
       $("save-cat-btn").disabled = true;
       setStatus("cat-status", "Saving…", "");
       try {
+        const beforeSnap = await db.collection("catalogue").get();
+        const before = {};
+        beforeSnap.forEach((d) => { before[d.id] = d.data(); });
+        const after = {};
         const batch = db.batch();
         items.forEach((it, i) => {
-          batch.set(db.collection("catalogue").doc(it.id), {
+          batch.set(db.collection("catalogue").doc(it.id), after[it.id] = {
             order: i, name: it.name.trim(), spec: (it.spec || "").trim(), packs: it.packs || [],
             image: it.image || "", imageTall: it.imageTall || "", placeholder: !!it.placeholder,
             imageCard: it.imageCard || "", imageWide: it.imageWide || "", imageCardName: it.imageCardName || "", imageCardFrom: it.imageCardFrom || "", imageCardV: it.imageCardV || 1,
@@ -1918,6 +2078,7 @@
         });
         removed.forEach((id) => batch.delete(db.collection("catalogue").doc(id)));
         await batch.commit();
+        logChange("Products", "Saved products", catalogueChanges(before, after));
         await loadCatalogue();
         setStatus("cat-status", "Saved. Preparing WhatsApp slider photos…", "");
         let made = 0;
@@ -2114,6 +2275,7 @@
         const exists = (await ref.get()).exists;
         if (exists) {
           await ref.update({ image: url, imageTall: tallUrl, placeholder: false });
+          logChange("Products", "Changed photo: " + it.name, []);
           await ensureCardImages().catch(() => { }); // remade on the next Save if this fails
         }
         else markDirty();
@@ -2309,7 +2471,7 @@
       $("save-site-btn").disabled = true;
       setStatus("site-status", "Saving…", "");
       try {
-        await db.collection("site_content").doc("main").set(clean);
+        await trackedSet(db.collection("site_content").doc("main"), clean, null, "Website", "Saved website content");
         site = clean;
         siteDirty = false;
         renderSite();
@@ -2396,6 +2558,7 @@
         try { photoMeta = (await api("/photo-submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ size: n }) })).photo; }
         catch (e) { failed.push(n + " items: " + e.message); }
       }
+      logChange("WhatsApp setup", "Submitted big-photo designs for approval", ["Sizes: " + todo.join(", ")].concat(failed));
       renderPhotoStatus();
       setStatus("tpl-status", failed.length ? "Some failed — " + failed.join("; ") : "Submitted. Check back later with “Check approval status”.", failed.length ? "err" : "ok");
     }
@@ -2441,6 +2604,7 @@
         try { textMeta = (await api("/text-submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ size: n }) })).text; }
         catch (e) { failed.push(n + " items: " + e.message); }
       }
+      logChange("WhatsApp setup", "Submitted photo + text designs for approval", ["Sizes: " + todo.join(", ")].concat(failed));
       renderTextStatus();
       setStatus("tpl-status", failed.length ? "Some failed — " + failed.join("; ") : "Submitted. Check back later with “Check approval status”.", failed.length ? "err" : "ok");
     });
@@ -2460,7 +2624,7 @@
       $("intro-text").value = intro;
       showIntro();
       try {
-        await db.collection("settings").doc("whatsapp").set({ intro }, { merge: true });
+        await trackedSet(db.collection("settings").doc("whatsapp"), { intro }, { merge: true }, "Send catalogue", "Message above the photos");
         setStatus("send-status", "Message saved. It's used for the next catalogue sent.", "ok");
       } catch (e) {
         setStatus("send-status", "Couldn't save the message: " + e.message, "err");
@@ -2471,7 +2635,7 @@
     document.querySelectorAll('input[name="card-style"]').forEach((r) => r.addEventListener("change", async () => {
       const style = r.value;
       try {
-        await db.collection("settings").doc("whatsapp").set({ cardStyle: style }, { merge: true });
+        await trackedSet(db.collection("settings").doc("whatsapp"), { cardStyle: style }, { merge: true }, "Send catalogue", "Card style");
         setStatus("send-status", style === "text"
           ? "Card style: photo + text below." + (textTemplateOf(items.filter((it) => it.onWhatsApp).length) ? "" : " (Until WhatsApp approves it, the big-photo style is sent.)")
           : "Card style: big photo.", "ok");
@@ -2675,6 +2839,7 @@
           data.results.forEach((r) => (r.ok ? sent++ : (failed++, failures.push(r.to + ": " + r.error))));
           offset = data.nextOffset;
         } while (offset !== null && offset !== undefined);
+        logChange("Send catalogue", "Sent " + what + " to " + who, ["Accepted by WhatsApp: " + sent + (failed ? ", failed: " + failed : "")]);
         setStatus("send-status", "WhatsApp accepted it for " + sent + " customer(s)" + (failed ? ", " + failed + " failed — " + failures.slice(0, 3).join("; ") : "") +
           ". Whether each one was actually delivered shows under Last catalogue in Customers within a few seconds.", failed ? "err" : "ok");
       } catch (e) {
@@ -2751,6 +2916,7 @@
 
     function setCustomerSend(c, on) {
       return db.collection("whatsapp_customers").doc(c.id).update({ send: on })
+        .then(() => logChange("Send catalogue", (on ? "Ticked " : "Unticked ") + (c.name || c.phone) + " · " + c.phone, []))
         .catch((e) => setStatus("send-status", "Couldn't update " + (c.name || c.phone) + ": " + e.message, "err"));
     }
 
@@ -2764,7 +2930,8 @@
         const del = el("button", { className: "btn secondary small", textContent: "Remove" });
         del.setAttribute("aria-label", "Remove " + (c.name || c.phone));
         del.addEventListener("click", () => {
-          if (confirm("Remove " + (c.name || c.phone) + " from the customer list?")) db.collection("whatsapp_customers").doc(c.id).delete();
+          if (confirm("Remove " + (c.name || c.phone) + " from the customer list?")) db.collection("whatsapp_customers").doc(c.id).delete()
+            .then(() => logChange("Send catalogue", "Removed customer " + (c.name || "") + " · " + c.phone, []));
         });
         const tick = el("input", { type: "checkbox", className: "cust-send", checked: isTicked(c) });
         tick.setAttribute("aria-label", "Send the catalogue to " + (c.name || c.phone));
@@ -2870,7 +3037,7 @@
       if (emails[1] && !emailOk(emails[1])) return setStatus("recip-status", "Email 2 doesn't look right.", "err");
       $("recip-save").disabled = true;
       try {
-        await db.collection("site_content").doc("orders").set({ whatsapp: phones.filter(Boolean), emails: emails.filter(Boolean), updatedAt: new Date().toISOString() });
+        await trackedSet(db.collection("site_content").doc("orders"), { whatsapp: phones.filter(Boolean), emails: emails.filter(Boolean), updatedAt: new Date().toISOString() }, null, "Order form", "Order recipients");
         setStatus("recip-status", "Saved. The order form uses these from the next page load.", "ok");
         loadRecipients();
       } catch (e) {
@@ -2946,7 +3113,7 @@
       if (!items.length) return setStatus("fi-status", "Add at least one product.", "err");
       $("fi-save").disabled = true;
       try {
-        await db.collection("site_content").doc("form").set({ items, updatedAt: new Date().toISOString() });
+        await trackedSet(db.collection("site_content").doc("form"), { items, updatedAt: new Date().toISOString() }, null, "Order form", "Order form products");
         setStatus("fi-status", "Saved " + items.length + " products. The order form shows them from the next page load.", "ok");
         loadFormItems();
       } catch (e) {
@@ -3002,7 +3169,7 @@
       if (doc.ifsc && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(doc.ifsc)) return setStatus("pay-status", "The IFSC doesn't look right (11 characters, e.g. HDFC0001234).", "err");
       $("pay-save").disabled = true;
       try {
-        await db.collection("site_content").doc("payment").set(doc);
+        await trackedSet(db.collection("site_content").doc("payment"), doc, null, "Credit & payments", "Bank QR & UPI");
         setStatus("pay-status", "Saved. The form and website show it from the next page load.", "ok");
       } catch (e) {
         setStatus("pay-status", "Couldn't save: " + e.message, "err");
@@ -3074,7 +3241,7 @@
         if (docList.length) button("Delete photos", "secondary", async (b) => {
           if (!confirm("Permanently delete the document photos of " + (a.name || a.mobile) + "? The application and decision stay in the list.")) return;
           b.disabled = true;
-          try { await api("/kyc-delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mobile: a.mobile }) }); delete cappShown[a.mobile]; }
+          try { await api("/kyc-delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mobile: a.mobile }) }); delete cappShown[a.mobile]; logChange("Credit & payments", "Deleted document photos: " + (a.name || "") + " · " + a.mobile, []); }
           catch (e) { b.disabled = false; setStatus("credit-status", "Couldn't delete the photos: " + e.message, "err"); }
         });
         const msg = a.status === "approved" ? "Your credit account with Sharhan Broilers is approved. You can now choose 1-3 Days (credit) in the order form."
@@ -3093,10 +3260,11 @@
       try {
         if (status === "approved" && !creditList.some((c) => c.mobile === a.mobile)) {
           creditList.push({ name: a.name || "", mobile: a.mobile });
-          await db.collection("settings").doc("credit").set({ customers: creditList, updatedAt: new Date().toISOString() });
+          await db.collection("settings").doc("credit").set({ customers: creditList, updatedAt: new Date().toISOString() }); // logged below
           renderCredit();
         }
         await db.collection("credit_applications").doc(a.id).update({ status, rejectReason: reason.trim(), decidedBy: whoLabel(), decidedAt: new Date().toISOString() });
+        logChange("Credit & payments", (status === "approved" ? "Approved credit: " : "Rejected credit: ") + (a.name || "") + " · " + a.mobile, reason.trim() ? ["Reason: " + reason.trim()] : []);
         setStatus("credit-status", status === "approved" ? (a.name || a.mobile) + " approved for credit — the order form allows it within a minute." : "Application rejected.", "ok");
       } catch (e) {
         setStatus("credit-status", "Couldn't save the decision: " + e.message, "err");
@@ -3135,7 +3303,7 @@
     $("credit-save").addEventListener("click", async () => {
       $("credit-save").disabled = true;
       try {
-        await db.collection("settings").doc("credit").set({ customers: creditList, updatedAt: new Date().toISOString() });
+        await trackedSet(db.collection("settings").doc("credit"), { customers: creditList, updatedAt: new Date().toISOString() }, null, "Credit & payments", "Credit-approved customers");
         setStatus("credit-status", "Saved. The order form checks this list within a minute.", "ok");
       } catch (e) {
         setStatus("credit-status", "Couldn't save: " + e.message, "err");
@@ -3176,7 +3344,7 @@
     $("auto-reply-on").addEventListener("change", async () => {
       const on = $("auto-reply-on").checked;
       try {
-        await db.collection("settings").doc("whatsapp").set({ autoReply: on }, { merge: true });
+        await trackedSet(db.collection("settings").doc("whatsapp"), { autoReply: on }, { merge: true }, "WhatsApp setup", "Auto-reply " + (on ? "on" : "off"));
         setStatus("auto-status", on ? "Auto-reply turned on." : "Auto-reply turned off.", "ok");
       } catch (e) {
         $("auto-reply-on").checked = !on;
@@ -3213,8 +3381,9 @@
 
     async function setAllCustomers(on) {
       const batch = db.batch();
-      customers.filter((c) => !c.unsubscribed && isTicked(c) !== on).forEach((c) => batch.update(db.collection("whatsapp_customers").doc(c.id), { send: on }));
-      try { await batch.commit(); } catch (e) { setStatus("send-status", "Couldn't update customers: " + e.message, "err"); }
+      const change = customers.filter((c) => !c.unsubscribed && isTicked(c) !== on);
+      change.forEach((c) => batch.update(db.collection("whatsapp_customers").doc(c.id), { send: on }));
+      try { await batch.commit(); if (change.length) logChange("Send catalogue", (on ? "Ticked all" : "Unticked all") + " (" + change.length + " customers)", change.map((c) => (c.name || "") + " · " + c.phone)); } catch (e) { setStatus("send-status", "Couldn't update customers: " + e.message, "err"); }
     }
     $("cust-all").addEventListener("click", () => setAllCustomers(true));
     $("cust-none").addEventListener("click", () => setAllCustomers(false));
@@ -3228,6 +3397,7 @@
       if (same) return setStatus("cust-status", phone + " is already on the list" + (same.name ? " as " + same.name : "") + ".", "err");
       setStatus("cust-status", "");
       await db.collection("whatsapp_customers").add({ name, phone, send: true, addedAt: new Date().toISOString() });
+      logChange("Send catalogue", "Added customer " + name + " · " + phone, []);
       $("new-name").value = "";
       $("new-phone").value = "";
     });

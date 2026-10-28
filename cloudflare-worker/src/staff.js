@@ -8,7 +8,7 @@
 // A correct password gets a Firebase custom token (claims sb_user, sb_role). firestore.rules
 // and requireStaff() accept the session only while the account is active and it started after
 // the account's last password change or switch-off (validAfter, epoch seconds).
-import { getDocument, setDocument, deleteDocument, listDocuments, base64url, importPrivateKey } from "./firestore.js";
+import { getDocument, setDocument, deleteDocument, listDocuments, addDocument, base64url, importPrivateKey } from "./firestore.js";
 
 const COLLECTION = "admin_users";
 const ITERATIONS = 10000; // the Workers free plan allows ~10 ms of CPU per request
@@ -94,6 +94,15 @@ const publicUser = (d) => ({
 });
 
 const save = (env, doc) => setDocument(env, COLLECTION, staffUid(doc.id), doc);
+const labelOf = (doc) => (doc.name ? `${doc.name} (${doc.id})` : doc.id);
+
+// Who changed what: activity_log (the admin panel adds its own saves there too). Never
+// includes a password.
+function logActivity(env, user, name, action, changes = []) {
+  return addDocument(env, "activity_log", { at: new Date(), user, name, area: "Users", action, changes }).catch(() => {});
+}
+// The signed-in person as written in the log: their admin ID, or their Google email.
+const actor = (user) => (user.staff ? user.staff.id : user.email);
 
 // A wrong password: counts towards the lock; returns the error to send.
 async function wrongPassword(env, doc) {
@@ -102,6 +111,7 @@ async function wrongPassword(env, doc) {
     doc.failCount = 0;
     doc.lockedUntil = Date.now() + LOCK_MS;
     await save(env, doc);
+    await logActivity(env, doc.id, labelOf(doc), `ID locked for 15 minutes after ${MAX_FAILS} wrong passwords`);
     return new StaffError("locked", 423, { until: doc.lockedUntil });
   }
   doc.failCount = fails;
@@ -136,6 +146,7 @@ async function login(env, request, body) {
   doc.lockedUntil = 0;
   doc.lastLoginAt = new Date().toISOString();
   await save(env, doc);
+  await logActivity(env, doc.id, labelOf(doc), "Signed in");
   return { token: await customToken(env, doc), user: publicUser(doc) };
 }
 
@@ -179,6 +190,7 @@ async function manage(env, user, body) {
       ...(await newSecret(env, body.password)), failCount: 0, lockedUntil: 0, validAfter: nowSec(),
       createdAt: (main && main.createdAt) || at, createdBy: (main && main.createdBy) || by, updatedAt: at };
     await save(env, doc);
+    await logActivity(env, actor(user), by, `Set the main admin's password (ID: ${id})`, main && main.id !== id ? [`ID changed from ${main.id} to ${id}`] : []);
     return { user: publicUser(doc) };
   }
   if (body.action === "add") {
@@ -186,16 +198,23 @@ async function manage(env, user, body) {
     const doc = { id, role: "user", name, active: true, ...(await newSecret(env, body.password)), failCount: 0, lockedUntil: 0,
       validAfter: 0, createdAt: at, createdBy: by, updatedAt: at };
     await save(env, doc);
+    await logActivity(env, actor(user), by, `Added user: ${labelOf(doc)}`);
     return { user: publicUser(doc) };
   }
   if (!existing) throw new StaffError("No such user.", 404);
   if (body.action === "remove") {
     if (existing.role === "main") throw new StaffError("The main admin can't be removed.");
     await deleteDocument(env, COLLECTION, staffUid(id));
+    await logActivity(env, actor(user), by, `Removed user: ${labelOf(existing)}`);
     return { removed: id };
   }
   if (body.action === "edit") {
     const doc = { ...existing, updatedAt: at };
+    const changes = [];
+    if ("name" in body && name !== (existing.name || "")) changes.push(`name: “${existing.name || ""}” → “${name}”`);
+    if (body.password) changes.push("new password set");
+    if (body.unlock && existing.lockedUntil > Date.now()) changes.push("unlocked");
+    if ("active" in body && (body.active !== false) !== (existing.active !== false)) changes.push(body.active === false ? "switched off" : "switched on");
     if ("name" in body) doc.name = name;
     if (body.password) Object.assign(doc, await newSecret(env, body.password), { validAfter: nowSec() });
     if (body.unlock || body.password) { doc.failCount = 0; doc.lockedUntil = 0; }
@@ -205,6 +224,7 @@ async function manage(env, user, body) {
       if (!doc.active) doc.validAfter = nowSec(); // signs them out everywhere
     }
     await save(env, doc);
+    if (changes.length) await logActivity(env, actor(user), by, `Changed user: ${id}`, changes);
     return { user: publicUser(doc) };
   }
   throw new StaffError("Unknown action.");
@@ -218,6 +238,7 @@ async function changeOwn(env, user, body) {
   if (!(await passwordMatches(env, doc, body.current))) throw await wrongPassword(env, doc);
   Object.assign(doc, await newSecret(env, body.next), { failCount: 0, lockedUntil: 0, validAfter: nowSec(), updatedAt: new Date().toISOString() });
   await save(env, doc);
+  await logActivity(env, doc.id, labelOf(doc), "Changed own password");
   return { token: await customToken(env, doc) };
 }
 
