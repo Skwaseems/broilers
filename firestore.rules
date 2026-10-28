@@ -28,6 +28,32 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Who is signed in, as written in activity_log.user: the admin ID, or the Google email.
+    function actor() {
+      return request.auth.token.get('sb_user', '') != '' ? request.auth.token.sb_user : request.auth.token.get('email', '');
+    }
+
+    // The main admin ID, or the owner's Google email.
+    function isManager() {
+      return isAdmin() && (request.auth.token.get('sb_role', '') == 'main'
+        || request.auth.token.get('email', '') == 'waseemshaikh597@gmail.com');
+    }
+
+    // Who changed what. Every admin adds entries for their own saves (their own name, the
+    // server's time); nobody can change or delete them. Only the main admin reads them.
+    match /activity_log/{docId} {
+      allow read: if isManager();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['at', 'user', 'name', 'area', 'action', 'changes'])
+        && request.resource.data.user == actor()
+        && request.resource.data.at == request.time
+        && request.resource.data.name is string && request.resource.data.name.size() <= 120
+        && request.resource.data.area is string && request.resource.data.area.size() <= 60
+        && request.resource.data.action is string && request.resource.data.action.size() <= 600
+        && request.resource.data.changes is list && request.resource.data.changes.size() <= 40;
+      allow update, delete: if false;
+    }
+
     // Someone who replied STOP (unsubscribed: true, set by the Worker) can't be ticked,
     // re-subscribed or deleted from the admin; only their own "START" undoes it.
     match /whatsapp_customers/{docId} {
