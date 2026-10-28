@@ -3,12 +3,12 @@
 
 let cachedToken = null; // { accessToken, expiresAt }
 
-function base64url(bytes) {
+export function base64url(bytes) {
   let str = typeof bytes === "string" ? bytes : String.fromCharCode(...new Uint8Array(bytes));
   return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-async function importPrivateKey(pem) {
+export async function importPrivateKey(pem) {
   const body = pem
     .replace(/-----BEGIN PRIVATE KEY-----/, "")
     .replace(/-----END PRIVATE KEY-----/, "")
@@ -150,4 +150,13 @@ export async function addDocument(env, collection, fields) {
   const data = await res.json();
   if (!res.ok) throw new Error("Firestore add failed: " + JSON.stringify(data));
   return data;
+}
+
+export async function deleteDocument(env, collection, id) {
+  const token = await getAccessToken(env);
+  const res = await fetch(`${baseUrl(env)}/${collection}/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok && res.status !== 404) throw new Error("Firestore delete failed: " + (await res.text()));
 }

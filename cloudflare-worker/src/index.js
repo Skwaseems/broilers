@@ -1,5 +1,6 @@
 import { listDocuments, addDocument, getDocument, setDocument } from "./firestore.js";
 import { verifyFirebaseIdToken } from "./verifyIdToken.js";
+import { staffRoute, requireStaff } from "./staff.js";
 
 const GRAPH = "https://graph.facebook.com/v21.0";
 const MAX_CARDS_PER_CAROUSEL = 10; // Meta's hard limit for carousel templates
@@ -34,6 +35,12 @@ async function requireAuthorizedUser(request, env) {
   const idToken = authHeader.replace(/^Bearer\s+/i, "");
   if (!idToken) throw new Error("Missing Authorization header");
   const payload = await verifyFirebaseIdToken(idToken, env.FIREBASE_PROJECT_ID);
+  // Admin ID + password sessions (staff.js): allowed while the account is on. Logs such as
+  // sentBy / decidedBy show them as "Name (id)".
+  if (payload.sb_user) {
+    const staff = await requireStaff(env, payload);
+    return { ...payload, staff, email: staff.name ? `${staff.name} (${staff.id})` : staff.id, email_verified: false };
+  }
   if (!payload.email_verified || !isAllowedEmail(env, payload.email)) {
     throw new Error("Email not authorized");
   }
@@ -1178,15 +1185,24 @@ export default {
       return creditApply(env, request);
     }
 
+    // Public: admin ID + password sign-in (wrong tries are counted and lock the ID).
+    if (path === "/staff-login") return staffRoute(env, request, path, null, json);
+
     // Everything below is admin-only.
     let user;
     try {
       user = await requireAuthorizedUser(request, env);
     } catch (e) {
-      if (["/inbox", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/")) {
+      if (["/inbox", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
         return json({ error: e.message }, 401);
       }
       return new Response("Not found", { status: 404 });
+    }
+
+    // Admin: users and passwords (staff.js).
+    if (path.startsWith("/staff-")) {
+      const res = await staffRoute(env, request, path, user, json);
+      if (res) return res;
     }
 
     // Admin: one KYC photo of a credit application.
