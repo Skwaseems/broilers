@@ -965,10 +965,16 @@
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script="" data-props="{}">
+// The width the page lays out at. Some in-app browsers report a stale window.innerWidth;
+// the document's own width is the more reliable reading, so take the smaller one.
+function sbViewWidth() {
+  const doc = document.documentElement && document.documentElement.clientWidth;
+  return doc ? Math.min(window.innerWidth || doc, doc) : window.innerWidth;
+}
 class Component extends DCLogic {
   state = {
     slide: 0, tab: 0, prodPage: 0, bundlePage: 0, postPage: 0, cut: 0,
-    w: typeof window !== 'undefined' ? window.innerWidth : 1400,
+    w: typeof window !== 'undefined' ? sbViewWidth() : 1400,
     navOpen: false, openFooter: null
   };
 
@@ -980,14 +986,25 @@ class Component extends DCLogic {
       if (this.raf) return;
       this.raf = requestAnimationFrame(() => {
         this.raf = null;
-        if (window.innerWidth !== this.state.w) this.setState({ w: window.innerWidth });
+        const w = sbViewWidth();
+        if (w !== this.state.w) this.setState({ w });
       });
     };
     window.addEventListener('resize', this.onResize);
+    // In-app browsers (WhatsApp, Instagram, Facebook) can report a desktop width until the
+    // page has loaded, without a resize event afterwards: look again once it has.
+    window.addEventListener('load', this.onResize);
+    window.addEventListener('pageshow', this.onResize);
+    window.addEventListener('orientationchange', this.onResize);
+    this.recheck = [setTimeout(this.onResize, 300), setTimeout(this.onResize, 1500)];
   }
   componentWillUnmount() {
     clearInterval(this.timer);
     window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('load', this.onResize);
+    window.removeEventListener('pageshow', this.onResize);
+    window.removeEventListener('orientationchange', this.onResize);
+    (this.recheck || []).forEach(clearTimeout);
     window.removeEventListener('sb-content', this.onContent);
   }
 
@@ -3245,6 +3262,36 @@ table.sb-table-booking{min-width:0;}
     else if (e.key === 'ArrowLeft' && group.length > 1) show(index - 1);
     else if (e.key === 'ArrowRight' && group.length > 1) show(index + 1);
   });
+})();
+</script>
+<script>
+// A phone with the browser's "Desktop site" switched on lays the page out ~980px wide, so
+// visitors get the computer layout in tiny print. Spot that (touch screen, small device
+// screen, much wider page) and say how to switch it off. Sized for the zoomed-out page.
+(function () {
+  try {
+    var screenW = Math.min(screen.width || 0, screen.height || 0);
+    var touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+    if (!touch || !screenW || screenW >= 600 || window.innerWidth < screenW * 1.5) return;
+    if (sessionStorage.getItem('sb-desktop-tip')) return;
+    var k = window.innerWidth / screenW;
+    var bar = document.createElement('div');
+    bar.setAttribute('role', 'note');
+    bar.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:2147483000;background:#1c1c22;color:#fff;font-family:Jost,sans-serif;'
+      + 'font-size:' + Math.round(15 * k) + 'px;line-height:1.4;padding:' + Math.round(12 * k) + 'px ' + Math.round(16 * k) + 'px;display:flex;gap:' + Math.round(12 * k) + 'px;align-items:center;';
+    var text = document.createElement('div');
+    text.style.flex = '1';
+    text.innerHTML = 'Seeing the computer version? Your browser&rsquo;s <b>Desktop site</b> option is on. Tap the menu <b>&#8942;</b> and untick <b>Desktop site</b> for the phone version.';
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = '×';
+    close.setAttribute('aria-label', 'Close');
+    close.style.cssText = 'background:none;border:0;color:#fff;cursor:pointer;font-size:' + Math.round(26 * k) + 'px;padding:0 ' + Math.round(6 * k) + 'px;';
+    close.onclick = function () { bar.remove(); try { sessionStorage.setItem('sb-desktop-tip', '1'); } catch (e) {} };
+    bar.appendChild(text);
+    bar.appendChild(close);
+    document.body.appendChild(bar);
+  } catch (e) {}
 })();
 </script>
 </body></html>
