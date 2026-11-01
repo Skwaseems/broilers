@@ -361,6 +361,10 @@
       overflow-wrap: anywhere;
     }
 
+    input[type=text].credit-days {
+      width: 76px;
+    }
+
     .user-card {
       border: 1px solid var(--line);
       border-radius: 4px;
@@ -1198,16 +1202,18 @@
         <div id="capp-list"></div>
 
         <h3 class="pay-sub">Credit-approved customers <span class="badge" id="credit-count">0</span></h3>
-        <p class="muted">&ldquo;1-3 Days (credit)&rdquo; in the order form only works for these mobile numbers;
-          everyone else is asked to choose Same Day payment or apply with their documents (above). The list stays private: the form only learns
-          yes/no for the number the customer typed.</p>
+        <p class="muted">&ldquo;On Credit&rdquo; in the order form only works for these mobile numbers;
+          everyone else is asked to choose Same Day payment or apply with their documents (above). Enter how many
+          credit days each customer gets. The list stays private: the form only learns yes/no and the credit days for
+          the number the customer typed.</p>
         <table>
-          <thead><tr><th>Customer</th><th>Mobile</th><th></th></tr></thead>
+          <thead><tr><th>Customer</th><th>Mobile</th><th>Credit days</th><th></th></tr></thead>
           <tbody id="credit-rows"></tbody>
         </table>
         <div class="row-form">
           <input type="text" id="credit-name" placeholder="Customer / billing name">
           <input type="text" id="credit-mobile" inputmode="tel" placeholder="Mobile, e.g. 9820132880">
+          <input type="text" id="credit-days" inputmode="numeric" maxlength="3" placeholder="Credit days, e.g. 7">
           <button class="btn secondary small" id="credit-add" type="button">+ Add</button>
         </div>
         <div class="row-form"><button class="btn" id="credit-save" type="button">Save credit list</button></div>
@@ -1764,7 +1770,7 @@
     const FIELD_LABELS = {
       spec: "card text", packs: "packs", onWhatsApp: "Send on WhatsApp", onWebsite: "on website", fit: "photo fit", tag: "tag",
       image: "photo", groups: "groups", price: "price", placeholder: "no photo yet", autoReply: "Auto-reply", cardStyle: "card style",
-      intro: "message above the photos", whatsapp: "WhatsApp numbers", emails: "emails", items: "products", customers: "customers",
+      days: "credit days", intro: "message above the photos", whatsapp: "WhatsApp numbers", emails: "emails", items: "products", customers: "customers",
       showForm: "show in order form", showSite: "show on website", qr: "QR photo", upi: "UPI ID", ifsc: "IFSC", hi: "Hindi", mr: "Marathi",
     };
     // Website sections and their fields are named as in the Website tab.
@@ -3511,7 +3517,8 @@
           try { await api("/kyc-delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mobile: a.mobile }) }); delete cappShown[a.mobile]; logChange("Credit & payments", "Deleted document photos: " + (a.name || "") + " · " + a.mobile, []); }
           catch (e) { b.disabled = false; setStatus("credit-status", "Couldn't delete the photos: " + e.message, "err"); }
         });
-        const msg = a.status === "approved" ? "Your credit account with Sharhan Broilers is approved. You can now choose 1-3 Days (credit) in the order form."
+        const onList = creditList.find((c) => c.mobile === a.mobile);
+        const msg = a.status === "approved" ? "Your credit account with Sharhan Broilers is approved" + (onList && onList.days ? " for " + onList.days + " credit days" : "") + ". You can now choose On Credit in the order form."
           : a.status === "rejected" ? "About your credit application with Sharhan Broilers: we couldn't approve it this time." + (a.rejectReason ? " Reason: " + a.rejectReason : "") : "";
         if (msg) actions.appendChild(el("a", { className: "btn small secondary", href: "https://wa.me/91" + a.mobile + "?text=" + encodeURIComponent(msg), target: "_blank", rel: "noopener", textContent: "Tell customer on WhatsApp" }));
         card.appendChild(actions);
@@ -3523,15 +3530,26 @@
       if (status === "rejected") {
         reason = prompt("Reason for rejecting (the customer can see it if you message them):", "");
         if (reason === null) return;
-      } else if (!confirm("Approve credit (1-3 days) for " + (a.name || a.mobile) + " · " + a.mobile + "?")) return;
+      }
+      let days = "";
+      if (status === "approved") {
+        const known = creditList.find((c) => c.mobile === a.mobile);
+        days = prompt("How many credit days for " + (a.name || a.mobile) + " · " + a.mobile + "?", (known && known.days) || "");
+        if (days === null) return;
+        days = days.replace(/\D/g, "");
+        if (!creditDaysOk(days)) return setStatus("credit-status", "Not approved: enter the credit days as a number, e.g. 7.", "err");
+        days = String(Number(days));
+      }
       try {
-        if (status === "approved" && !creditList.some((c) => c.mobile === a.mobile)) {
-          creditList.push({ name: a.name || "", mobile: a.mobile });
+        if (status === "approved") {
+          const known = creditList.find((c) => c.mobile === a.mobile);
+          if (known) known.days = days;
+          else creditList.push({ name: a.name || "", mobile: a.mobile, days });
           await db.collection("settings").doc("credit").set({ customers: creditList, updatedAt: new Date().toISOString() }); // logged below
           renderCredit();
         }
         await db.collection("credit_applications").doc(a.id).update({ status, rejectReason: reason.trim(), decidedBy: whoLabel(), decidedAt: new Date().toISOString() });
-        logChange("Credit & payments", (status === "approved" ? "Approved credit: " : "Rejected credit: ") + (a.name || "") + " · " + a.mobile, reason.trim() ? ["Reason: " + reason.trim()] : []);
+        logChange("Credit & payments", (status === "approved" ? "Approved credit: " : "Rejected credit: ") + (a.name || "") + " · " + a.mobile, status === "approved" ? ["Credit days: " + days] : reason.trim() ? ["Reason: " + reason.trim()] : []);
         setStatus("credit-status", status === "approved" ? (a.name || a.mobile) + " approved for credit — the order form allows it within a minute." : "Application rejected.", "ok");
       } catch (e) {
         setStatus("credit-status", "Couldn't save the decision: " + e.message, "err");
@@ -3540,21 +3558,25 @@
 
     // ---------- Credit-approved customers (settings/credit, private; the Worker answers yes/no) ----------
     let creditList = [];
+    const creditDaysOk = (d) => /^\d{1,3}$/.test(String(d || "")) && Number(d) > 0;
     function renderCredit() {
       const body = $("credit-rows");
       body.innerHTML = "";
-      if (!creditList.length) body.appendChild(el("tr", {}, [el("td", { colSpan: 3, className: "muted", textContent: "No one yet: credit is closed for everyone." })]));
+      if (!creditList.length) body.appendChild(el("tr", {}, [el("td", { colSpan: 4, className: "muted", textContent: "No one yet: credit is closed for everyone." })]));
       creditList.forEach((c, i) => {
         const rm = el("button", { type: "button", className: "btn secondary small", textContent: "Remove" });
         rm.addEventListener("click", () => { creditList.splice(i, 1); renderCredit(); setStatus("credit-status", "Removed. Press Save credit list to apply."); });
-        body.appendChild(el("tr", {}, [el("td", { textContent: c.name || "—" }), el("td", { textContent: c.mobile }), el("td", {}, [rm])]));
+        const days = el("input", { type: "text", inputMode: "numeric", maxLength: 3, value: c.days || "", placeholder: "Days", className: "credit-days" });
+        days.setAttribute("aria-label", "Credit days for " + (c.name || c.mobile));
+        days.addEventListener("input", () => { c.days = days.value.replace(/\D/g, ""); days.value = c.days; setStatus("credit-status", "Changed. Press Save credit list to apply."); });
+        body.appendChild(el("tr", {}, [el("td", { textContent: c.name || "—" }), el("td", { textContent: c.mobile }), el("td", {}, [days]), el("td", {}, [rm])]));
       });
       $("credit-count").textContent = creditList.length;
     }
     async function loadCredit() {
       let list = [];
       try { const s = await db.collection("settings").doc("credit").get(); if (s.exists) list = s.data().customers || []; } catch (e) { /* empty */ }
-      creditList = list.map((c) => ({ name: c.name || "", mobile: c.mobile || "" }));
+      creditList = list.map((c) => ({ name: c.name || "", mobile: c.mobile || "", days: String(c.days || "") }));
       renderCredit();
     }
     $("credit-add").addEventListener("click", () => {
@@ -3562,12 +3584,16 @@
       const name = $("credit-name").value.trim();
       if (mobile.length !== 10) return setStatus("credit-status", "Enter a 10-digit mobile number.", "err");
       if (creditList.some((c) => c.mobile === mobile)) return setStatus("credit-status", mobile + " is already on the list.", "err");
-      creditList.push({ name, mobile });
-      $("credit-name").value = ""; $("credit-mobile").value = "";
+      const days = $("credit-days").value.replace(/\D/g, "");
+      if (!creditDaysOk(days)) return setStatus("credit-status", "Enter the credit days (a number, e.g. 7).", "err");
+      creditList.push({ name, mobile, days: String(Number(days)) });
+      $("credit-name").value = ""; $("credit-mobile").value = ""; $("credit-days").value = "";
       renderCredit();
       setStatus("credit-status", "Added. Press Save credit list to apply.");
     });
     $("credit-save").addEventListener("click", async () => {
+      const missing = creditList.find((c) => !creditDaysOk(c.days));
+      if (missing) return setStatus("credit-status", "Enter the credit days for " + (missing.name || missing.mobile) + ".", "err");
       $("credit-save").disabled = true;
       try {
         await trackedSet(db.collection("settings").doc("credit"), { customers: creditList, updatedAt: new Date().toISOString() }, null, "Credit & payments", "Credit-approved customers");

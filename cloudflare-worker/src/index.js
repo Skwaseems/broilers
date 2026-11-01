@@ -60,12 +60,12 @@ async function graph(env, path, init = {}) {
 // ---- Credit approval (Admin → Payments & credit, stored in settings/credit) ----
 
 // Cached per isolate for a minute, so repeated checks don't each cost a Firestore read.
-let creditCache = { at: 0, set: new Set() };
+let creditCache = { at: 0, set: new Map() }; // mobile -> credit days the admin entered
 async function creditMobiles(env) {
   if (Date.now() - creditCache.at < 60000) return creditCache.set;
   const doc = await getDocument(env, "settings", "credit").catch(() => null);
   const list = doc && Array.isArray(doc.customers) ? doc.customers : [];
-  const set = new Set(list.map((c) => String((c && c.mobile) || "").replace(/\D/g, "").slice(-10)).filter((m) => m.length === 10));
+  const set = new Map(list.map((c) => [String((c && c.mobile) || "").replace(/\D/g, "").slice(-10), String((c && c.days) || "")]).filter(([m]) => m.length === 10));
   creditCache = { at: Date.now(), set };
   return set;
 }
@@ -128,7 +128,8 @@ async function creditApply(env, request) {
 }
 
 async function creditStatus(env, mobile) {
-  if ((await creditMobiles(env)).has(mobile)) return { approved: true, application: "approved" };
+  const approved = await creditMobiles(env);
+  if (approved.has(mobile)) return { approved: true, application: "approved", days: approved.get(mobile) };
   const app = await getDocument(env, "credit_applications", mobile).catch(() => null);
   return { approved: false, application: app ? app.status || "" : "" };
 }
