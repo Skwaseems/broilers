@@ -1447,7 +1447,7 @@ table.sb-table-booking{min-width:0;}
         </div>
         <div class="sb-pkg-block" id="sb-booking-wrap">
           <div class="sb-row">
-            <div class="sb-field"><label for="sb-booking-date"><span data-i18n="deliveryDate">Delivery Date</span> *</label><input type="date" id="sb-booking-date"><span class="sb-note" id="sb-booking-hint"></span></div>
+            <div class="sb-field"><label for="sb-booking-date"><span data-i18n="deliveryDate">Delivery Date</span> *</label><input type="date" id="sb-booking-date"></div>
           </div>
           <div class="sb-table-wrap"><table class="sb-table sb-table-booking" data-booking="1"></table></div>
           <div class="sb-week-total"><span data-i18n="orderTotal">Order Total</span>: <strong><span id="sb-booking-total">0</span>kg</strong></div>
@@ -1545,7 +1545,6 @@ table.sb-table-booking{min-width:0;}
       cutoffMoved: 'That date is past the 3:00 PM cutoff, so the delivery date has been moved to {date}. Please check and send again.',
       bookingEmpty: 'Please enter at least one quantity in the Order Now table, or untick "Place an order for a specific day".',
       qtyEmpty: 'Please enter at least one quantity in the weekly requirement table or the Order Now table.',
-      bookingHint: 'Earliest available delivery: {date}', cutoffPassed: ' (today’s 3:00 PM cutoff has passed)',
       locFinding: 'Finding your location…', locAdded: 'Location added (accurate to about {m} m). Make sure it’s the delivery address.',
       locBlocked: 'Location permission was blocked — allow it in the browser, or paste a Google Maps link instead.',
       locFailed: 'Couldn’t get your location — please try again or paste a Google Maps link.',
@@ -1593,7 +1592,6 @@ table.sb-table-booking{min-width:0;}
       cutoffMoved: 'वह तारीख दोपहर 3:00 बजे की समय-सीमा के बाद की है, इसलिए डिलीवरी की तारीख {date} कर दी गई है। कृपया जाँच कर फिर से भेजें।',
       bookingEmpty: 'कृपया ऑर्डर टेबल में कम से कम एक मात्रा भरें, या "किसी खास दिन के लिए ऑर्डर दें" का निशान हटाएँ।',
       qtyEmpty: 'कृपया साप्ताहिक ज़रूरत या ऑर्डर टेबल में कम से कम एक मात्रा भरें।',
-      bookingHint: 'सबसे पहली डिलीवरी: {date}', cutoffPassed: ' (आज की दोपहर 3:00 बजे की समय-सीमा निकल चुकी है)',
       locFinding: 'आपकी लोकेशन ढूँढी जा रही है…', locAdded: 'लोकेशन जोड़ दी गई (लगभग {m} मीटर तक सही)। जाँच लें कि यही डिलीवरी का पता है।',
       locBlocked: 'लोकेशन की अनुमति नहीं मिली — ब्राउज़र में अनुमति दें, या गूगल मैप्स लिंक पेस्ट करें।',
       locFailed: 'लोकेशन नहीं मिल सकी — फिर से कोशिश करें या गूगल मैप्स लिंक पेस्ट करें।',
@@ -1641,7 +1639,6 @@ table.sb-table-booking{min-width:0;}
       cutoffMoved: 'ती तारीख दुपारी 3:00 च्या मुदतीनंतरची आहे, म्हणून डिलिव्हरीची तारीख {date} केली आहे. कृपया तपासून पुन्हा पाठवा.',
       bookingEmpty: 'कृपया ऑर्डर टेबलमध्ये किमान एक प्रमाण भरा, किंवा "ठराविक दिवसासाठी ऑर्डर द्या" ची खूण काढा.',
       qtyEmpty: 'कृपया साप्ताहिक गरज किंवा ऑर्डर टेबलमध्ये किमान एक प्रमाण भरा.',
-      bookingHint: 'सर्वात लवकर डिलिव्हरी: {date}', cutoffPassed: ' (आजची दुपारी 3:00 ची मुदत संपली आहे)',
       locFinding: 'तुमचे लोकेशन शोधत आहोत…', locAdded: 'लोकेशन जोडले (सुमारे {m} मीटरपर्यंत अचूक). हाच डिलिव्हरीचा पत्ता आहे याची खात्री करा.',
       locBlocked: 'लोकेशनची परवानगी नाकारली — ब्राउझरमध्ये परवानगी द्या, किंवा गूगल मॅप्स लिंक पेस्ट करा.',
       locFailed: 'लोकेशन मिळाले नाही — पुन्हा प्रयत्न करा किंवा गूगल मॅप्स लिंक पेस्ट करा.',
@@ -1820,12 +1817,10 @@ table.sb-table-booking{min-width:0;}
   }
   function sbRefreshBookingLimits(){
     var el = document.getElementById('sb-booking-date');
-    var hint = document.getElementById('sb-booking-hint');
     if (!el) return;
     var min = sbEarliestBookingDate();
     el.min = min;
     if (el.value && el.value < min) el.value = min;
-    if (hint) hint.textContent = sbT('bookingHint').replace('{date}', sbBookingDateLabel(min)) + (sbIstNow().h < 15 ? '' : sbT('cutoffPassed'));
   }
   window.sbToggleBooking = function(){
     var on = document.getElementById('sb-booking-on').checked;
