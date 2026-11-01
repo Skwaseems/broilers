@@ -33,6 +33,11 @@
       box-sizing: border-box;
     }
 
+    /* Styles like .btn's display must not bring a hidden element back. */
+    [hidden] {
+      display: none !important;
+    }
+
     body {
       margin: 0;
       font-size: 17px;
@@ -270,6 +275,74 @@
       justify-content: flex-end;
     }
 
+    .act-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0;
+    }
+
+    .act-chip {
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 19px;
+      background: #fff;
+      font-family: 'Jost', sans-serif;
+      font-size: 15px;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .act-chip[aria-pressed="true"] {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    .act-filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0 12px;
+    }
+
+    .act-filters select {
+      width: 100%;
+      min-height: 42px;
+      font-size: 16px;
+    }
+
+    .act-tools {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 14px;
+    }
+
+    .act-view {
+      display: flex;
+      gap: 6px;
+    }
+
+    .act-group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 8px 12px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      font-weight: 600;
+    }
+
+    .act-item mark {
+      background: #f6e7b8;
+      color: inherit;
+    }
+
     .act-item {
       padding: 10px 0;
       border-bottom: 1px solid var(--line);
@@ -402,6 +475,7 @@
 
     input[type=text],
     input[type=password],
+    input[type=date],
     textarea {
       width: 100%;
       padding: 9px 10px;
@@ -1032,6 +1106,7 @@
       <button type="button" role="tab" id="tab-website" aria-controls="panel-website" data-tab="website">Website</button>
       <button type="button" role="tab" id="tab-whatsapp" aria-controls="panel-whatsapp" data-tab="whatsapp">WhatsApp setup</button>
       <button type="button" role="tab" id="tab-inbox" aria-controls="panel-inbox" data-tab="inbox">Inbox</button>
+      <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" data-tab="activity" hidden>Activity</button>
       <button type="button" role="tab" id="tab-users" aria-controls="panel-users" data-tab="users" hidden>Users</button>
     </nav>
     <div class="wrap">
@@ -1344,6 +1419,54 @@
       </section>
       </div>
 
+      <div class="tab-panel" role="tabpanel" id="panel-activity" aria-labelledby="tab-activity" hidden>
+      <section class="card" aria-labelledby="activity-title">
+        <h2 id="activity-title">Activity</h2>
+        <p class="muted">Who changed what: saves in every tab, catalogues sent, credit decisions, sign-ins and user
+          changes. Entries can't be edited or deleted.</p>
+        <div class="act-chips" id="activity-ranges" role="group" aria-label="Dates">
+          <button type="button" class="act-chip" data-range="today">Today</button>
+          <button type="button" class="act-chip" data-range="yesterday">Yesterday</button>
+          <button type="button" class="act-chip" data-range="7">Last 7 days</button>
+          <button type="button" class="act-chip" data-range="30">Last 30 days</button>
+          <button type="button" class="act-chip" data-range="all">All</button>
+        </div>
+        <div class="act-filters">
+          <label class="login-field"><span class="cat-label">From</span><input type="date" id="activity-from"></label>
+          <label class="login-field"><span class="cat-label">To</span><input type="date" id="activity-to"></label>
+          <label class="login-field"><span class="cat-label">Person</span><select id="activity-who">
+              <option value="">Everyone</option>
+            </select></label>
+          <label class="login-field"><span class="cat-label">Section</span><select id="activity-area">
+              <option value="">All sections</option>
+              <option>Send catalogue</option>
+              <option>Credit &amp; payments</option>
+              <option>Products</option>
+              <option>Order form</option>
+              <option>Website</option>
+              <option>WhatsApp setup</option>
+              <option>Users</option>
+            </select></label>
+        </div>
+        <label class="login-field"><span class="cat-label">Search what changed</span>
+          <input type="text" id="activity-search" placeholder="e.g. categories, wings, price, 9820…" autocomplete="off"></label>
+        <div class="act-tools">
+          <label class="check"><input type="checkbox" id="activity-nosign"> Hide sign-ins</label>
+          <span class="act-view" role="group" aria-label="Show by">
+            <button type="button" class="act-chip" data-by="day" aria-pressed="true">By day</button>
+            <button type="button" class="act-chip" data-by="person" aria-pressed="false">By person</button>
+          </span>
+          <button type="button" class="linkish" id="activity-reset">Clear filters</button>
+        </div>
+        <h3 class="pay-sub">By person</h3>
+        <div class="act-chips" id="activity-people"></div>
+        <p class="muted" id="activity-count" role="status"></p>
+        <div id="activity-list"></div>
+        <div class="row-form"><button class="btn secondary small" type="button" id="activity-more" hidden>Load
+            more</button></div>
+      </section>
+      </div>
+
       <div class="tab-panel" role="tabpanel" id="panel-users" aria-labelledby="tab-users" hidden>
       <section class="card" aria-labelledby="mypw-title" id="mypw-card" hidden>
         <h2 id="mypw-title">My password</h2>
@@ -1400,20 +1523,6 @@
         <label class="check"><input type="checkbox" data-show="user-new-pw"> Show password</label>
         <div class="row-form"><button class="btn" type="button" id="user-add">Add user</button></div>
         <div class="status" id="users-status" role="status"></div>
-      </section>
-
-      <section class="card" aria-labelledby="activity-title" id="activity-card" hidden>
-        <h2 id="activity-title">Activity</h2>
-        <p class="muted">Who changed what, newest first: saves in every tab, catalogues sent, credit decisions,
-          sign-ins and user changes. Entries can't be edited or deleted.</p>
-        <div class="row-form">
-          <label class="check">Show <select id="activity-who" aria-label="Show activity of">
-              <option value="">everyone</option>
-            </select></label>
-        </div>
-        <div id="activity-list"></div>
-        <div class="row-form"><button class="btn secondary small" type="button" id="activity-more" hidden>Show
-            older</button></div>
       </section>
       </div>
 
@@ -1484,6 +1593,7 @@
       document.querySelectorAll(".tab-panel").forEach((p) => { p.hidden = p.id !== "panel-" + name; });
       if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
       window.scrollTo(0, 0);
+      document.dispatchEvent(new CustomEvent("sb-tab", { detail: name }));
     }
     document.querySelector(".tabs").addEventListener("click", (e) => {
       const b = e.target.closest("[data-tab]");
@@ -1656,6 +1766,20 @@
       intro: "message above the photos", whatsapp: "WhatsApp numbers", emails: "emails", items: "products", customers: "customers",
       showForm: "show in order form", showSite: "show on website", qr: "QR photo", upi: "UPI ID", ifsc: "IFSC", hi: "Hindi", mr: "Marathi",
     };
+    // Website sections and their fields are named as in the Website tab.
+    let siteLabels = null;
+    function fieldLabel(k) {
+      if (!siteLabels) {
+        siteLabels = {};
+        SITE_SECTIONS.forEach((sec) => {
+          siteLabels[sec.key] = sec.title;
+          [...sec.fields, ...(sec.images || [])].forEach((f) => { siteLabels[f.k] = f.label.replace(/ \(.*\)$/, "").toLowerCase(); });
+        });
+        siteLabels.categories = "Categories";
+      }
+      return FIELD_LABELS[k] || siteLabels[k] || k;
+    }
+    const isUrl = (v) => typeof v === "string" && /^https?:\/\//.test(v);
     const isObj = (v) => v && typeof v === "object" && !Array.isArray(v);
     // Missing, empty and "off" all mean the same thing in these documents.
     const blank = (v) => v === undefined || v === null || v === "" || v === false || (Array.isArray(v) && !v.length);
@@ -1663,7 +1787,7 @@
       if (typeof v === "boolean") return v ? "on" : "off";
       if (v === undefined || v === null || v === "") return "(empty)";
       // A row such as {name, hi, fresh: true, frozen: false} reads "name · hi · fresh".
-      const t = isObj(v) ? Object.entries(v).map(([k, x]) => (x === true ? k : typeof x === "string" || typeof x === "number" ? String(x) : "")).filter(Boolean).join(" · ")
+      const t = isObj(v) ? Object.entries(v).map(([k, x]) => (x === true ? k : isUrl(x) ? "" : typeof x === "string" || typeof x === "number" ? String(x) : "")).filter(Boolean).join(" · ")
         : typeof v === "string" ? v : JSON.stringify(v);
       return "“" + (t.length > 80 ? t.slice(0, 77) + "…" : t) + "”";
     };
@@ -1674,14 +1798,14 @@
       for (const k of keys) {
         if (QUIET_FIELDS.has(k)) continue;
         const a = before ? before[k] : undefined, b = after ? after[k] : undefined;
-        const label = prefix ? prefix + " › " + (FIELD_LABELS[k] || k) : FIELD_LABELS[k] || k;
+        const label = prefix ? prefix + " › " + fieldLabel(k) : fieldLabel(k);
         if (JSON.stringify(a) === JSON.stringify(b) || (blank(a) && blank(b))) continue;
-        const rowKey = (x) => (isObj(x) ? x.name || x.mobile || x.title || x.id || "" : "");
+        const rowKey = (x) => (isObj(x) ? x.name || x.mobile || x.title || x.label || x.id || "" : "");
         if (isObj(a) && isObj(b)) diffObjects(a, b, label, out);
         else if (Array.isArray(a) && Array.isArray(b) && [...a, ...b].every((x) => rowKey(x)) && new Set(a.map(rowKey)).size === a.length && new Set(b.map(rowKey)).size === b.length) {
           // Rows with a name (products, credit customers…): match them by it.
           const old = new Map(a.map((x) => [rowKey(x), x])), now = new Map(b.map((x) => [rowKey(x), x]));
-          now.forEach((x, key) => { if (!old.has(key)) out.push(label + ": added " + shortVal(x)); else diffObjects(old.get(key), x, key, out); });
+          now.forEach((x, key) => { if (!old.has(key)) out.push(label + ": added " + shortVal(x)); else diffObjects(old.get(key), x, label + " › " + key, out); });
           old.forEach((x, key) => { if (!now.has(key)) out.push(label + ": removed " + shortVal(x)); });
           if ([...old.keys()].filter((key) => now.has(key)).join() !== [...now.keys()].filter((key) => old.has(key)).join()) out.push(label + ": order changed");
         }
@@ -1691,7 +1815,7 @@
           b.forEach((x, i) => { if (!as.includes(bs[i])) out.push(label + ": added " + shortVal(x)); });
           a.forEach((x, i) => { if (!bs.includes(as[i])) out.push(label + ": removed " + shortVal(x)); });
           if (as.length === bs.length && as.every((x) => bs.includes(x))) out.push(label + ": order changed");
-        } else if (/^(image|imageTall|qr|photo)$/i.test(k) || /photo|image/i.test(k)) out.push(label + ": changed");
+        } else if (/photo|image/i.test(k) || isUrl(a) || isUrl(b)) out.push(label + ": changed");
         else out.push(label + ": " + shortVal(a) + " → " + shortVal(b));
       }
       return out;
@@ -1716,62 +1840,173 @@
       return out;
     }
 
-    // Viewer (main admin): newest first, 100 at a time.
-    let activityUnsub = null, activityLimit = 100, activity = [];
+    // Viewer (main admin). The dates are asked of the database; person, section and search
+    // then filter what came back, so they respond instantly.
+    const ACTIVITY_PAGE = 500;
+    let activityUnsub = null, activityLimit = ACTIVITY_PAGE, activity = [], activityFull = false, activityBy = "day";
+    const toDateInput = (d) => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
+    const fromDateInput = (v) => { const [y, m, d] = v.split("-").map(Number); return new Date(y, m - 1, d); };
+    const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return toDateInput(d); };
+
+    function setActivityRange(range) {
+      const span = { today: [0, 0], yesterday: [1, 1], 7: [6, 0], 30: [29, 0] }[range];
+      $("activity-from").value = span ? daysAgo(span[0]) : "";
+      $("activity-to").value = span ? daysAgo(span[1]) : "";
+      markActivityRange(range);
+    }
+    function markActivityRange(range) {
+      document.querySelectorAll("#activity-ranges [data-range]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.range === range)));
+    }
+
     function startActivity() {
       if (activityUnsub) activityUnsub();
-      activityUnsub = db.collection("activity_log").orderBy("at", "desc").limit(activityLimit).onSnapshot((snap) => {
+      let q = db.collection("activity_log").orderBy("at", "desc");
+      const from = $("activity-from").value, to = $("activity-to").value;
+      if (from) q = q.where("at", ">=", fromDateInput(from));
+      if (to) { const end = fromDateInput(to); end.setDate(end.getDate() + 1); q = q.where("at", "<", end); }
+      activityUnsub = q.limit(activityLimit).onSnapshot((snap) => {
         activity = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        $("activity-more").hidden = snap.size < activityLimit;
+        activityFull = snap.size >= activityLimit;
         renderActivity();
       }, (e) => { $("activity-list").textContent = "Couldn't load the activity: " + e.message; });
     }
+
+    const activityDate = (a) => (a.at && a.at.toDate ? a.at.toDate() : new Date()); // no time yet = just saved
+    const activityText = (a) => [a.name, a.user, a.area, a.action, ...(Array.isArray(a.changes) ? a.changes : [])].join(" ").toLowerCase();
+
+    // The search words shown highlighted, safely (the text comes from what people typed).
+    function markedText(parent, text, terms) {
+      const found = terms.length ? new RegExp("(" + terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")", "ig") : null;
+      if (!found) { parent.textContent = text; return parent; }
+      text.split(found).forEach((part, i) => parent.append(i % 2 ? el("mark", { textContent: part }) : part));
+      return parent;
+    }
+
+    function activityItem(a, terms) {
+      const at = activityDate(a);
+      const time = at.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      const head = activityBy === "day"
+        ? [time, a.name || a.user, a.area]
+        : [at.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" }) + ", " + time, a.area];
+      const item = el("div", { className: "act-item" }, [
+        markedText(el("div", { className: "act-when" }), head.filter(Boolean).join(" · "), terms),
+        el("div", {}, [markedText(el("strong"), a.action || "", terms)]),
+      ]);
+      const changes = Array.isArray(a.changes) ? a.changes : [];
+      if (changes.length) {
+        // While searching, show the lines that match; otherwise the first few.
+        const hits = terms.length ? changes.filter((c) => terms.some((t) => c.toLowerCase().includes(t))) : [];
+        const shown = hits.length ? hits : changes.slice(0, 6);
+        const ul = el("ul");
+        shown.forEach((c) => ul.appendChild(markedText(el("li"), c, terms)));
+        if (shown.length < changes.length) {
+          const more = el("button", { type: "button", className: "linkish", textContent: "Show all " + changes.length + " changes" });
+          more.addEventListener("click", () => { ul.innerHTML = ""; changes.forEach((c) => ul.appendChild(markedText(el("li"), c, terms))); });
+          ul.appendChild(el("li", { style: "list-style:none;margin-left:-20px;" }, [more]));
+        }
+        item.appendChild(ul);
+      }
+      return item;
+    }
+
+    function dayHeading(d) {
+      const date = d.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+      const key = toDateInput(d);
+      return key === daysAgo(0) ? "Today · " + date : key === daysAgo(1) ? "Yesterday · " + date : date;
+    }
+
     function renderActivity() {
-      const sel = $("activity-who"), pick = sel.value;
-      const people = [...new Map(activity.map((a) => [a.user, a.name || a.user])).entries()];
+      const who = $("activity-who").value, area = $("activity-area").value, noSign = $("activity-nosign").checked;
+      const terms = $("activity-search").value.toLowerCase().split(/\s+/).filter(Boolean);
+      // Everything except the person filter: the per-person counts below use this.
+      const matching = activity.filter((a) => (!area || a.area === area) && !(noSign && a.action === "Signed in")
+        && (!terms.length || (() => { const t = activityText(a); return terms.every((x) => t.includes(x)); })()));
+      const list = matching.filter((a) => !who || a.user === who);
+
+      const names = new Map(staffUsers.map((u) => [u.id, u.name ? u.name + " (" + u.id + ")" : u.id]));
+      activity.forEach((a) => { if (!names.has(a.user)) names.set(a.user, a.name || a.user); });
+      const sel = $("activity-who");
       sel.innerHTML = "";
-      sel.appendChild(el("option", { value: "", textContent: "everyone" }));
-      people.forEach(([u, n]) => sel.appendChild(el("option", { value: u, textContent: n, selected: u === pick })));
+      sel.appendChild(el("option", { value: "", textContent: "Everyone" }));
+      names.forEach((n, u) => sel.appendChild(el("option", { value: u, textContent: n, selected: u === who })));
+      if (who && !names.has(who)) sel.value = "";
+
+      const counts = new Map();
+      matching.forEach((a) => counts.set(a.user, (counts.get(a.user) || 0) + 1));
+      const people = $("activity-people");
+      people.innerHTML = "";
+      if (!counts.size) people.appendChild(el("span", { className: "muted", textContent: "No one in this view." }));
+      [...counts.entries()].sort((x, y) => y[1] - x[1]).forEach(([u, n]) => {
+        const chip = el("button", { type: "button", className: "act-chip", textContent: (names.get(u) || u) + " · " + n });
+        chip.setAttribute("aria-pressed", String(u === who));
+        chip.addEventListener("click", () => { sel.value = u === who ? "" : u; renderActivity(); });
+        people.appendChild(chip);
+      });
+
+      $("activity-count").textContent = list.length + (list.length === 1 ? " entry" : " entries")
+        + (activityFull ? ". Only the newest " + activity.length + " in these dates are loaded: press Load more to search further back." : "");
+      $("activity-more").hidden = !activityFull;
+
       const box = $("activity-list");
       box.innerHTML = "";
-      const list = activity.filter((a) => !pick || a.user === pick);
-      if (!list.length) box.appendChild(el("p", { className: "muted", textContent: "Nothing recorded yet." }));
+      if (!list.length) {
+        box.appendChild(el("p", { className: "muted", textContent: activity.length ? "Nothing matches these filters." : "Nothing recorded in these dates." }));
+        return;
+      }
+      // Newest first inside a group; groups by day (newest first) or by person (busiest first).
+      const groups = new Map();
       list.forEach((a) => {
-        const at = a.at && a.at.toDate ? a.at.toDate().toLocaleString([], { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "just now";
-        const item = el("div", { className: "act-item" }, [
-          el("div", { className: "act-when", textContent: at + " · " + (a.name || a.user) + " · " + (a.area || "") }),
-          el("div", {}, [el("strong", { textContent: a.action || "" })]),
-        ]);
-        const changes = Array.isArray(a.changes) ? a.changes : [];
-        if (changes.length) {
-          const ul = el("ul");
-          changes.slice(0, 6).forEach((c) => ul.appendChild(el("li", { textContent: c })));
-          if (changes.length > 6) {
-            const more = el("button", { type: "button", className: "linkish", textContent: "Show all " + changes.length + " changes" });
-            more.addEventListener("click", () => { ul.innerHTML = ""; changes.forEach((c) => ul.appendChild(el("li", { textContent: c }))); });
-            ul.appendChild(el("li", { style: "list-style:none;margin-left:-20px;" }, [more]));
-          }
-          item.appendChild(ul);
-        }
-        box.appendChild(item);
+        const key = activityBy === "day" ? toDateInput(activityDate(a)) : a.user;
+        if (!groups.has(key)) groups.set(key, { title: activityBy === "day" ? dayHeading(activityDate(a)) : names.get(a.user) || a.user, rows: [] });
+        groups.get(key).rows.push(a);
+      });
+      const ordered = [...groups.values()];
+      if (activityBy === "person") ordered.sort((x, y) => y.rows.length - x.rows.length);
+      ordered.forEach((g) => {
+        box.appendChild(el("div", { className: "act-group-head" }, [el("span", { textContent: g.title }), el("span", { className: "badge", textContent: String(g.rows.length) })]));
+        g.rows.forEach((a) => box.appendChild(activityItem(a, terms)));
       });
     }
-    $("activity-who").addEventListener("change", renderActivity);
-    $("activity-more").addEventListener("click", () => { activityLimit += 100; startActivity(); });
+
+    function reloadActivity() { activityLimit = ACTIVITY_PAGE; startActivity(); }
+    $("activity-ranges").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-range]");
+      if (b) { setActivityRange(b.dataset.range); reloadActivity(); }
+    });
+    ["activity-from", "activity-to"].forEach((id) => $(id).addEventListener("change", () => { markActivityRange(""); reloadActivity(); }));
+    ["activity-who", "activity-area", "activity-nosign"].forEach((id) => $(id).addEventListener("change", renderActivity));
+    $("activity-search").addEventListener("input", renderActivity);
+    document.querySelector(".act-view").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-by]");
+      if (!b) return;
+      activityBy = b.dataset.by;
+      document.querySelectorAll(".act-view [data-by]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      renderActivity();
+    });
+    $("activity-reset").addEventListener("click", () => {
+      $("activity-who").value = ""; $("activity-area").value = ""; $("activity-search").value = ""; $("activity-nosign").checked = false;
+      setActivityRange("30");
+      reloadActivity();
+    });
+    $("activity-more").addEventListener("click", () => { activityLimit += ACTIVITY_PAGE; startActivity(); });
+    setActivityRange("30");
+    // The log is only read when its tab is opened.
+    document.addEventListener("sb-tab", (e) => { if (e.detail === "activity" && me.manager && !activityUnsub) startActivity(); });
 
     // ---------- Users tab: my password; the main admin manages IDs (Worker /staff-*) ----------
     let staffUsers = [], editingUser = null;
     function setupUsersTab() {
       const staff = !!me.staff;
       $("tab-users").hidden = !staff && !me.manager;
-      $("tab-users").firstChild.textContent = me.manager ? "Users & activity" : "My password";
-      $("activity-card").hidden = !me.manager;
+      $("tab-users").firstChild.textContent = me.manager ? "Users" : "My password";
+      $("tab-activity").hidden = !me.manager;
       $("mypw-btn").hidden = !staff;
       $("mypw-card").hidden = !staff;
       $("mainadm-card").hidden = !me.owner;
       $("users-card").hidden = !me.manager;
-      if (me.manager) { loadUsers(); startActivity(); }
+      if (me.manager) loadUsers();
       if (location.hash === "#users") showTab($("tab-users").hidden ? "send" : "users");
+      if (location.hash === "#activity") showTab(me.manager ? "activity" : "send");
       if (RECOVERY_LINK && me.owner) { showTab("users"); setStatus("mainadm-status", "Signed in with the recovery link. Set a new main admin password below.", "ok"); $("mainadm-pw").focus(); }
     }
 
