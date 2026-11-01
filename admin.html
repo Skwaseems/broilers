@@ -1734,7 +1734,8 @@
         loadFormItems();
         loadPayments();
         loadCredit().then(startCreditApps);
-        loadCatalogue();
+        // Slider photos made by an older version are remade here, so a new design needs no Save.
+        loadCatalogue().then(ensureCardImages).catch((e) => console.warn("Slider photos:", e.message));
         loadSiteContent();
         refreshTemplates();
       } else {
@@ -2369,7 +2370,9 @@
     // Big-photo slider card: the photo filling a square. Those WhatsApp cards have no text,
     // because card text is what makes WhatsApp shrink the photo to a wide strip.
     const CARD_SIZE = 1080;
-    const CARD_VERSION = 5; // v4: photo fills the whole square, item name on a soft dark shade; v5: + wide version
+    // v4: photo fills the whole square, item name on a soft dark shade; v5: + wide version;
+    // v6: tall posters fit whole (nothing cut off) and keep their own heading.
+    const CARD_VERSION = 6;
     const WIDE_W = 1200, WIDE_H = 628; // WhatsApp shows photos with card text as a ~1.91:1 strip
 
     // Wide crop for the "photo + text" style, so WhatsApp's own crop doesn't cut it badly.
@@ -2384,10 +2387,31 @@
       const b = photoBounds(img);
       const canvas = document.createElement("canvas");
       canvas.width = WIDE_W; canvas.height = WIDE_H;
+      if (isPoster(b)) {
+        drawWholePhoto(canvas.getContext("2d"), img, b, WIDE_W, WIDE_H);
+        return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.88));
+      }
       const k = Math.max(WIDE_W / b.w, WIDE_H / b.h);
       const w = b.w * k, h = b.h * k;
       canvas.getContext("2d").drawImage(img, b.x, b.y, b.w, b.h, (WIDE_W - w) / 2, (WIDE_H - h) / 2, w, h);
       return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.88));
+    }
+
+    // Tall posters carry their heading at the top, so they must not be cropped to fit a card.
+    const isPoster = (b) => b.h / b.w >= 1.15;
+    // The whole photo, centred. The sides take the colour of the poster's top strip (its dark
+    // background), so the poster seems to run on to the edges of the card.
+    function drawWholePhoto(ctx, img, b, W, H) {
+      const dot = document.createElement("canvas");
+      dot.width = dot.height = 1;
+      const g = dot.getContext("2d", { willReadFrequently: true });
+      g.drawImage(img, b.x, b.y, b.w, b.h * 0.06, 0, 0, 1, 1);
+      const [r, gr, bl] = g.getImageData(0, 0, 1, 1).data;
+      ctx.fillStyle = `rgb(${r},${gr},${bl})`;
+      ctx.fillRect(0, 0, W, H);
+      const k = Math.min(W / b.w, H / b.h);
+      const w = b.w * k, h = b.h * k;
+      ctx.drawImage(img, b.x, b.y, b.w, b.h, (W - w) / 2, (H - h) / 2, w, h);
     }
 
     // The stored photos are padded with white to fit their frame; find the real photo inside.
@@ -2428,9 +2452,12 @@
       const canvas = document.createElement("canvas");
       canvas.width = canvas.height = CARD_SIZE;
       const ctx = canvas.getContext("2d");
-      // The photo zoomed to fill the whole square card, centred (a tall photo loses a
-      // little at the top and bottom).
       const S = CARD_SIZE;
+      if (isPoster(b)) {
+        drawWholePhoto(ctx, img, b, S, S);
+        return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.88));
+      }
+      // Any other photo is zoomed to fill the whole square card, centred.
       const k = Math.max(S / b.w, S / b.h);
       const w = b.w * k, h = b.h * k;
       ctx.drawImage(img, b.x, b.y, b.w, b.h, (S - w) / 2, (S - h) / 2, w, h);
