@@ -561,14 +561,16 @@ function productsMessage(env, meta, items) {
 // v4: "Enroll Now" website button → /p/<item> → the order form opens with the item marked.
 // v5: as v4, plus the message above the photos is editable in Admin (body variable,
 // settings/whatsapp.intro) and ends with how to unsubscribe.
-// v6 (current): as v5, plus a "Stop" reply button under every photo (second button,
-// payload STOP); a tap comes back as a button message with text "Stop" → unsubscribed.
+// v6 (current): the owner wants no message above the photos, but Meta requires a body, so it
+// is one short fixed line (no variable); a "Stop" reply button under every photo (second
+// button, payload STOP) replaces the unsubscribe text. A tap comes back as a button message
+// with text "Stop" → unsubscribed.
 const PHOTO_VERSION = 6;
 const PHOTO_BUTTON = "Enroll Now";
 const PHOTO_BODY_V4 = "Fresh stock from Sharhan Broilers, Mumbai. Swipe through the photos and tap Enroll Now to place your order.";
 const PHOTO_BODY_V5 = "Hello from Sharhan Broilers! {{1}}\n\nNot interested? Reply STOP and we won't send these again.";
 // Fresh wording: Meta auto-rejects templates that echo an existing one.
-const PHOTO_BODY_V6 = "Sharhan Broilers here! {{1}}\n\nTap Stop under any photo if you'd rather not get these offers.";
+const PHOTO_BODY_V6 = "Sharhan Broilers catalogue";
 const STOP_BUTTON = "Stop";
 // Formats submitted with the Stop button (entry.stop) need its payload at send time, at index 1.
 const stopButton = (t) => (t.stop ? [{ type: "button", sub_type: "quick_reply", index: "1", parameters: [{ type: "payload", payload: "STOP" }] }] : []);
@@ -636,10 +638,10 @@ async function submitPhotoTemplate(env, size) {
       name,
       language: env.TEMPLATE_LANGUAGE,
       category: "MARKETING",
-      components: [{ type: "BODY", text: PHOTO_BODY_V6, example: { body_text: [[DEFAULT_INTRO]] } }, { type: "CAROUSEL", cards }],
+      components: [{ type: "BODY", text: PHOTO_BODY_V6 }, { type: "CAROUSEL", cards }],
     }),
   });
-  const entry = { name, id: created.id, status: created.status || "PENDING", attempt, size, version: PHOTO_VERSION, intro: true, stop: true, submittedAt: new Date().toISOString() };
+  const entry = { name, id: created.id, status: created.status || "PENDING", attempt, size, version: PHOTO_VERSION, stop: true, submittedAt: new Date().toISOString() };
   if (entry.status === "APPROVED") photo.templates[photoKey(size)] = entry;
   else photo.next[photoKey(size)] = entry;
   await setDocument(env, "catalogue_meta", "whatsapp", { ...meta, photo });
@@ -657,12 +659,12 @@ const TEXT_PREFIX = "";
 const TEXT_SUFFIX = "\nTap Enroll Now to order, delivered fresh across Mumbai.";
 const TEXT_MAX = MAX_CARD_TEXT - TEXT_PREFIX.length - TEXT_SUFFIX.length;
 const TEXT_BODY = "Our line-up for your kitchen this week. Swipe the cards and tap Enroll Now on any item to order it.";
-// v2 (sharhan_lineup_v2_{n}): editable intro + unsubscribe line. v3 (current): plus a
-// "Stop" reply button on every card. A new version waits in text.next until approved, so
+// v2 (sharhan_lineup_v2_{n}): editable intro + unsubscribe line. v3 (current): one short fixed
+// line above the cards and a "Stop" reply button on every card. A new version waits in text.next until approved, so
 // the approved older one keeps sending meanwhile.
 const TEXT_VERSION = 3;
 const TEXT_BODY_V2 = "This week at Sharhan Broilers: {{1}}\n\nReply STOP anytime to unsubscribe from these updates.";
-const TEXT_BODY_V3 = "Today's pick from Sharhan Broilers, Mumbai: {{1}}\n\nTo stop these offers, tap Stop on any card.";
+const TEXT_BODY_V3 = "Sharhan Broilers line-up";
 
 function textCardText(it) {
   const t = pickCardText(it); // one line, without the old call to action
@@ -713,9 +715,9 @@ async function submitTextTemplate(env, size) {
   const created = await graph(env, `${env.META_WABA_ID}/message_templates`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, language: env.TEMPLATE_LANGUAGE, category: "MARKETING", components: [{ type: "BODY", text: TEXT_BODY_V3, example: { body_text: [[DEFAULT_INTRO]] } }, { type: "CAROUSEL", cards }] }),
+    body: JSON.stringify({ name, language: env.TEMPLATE_LANGUAGE, category: "MARKETING", components: [{ type: "BODY", text: TEXT_BODY_V3 }, { type: "CAROUSEL", cards }] }),
   });
-  const entry = { name, id: created.id, status: created.status || "PENDING", attempt, size, button: "url", version: TEXT_VERSION, intro: true, stop: true, submittedAt: new Date().toISOString() };
+  const entry = { name, id: created.id, status: created.status || "PENDING", attempt, size, button: "url", version: TEXT_VERSION, stop: true, submittedAt: new Date().toISOString() };
   if (entry.status === "APPROVED") text.templates[photoKey(size)] = entry;
   else text.next[photoKey(size)] = entry;
   await setDocument(env, "catalogue_meta", "whatsapp", { ...meta, text });
