@@ -616,10 +616,9 @@
           <span style="font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:600; letter-spacing:.1em; white-space:nowrap; color:#1c1c22;">SHARHAN BROILERS</span>
           <button sc-camel-on-click="{{ closeNav }}" aria-label="Close" style="width:44px; height:44px; margin-right:-10px; border:none; background:transparent; color:#2f2f3a; font-size:22px; cursor:pointer;">×</button>
         </div>
-        <sc-for list="{{ navLinks }}" as="nav" hint-placeholder-count="10">
+        <sc-for list="{{ navLinks }}" as="nav" hint-placeholder-count="1">
           <a href="{{ nav.href }}" sc-camel-on-click="{{ closeNav }}" style="display:flex; align-items:center; min-height:48px; border-bottom:1px solid #f3f1ee; font-family:'Cormorant Garamond',serif; font-size:16px; letter-spacing:.09em; text-transform:uppercase; color:#2f2f3a;">{{ nav.label }}</a>
         </sc-for>
-        <a href="#contact" sc-camel-on-click="{{ closeNav }}" style="margin-top:22px; min-height:48px; display:flex; align-items:center; justify-content:center; background:#846e3e; color:#fff; font-family:'Jost',sans-serif; font-size:13px; letter-spacing:.12em; text-transform:uppercase;">Get A Quote</a>
       </nav>
     </div>
   </sc-if>
@@ -1141,15 +1140,7 @@ class Component extends DCLogic {
       toggleNav: () => this.setState(st => ({ navOpen: !st.navOpen })),
       closeNav: () => this.setState({ navOpen: false }),
       stop: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
-      navLinks: [
-        { label: 'About Us', href: '#about' }, { label: 'Daily Fresh', href: '#stock' }, { label: 'Best Sellers', href: '#stock' },
-        { label: 'Whole Chicken', href: '#categories' }, { label: 'Curry Cut', href: '#categories' },
-        { label: 'Boneless', href: '#categories' }, { label: 'Wings', href: '#categories' },
-        { label: 'Drumsticks', href: '#categories' }, { label: 'Thigh', href: '#categories' },
-        { label: 'Offal', href: '#categories' }, { label: 'Packs', href: '#packs' },
-        { label: 'Visit Us', href: '#visit' },
-        { label: 'Admin', href: '/admin.html' }
-      ],
+      navLinks: [{ label: 'Admin', href: '/admin.html' }],
       bannerRatio: isMobile ? '4/3' : '1917/1090',
       cutCols: isMobile ? '1fr' : '1fr 1fr 1fr',
       bundleCols: isMobile ? '1fr' : '1fr 1fr',
