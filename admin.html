@@ -2377,8 +2377,9 @@
     // because card text is what makes WhatsApp shrink the photo to a wide strip.
     const CARD_SIZE = 1080;
     // v4: photo fills the whole square, item name on a soft dark shade; v5: + wide version;
-    // v6: tall posters fit whole (nothing cut off) and keep their own heading.
-    const CARD_VERSION = 6;
+    // v6: tall posters fit whole (nothing cut off) and keep their own heading;
+    // v7: no item name printed on any card (the owner's photos carry their own).
+    const CARD_VERSION = 7;
     const WIDE_W = 1200, WIDE_H = 628; // WhatsApp shows photos with card text as a ~1.91:1 strip
 
     // Wide crop for the "photo + text" style, so WhatsApp's own crop doesn't cut it badly.
@@ -2467,25 +2468,6 @@
       const k = Math.max(S / b.w, S / b.h);
       const w = b.w * k, h = b.h * k;
       ctx.drawImage(img, b.x, b.y, b.w, b.h, (S - w) / 2, (S - h) / 2, w, h);
-      // Item name in white over a soft dark shade along the bottom. WhatsApp can't show the
-      // name as text without shrinking the photo, so it goes on the photo itself.
-      await document.fonts.load("600 72px 'Jost'").catch(() => { });
-      const shade = ctx.createLinearGradient(0, S * 0.66, 0, S);
-      shade.addColorStop(0, "rgba(0,0,0,0)");
-      shade.addColorStop(0.55, "rgba(0,0,0,0.45)");
-      shade.addColorStop(1, "rgba(0,0,0,0.72)");
-      ctx.fillStyle = shade;
-      ctx.fillRect(0, S * 0.66, S, S * 0.34);
-      ctx.fillStyle = "#fff";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "alphabetic";
-      if ("letterSpacing" in ctx) ctx.letterSpacing = "3px";
-      ctx.shadowColor = "rgba(0,0,0,0.35)";
-      ctx.shadowBlur = 8;
-      const label = name.toUpperCase();
-      let size = 76;
-      do { ctx.font = `600 ${size}px 'Jost', Arial, sans-serif`; size -= 2; } while (ctx.measureText(label).width > S - 120 && size > 36);
-      ctx.fillText(label, 60, S - 64);
       return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.88));
     }
 
