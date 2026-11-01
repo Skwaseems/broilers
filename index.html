@@ -683,13 +683,27 @@
     </div>
   </section>
 
+  <sc-if value="{{ hasCertificates }}" hint-placeholder-val="{{ false }}">
+    <section id="certificates" style="max-width:1400px; margin:0 auto; padding:clamp(30px,4.4vw,84px) clamp(14px,3vw,60px) 0;">
+      <h2 style="margin:0 0 clamp(16px,2vw,36px); text-align:center; font-family:'Cormorant Garamond',serif; font-size:clamp(20px,2vw,36px); font-weight:400; letter-spacing:.06em; text-transform:uppercase; color:#1c1c22;">Certificates</h2>
+      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:clamp(12px,1.6vw,28px);">
+        <sc-for list="{{ certificates }}" as="cert" hint-placeholder-count="3">
+          <a href="{{ cert.src }}" target="_blank" rel="noopener" data-sb-view="certificates" data-sb-name="{{ cert.name }}" data-sb-src="{{ cert.src }}" style="display:block; width:min(calc(50% - 14px), 260px); text-align:center; color:#2f2f3a;">
+            <img src="{{ cert.src }}" alt="{{ cert.name }}" loading="lazy" style="display:block; width:100%; aspect-ratio:3/4; object-fit:contain; background:#fff; border:1px solid #e0ded9;">
+            <span style="display:block; margin-top:10px; font-family:'Jost',sans-serif; font-size:clamp(12px,.9vw,15px); line-height:1.4;">{{ cert.name }}</span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+  </sc-if>
+
   <section id="categories" style="max-width:1800px; margin:0 auto; padding:clamp(30px,5.4vw,104px) 0 clamp(26px,5vw,96px);">
     <h2 style="margin:0 0 clamp(14px,2.2vw,42px); padding:0 clamp(14px,3vw,60px); text-align:center; font-family:'Cormorant Garamond',serif; font-weight:400; font-size:clamp(19px,1.9vw,34px); letter-spacing:.05em; text-transform:uppercase; color:#2f2f3a;">Categories</h2>
     <div style="display:flex; gap:clamp(10px,1.7vw,32px); overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:0 clamp(14px,3vw,60px) 6px;">
       <sc-for list="{{ categories }}" as="cat" hint-placeholder-count="7">
         <a href="#stock" data-sb-view="categories" data-sb-name="{{ cat.name }}" data-sb-src="{{ cat.src }}" data-sb-detail="{{ cat.detail }}" data-sb-row="{{ cat.row }}" data-sb-packs="{{ cat.packsText }}" style="flex:0 0 max(112px,(100% - 6 * clamp(10px,1.7vw,32px)) / 7); scroll-snap-align:start; display:block; text-align:center;">
           <div style="aspect-ratio:1/1; overflow:hidden; background:#eceae7;">
-            <div style="width:100%; height:100%; background:{{ cat.img }}; filter:grayscale(1); transition:transform .7s cubic-bezier(.2,.8,.2,1);" style-hover="transform:scale(1.06);"></div>
+            <div style="width:100%; height:100%; background:{{ cat.img }}; transition:transform .7s cubic-bezier(.2,.8,.2,1);" style-hover="transform:scale(1.06);"></div>
           </div>
           <div style="margin-top:clamp(8px,.9vw,17px); font-family:'Cormorant Garamond',serif; font-size:clamp(10px,.86vw,15px); letter-spacing:.06em; text-transform:uppercase; color:#2f2f3a;">{{ cat.name }}</div>
         </a>
@@ -1157,6 +1171,9 @@ class Component extends DCLogic {
       products: (isMobile ? pool : rotate(pool, this.state.prodPage).slice(0, 5)).map((x) => viewable({ ...x, detail: x.spec })),
       prevProduct: () => this.setState(st => ({ prodPage: (st.prodPage + pool.length - 1) % pool.length })),
       nextProduct: () => this.setState(st => ({ prodPage: (st.prodPage + 1) % pool.length })),
+      // Certificates (Admin → Website): the section only shows once one has a photo.
+      certificates: (Array.isArray(C.certificates) ? C.certificates : []).filter((x) => x && x.image).map((x) => ({ name: x.name || '', src: x.image })),
+      hasCertificates: Array.isArray(C.certificates) && C.certificates.some((x) => x && x.image),
       categories: pick(C.categories, (x) => ({ name: x.name || '', img: url(x.image), detail: x.detail || '' }), [
         { name: 'Whole Chicken', img: bg(P.platter) },
         { name: 'Curry Cut', img: bg(P.pieces) },
@@ -1304,7 +1321,6 @@ td.sb-na{color:#b5b3ad;}
 .sb-pkg-tag-fresh{background:#25864d;}
 .sb-pkg-tag-frozen{background:#1f5fa9;}
 .sb-pkg-block h4{font-size:13px;font-weight:600;}
-.sb-cutoff{margin:0 0 10px;font-size:13px;line-height:1.5;color:#2f2f3a;background:#fbf6ea;border-left:3px solid #846e3e;padding:8px 12px;}
 input[type="date"]#sb-booking-date{font-family:'Jost',sans-serif;font-size:14px;padding:9px 11px;border:1px solid #ddd8d0;border-radius:3px;color:#1c1c22;}
 table.sb-table-booking{min-width:0;}
 .sb-table-booking .sb-pkg-tag{font-size:11px;padding:2px 8px;margin-right:0;}
@@ -1414,7 +1430,6 @@ table.sb-table-booking{min-width:0;}
         </div>
 
         <div class="sb-section-title" data-i18n="orderNowTitle">Order Now For Next Day Delivery</div>
-        <p class="sb-cutoff" data-i18n-html="cutoff">Order <strong>before 3:00 PM</strong> for <strong>next-day delivery</strong>. Orders placed after 3:00 PM are delivered the day after.</p>
         <div class="sb-checks">
           <label class="sb-check-item"><input type="checkbox" id="sb-booking-on" onchange="sbToggleBooking()"> <span data-i18n="bookingOn">Place an order for a specific day</span></label>
         </div>
@@ -1514,7 +1529,6 @@ table.sb-table-booking{min-width:0;}
       checkOnMap: 'Check on map ↗', goodsReceiver: 'Goods Receiver', deliveryTime: 'Time Of Delivery',
       timeMorning: 'Morning (6:00 AM - 12:00 Noon)', timeAfternoon: 'Afternoon (12:01 PM - 4:00 PM)', timeEvening: 'Evening (4:00 PM onwards)',
       orderNowTitle: 'Order Now For Next Day Delivery',
-      cutoff: 'Order <strong>before 3:00 PM</strong> for <strong>next-day delivery</strong>. Orders placed after 3:00 PM are delivered the day after.',
       bookingOn: 'Place an order for a specific day', deliveryDate: 'Delivery Date', orderTotal: 'Order Total',
       packagingTitle: 'Packaging & Commercials', kgPacking: 'Kg-Wise Packing', paymentTerms: 'Payment Terms', pay13: '1-3 Days (credit)', paySame: 'Same Day',
       payTitle: 'Pay Sharhan Broilers', accMobile: 'Accounting Incharge Mobile No.', remarks: 'Remarks', preview: 'Message Preview', copyText: 'Copy Text',
@@ -1563,7 +1577,6 @@ table.sb-table-booking{min-width:0;}
       checkOnMap: 'मैप पर देखें ↗', goodsReceiver: 'माल लेने वाला', deliveryTime: 'डिलीवरी का समय',
       timeMorning: 'सुबह (6:00 AM - 12:00 दोपहर)', timeAfternoon: 'दोपहर (12:01 PM - 4:00 PM)', timeEvening: 'शाम (4:00 PM के बाद)',
       orderNowTitle: 'अगले दिन की डिलीवरी के लिए अभी ऑर्डर करें',
-      cutoff: 'अगले दिन की डिलीवरी के लिए <strong>दोपहर 3:00 बजे से पहले</strong> ऑर्डर करें। 3:00 बजे के बाद दिए गए ऑर्डर की डिलीवरी उसके अगले दिन होगी।',
       bookingOn: 'किसी खास दिन के लिए ऑर्डर दें', deliveryDate: 'डिलीवरी की तारीख', orderTotal: 'ऑर्डर कुल',
       packagingTitle: 'पैकिंग और भुगतान', kgPacking: 'किलो के हिसाब से पैकिंग', paymentTerms: 'भुगतान की शर्तें', pay13: '1-3 दिन (उधार)', paySame: 'उसी दिन',
       payTitle: 'शरहान ब्रॉयलर्स को भुगतान करें', accMobile: 'अकाउंट्स इंचार्ज का मोबाइल नंबर', remarks: 'टिप्पणी', preview: 'संदेश का प्रीव्यू', copyText: 'कॉपी करें',
@@ -1612,7 +1625,6 @@ table.sb-table-booking{min-width:0;}
       checkOnMap: 'मॅपवर पहा ↗', goodsReceiver: 'माल घेणारी व्यक्ती', deliveryTime: 'डिलिव्हरीची वेळ',
       timeMorning: 'सकाळ (6:00 AM - 12:00 दुपार)', timeAfternoon: 'दुपार (12:01 PM - 4:00 PM)', timeEvening: 'संध्याकाळ (4:00 PM नंतर)',
       orderNowTitle: 'दुसऱ्या दिवशीच्या डिलिव्हरीसाठी आत्ता ऑर्डर करा',
-      cutoff: 'दुसऱ्या दिवशीच्या डिलिव्हरीसाठी <strong>दुपारी 3:00 पूर्वी</strong> ऑर्डर करा. 3:00 नंतर दिलेल्या ऑर्डरची डिलिव्हरी त्यानंतरच्या दिवशी होईल.',
       bookingOn: 'ठराविक दिवसासाठी ऑर्डर द्या', deliveryDate: 'डिलिव्हरीची तारीख', orderTotal: 'ऑर्डर एकूण',
       packagingTitle: 'पॅकिंग आणि पेमेंट', kgPacking: 'किलोनुसार पॅकिंग', paymentTerms: 'पेमेंटच्या अटी', pay13: '1-3 दिवस (उधारी)', paySame: 'त्याच दिवशी',
       payTitle: 'शरहान ब्रॉयलर्सला पेमेंट करा', accMobile: 'अकाउंट्स इन्चार्जचा मोबाईल नंबर', remarks: 'शेरा', preview: 'संदेशाचा प्रीव्ह्यू', copyText: 'कॉपी करा',
@@ -3098,6 +3110,7 @@ table.sb-table-booking{min-width:0;}
 .sbv-name{margin:0;font-family:'Cormorant Garamond',serif;font-weight:500;font-size:24px;line-height:1.25;letter-spacing:.04em;text-transform:uppercase;color:#1c1c22;}
 .sbv-detail{margin:8px 0 0;font-size:14px;line-height:1.6;color:#4a4a53;}
 .sbv-detail:empty{display:none;}
+.sbv-name:empty{display:none;}
 .sbv-packs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
 .sbv-packs:empty{display:none;}
 .sbv-packs span{border:1px solid #ddd8d0;background:#faf9f7;color:#54535c;font-size:11px;padding:5px 11px;}
@@ -3108,7 +3121,8 @@ table.sb-table-booking{min-width:0;}
 <script>
 (function(){
   var MOBILE_MAX = 760; // same breakpoint as the homepage's isMobile
-  var TITLES = { categories: 'Categories', stock: "Today's Fresh Stock", extras: 'Also From Our Floor' };
+  var TITLES = { categories: 'Categories', stock: "Today's Fresh Stock", extras: 'Also From Our Floor', certificates: 'Certificates' };
+  var groupKey = '';
   var root, title, count, img, prev, next, badges, nameEl, detail, packs, cta, closeBtn;
   var group = [], index = 0, current = null, pushed = false, lastFocus = null;
 
@@ -3222,11 +3236,13 @@ table.sb-table-booking{min-width:0;}
     packs.textContent = '';
     current.packs.forEach(function(pk){ packs.appendChild(make('span', '', pk)); });
     cta.textContent = current.row ? 'Order ' + current.row : 'Enquire Now';
+    cta.style.display = groupKey === 'certificates' ? 'none' : '';
   }
 
   function open(el){
     if (!root) build();
     var key = el.getAttribute('data-sb-view');
+    groupKey = key;
     group = [].slice.call(document.querySelectorAll('[data-sb-view="' + key + '"]')).filter(function(g){ return g.getAttribute('data-sb-src'); });
     title.textContent = TITLES[key] || '';
     lastFocus = document.activeElement;
@@ -3247,10 +3263,28 @@ table.sb-table-booking{min-width:0;}
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
   }
 
+  // Product names in the menus and footer open that product's photo, from the Categories
+  // row (Admin → Website). A name with no such item still scrolls down to the row.
+  var MENU_ALIASES = { offal: /liver|gizzard|offal/i };
+  function menuItem(label){
+    var want = label.trim().toLowerCase(), alias = MENU_ALIASES[want];
+    var items = [].slice.call(document.querySelectorAll('[data-sb-view="categories"]')).filter(function(g){ return g.getAttribute('data-sb-src'); });
+    var named = function(test){ return items.filter(function(g){ return test(g.getAttribute('data-sb-name') || ''); })[0]; };
+    return named(function(n){ return n.trim().toLowerCase() === want; }) || (alias && named(function(n){ return alias.test(n); })) || null;
+  }
   document.addEventListener('click', function(e){
-    if (window.innerWidth >= MOBILE_MAX) return;
+    var link = e.target.closest && e.target.closest('a[href="#categories"]');
+    var item = link && menuItem(link.textContent);
+    if (!item) return;
+    e.preventDefault(); // not stopped: the phone menu's own click still closes the menu
+    open(item);
+  }, true);
+
+  document.addEventListener('click', function(e){
     var el = e.target.closest && e.target.closest('[data-sb-view]');
     if (!el || !el.getAttribute('data-sb-src')) return;
+    // Computers follow the card's link; certificates open large everywhere.
+    if (window.innerWidth >= MOBILE_MAX && el.getAttribute('data-sb-view') !== 'certificates') return;
     e.preventDefault();
     e.stopPropagation();
     open(el);

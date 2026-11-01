@@ -2538,6 +2538,11 @@
         fields: [{ k: "heading", label: "Heading", max: 120 }, { k: "p1", label: "First paragraph", area: true, max: 600 }, { k: "p2", label: "Second paragraph", area: true, max: 900 }]
       },
       {
+        key: "certificates", title: "Certificates", noun: "certificate", list: true, min: 0, max: 12,
+        hint: "Shown under About Us; the section stays hidden until a certificate has a photo. Upload a clear photo or screenshot. The whole page shows, uncropped, and anyone can open it large, so cover anything that shouldn't be public.",
+        fields: [{ k: "name", label: "Name", max: 60 }], images: [{ k: "image", label: "Photo" }]
+      },
+      {
         key: "categories", title: "Category strip", noun: "category", list: true, min: 1, max: 12, required: true,
         hint: "The row of photos under About Us. On phones, tapping a photo opens it large with the short detail below it. Leave the detail empty to use the catalogue item with the same name.",
         fields: [{ k: "name", label: "Name", max: 40 }, { k: "detail", label: "Short detail (optional)", area: true, max: 200 }], images: [{ k: "image", label: "Photo" }]
