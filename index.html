@@ -1387,7 +1387,7 @@ table.sb-table-booking{min-width:0;}
       <form id="sb-form" onsubmit="return false;">
         <div class="sb-section-title" data-i18n="weeklyTitle">Fill Your Approximate Weekly Requirement Here</div>
         <div class="sb-field sb-pack-field">
-          <label for="sb-pack"><span data-i18n="kgPacking">Kg-Wise Packing</span> *</label>
+          <label for="sb-pack"><span data-i18n="kgPacking">Kg-Wise Packing</span><span id="sb-pack-star"> *</span></label>
           <select id="sb-pack" required>
             <option value="" data-i18n="select">Select...</option>
             <option value="2" data-i18n="pack2">2 kg</option>
@@ -1448,6 +1448,16 @@ table.sb-table-booking{min-width:0;}
         <div class="sb-pkg-block" id="sb-booking-wrap">
           <div class="sb-row">
             <div class="sb-field"><label for="sb-booking-date"><span data-i18n="deliveryDate">Delivery Date</span> *</label><input type="date" id="sb-booking-date"></div>
+            <div class="sb-field"><label for="sb-booking-pack"><span data-i18n="kgPacking">Kg-Wise Packing</span> *</label>
+              <select id="sb-booking-pack">
+                <option value="" data-i18n="select">Select...</option>
+                <option value="2" data-i18n="pack2">2 kg</option>
+                <option value="5" data-i18n="pack5">5 kg (get ₹1 discount per kg)</option>
+                <option value="10" data-i18n="pack10">10 kg (get ₹2 discount per kg)</option>
+                <option value="20" data-i18n="pack20">20 kg (get ₹3 discount per kg)</option>
+              </select>
+              <div class="sb-note sb-pack-hint" id="sb-booking-pack-hint" style="display:none;"></div>
+            </div>
           </div>
           <div class="sb-table-wrap"><table class="sb-table sb-table-booking" data-booking="1"></table></div>
           <div class="sb-week-total"><span data-i18n="orderTotal">Order Total</span>: <strong><span id="sb-booking-total">0</span>kg</strong></div>
@@ -1827,6 +1837,7 @@ table.sb-table-booking{min-width:0;}
     document.getElementById('sb-booking-wrap').style.display = on ? 'block' : 'none';
     var el = document.getElementById('sb-booking-date');
     el.required = on;
+    document.getElementById('sb-booking-pack').required = on;
     sbRefreshBookingLimits();
     if (on && !el.value) el.value = el.min;
     sbRecalc();
@@ -2141,17 +2152,37 @@ table.sb-table-booking{min-width:0;}
   }
 
   // Packing rule: quantities go in multiples of the chosen pack; none chosen → any.
+  // The weekly tables and the specific-day order each have their own choice.
   // Applies to the visible tables; wrong boxes are highlighted.
   function sbPackStep(){
     return parseInt(sbVal('sb-pack'), 10) || 0;
+  }
+  function sbBookingPackStep(){
+    return parseInt(sbVal('sb-booking-pack'), 10) || 0;
+  }
+  // "5kg (₹1 per kg discount)", as listed in the dropdowns; the message stays in English.
+  function sbPackLabel(kg){
+    var off = { 5: 1, 10: 2, 20: 3 }[kg];
+    return kg + 'kg' + (off ? ' (₹' + off + ' per kg discount)' : '');
+  }
+  function sbShowPackHint(id, step){
+    var hint = document.getElementById(id);
+    if (!hint) return;
+    hint.textContent = step ? sbT('packHint').replace(/\{n\}/g, step).replace('{n2}', step * 2).replace('{n3}', step * 3) : '';
+    hint.style.display = step ? 'block' : 'none';
   }
   function sbQtyVisible(el){
     var wrap = el.closest('.sb-pkg-block');
     return !wrap || wrap.style.display === 'block';
   }
   function sbApplyPackStep(){
-    var step = sbPackStep(), bad = 0;
+    var weekly = sbPackStep(), booking = sbBookingPackStep(), bad = 0;
+    // Someone ordering only for a specific day has no weekly packing to choose.
+    var weeklyNeeded = document.getElementById('sb-pkg-fresh').checked || document.getElementById('sb-pkg-frozen').checked || !document.getElementById('sb-booking-on').checked;
+    document.getElementById('sb-pack').required = weeklyNeeded;
+    document.getElementById('sb-pack-star').style.display = weeklyNeeded ? '' : 'none';
     document.querySelectorAll('#sb-form input.sb-qty').forEach(function(el){
+      var step = el.closest('table.sb-table-booking') ? booking : weekly;
       var on = step && sbQtyVisible(el);
       el.step = on ? String(step) : 'any';
       var v = parseFloat(el.value);
@@ -2159,16 +2190,13 @@ table.sb-table-booking{min-width:0;}
       el.classList.toggle('sb-qty-bad', wrong);
       if (wrong) bad++;
     });
-    var hint = document.getElementById('sb-pack-hint');
-    if (hint) {
-      hint.textContent = step ? sbT('packHint').replace(/\{n\}/g, step).replace('{n2}', step * 2).replace('{n3}', step * 3) : '';
-      hint.style.display = step ? 'block' : 'none';
-    }
+    sbShowPackHint('sb-pack-hint', weekly);
+    sbShowPackHint('sb-booking-pack-hint', booking);
     return bad;
   }
   window.sbPackBadCount = sbApplyPackStep;
   document.addEventListener('change', function(e){
-    if (e.target && e.target.id === 'sb-pack') sbRecalc();
+    if (e.target && (e.target.id === 'sb-pack' || e.target.id === 'sb-booking-pack')) sbRecalc();
   });
 
   function sbRecalc(){
@@ -2216,8 +2244,7 @@ table.sb-table-booking{min-width:0;}
     var accMobile = sbVal('sb-acc-mobile');
     var payment = sbVal('sb-payment');
     var notes = sbVal('sb-notes');
-    var packKg = sbPackStep();
-    var packOff = { 5: 1, 10: 2, 20: 3 }[packKg]; // ₹ off per kg, as listed in the dropdown
+    var packKg = sbPackStep(), bookingPackKg = sbBookingPackStep();
 
     var lines = [];
     lines.push('🐔 *SHARHAN BROILERS · B2B (BUSINESS TO BUSINESS) COMMERCIAL REQUISITION*');
@@ -2282,11 +2309,12 @@ table.sb-table-booking{min-width:0;}
         lines.push('   • ' + r.item + ': ' + parts.join(', '));
       });
       lines.push('*ORDER TOTAL: ' + (bf + bz) + 'kg*' + (bf && bz ? ' (Fresh ' + bf + 'kg, Frozen ' + bz + 'kg)' : ''));
+      lines.push('*Packing for this order:* ' + (bookingPackKg ? sbPackLabel(bookingPackKg) : 'Not specified'));
       lines.push('');
     }
     lines.push(DIV);
     lines.push('📦 *PACKAGING & LOGISTICS*');
-    lines.push('• *Packing Preference:* ' + (packKg ? packKg + 'kg' + (packOff ? ' (₹' + packOff + ' per kg discount)' : '') : 'Not specified'));
+    if (packKg || !booking.rows.length) lines.push('• *' + (booking.rows.length ? 'Weekly Packing Preference' : 'Packing Preference') + ':* ' + (packKg ? sbPackLabel(packKg) : 'Not specified'));
     lines.push('• *Payment Terms:* ' + (payment || 'Not specified') + (sbCreditChosen() && sbCredit.state === 'yes' && sbCredit.mobile === sbMobile10() ? (sbCredit.days ? ' (credit days: ' + sbCredit.days + ', approved customer)' : ' (approved customer)') : ''));
     lines.push('');
     lines.push(DIV);
@@ -2312,7 +2340,7 @@ table.sb-table-booking{min-width:0;}
     var form = document.getElementById('sb-form');
     if (sbApplyPackStep()) {
       var first = form.querySelector('input.sb-qty-bad');
-      alert(sbT('packError').replace(/\{n\}/g, sbPackStep()));
+      alert(sbT('packError').replace(/\{n\}/g, first ? first.step : sbPackStep()));
       if (first) first.focus();
       return null;
     }
