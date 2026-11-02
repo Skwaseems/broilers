@@ -1132,6 +1132,14 @@
           <label class="check"><input type="radio" name="card-style" value="text"> <span><strong>Photo + text
                 below</strong> &mdash; shorter photo with your card text underneath</span></label>
         </div>
+        <label class="site-field" style="margin:4px 0 12px;"><span class="cat-label">Message above the photos <span
+              id="intro-count">0 / 500</span></span>
+          <textarea id="intro-text" maxlength="500" rows="2"></textarea></label>
+        <p class="muted" style="margin:-6px 0 12px;">Customers see: <em id="intro-preview-line">From Sharhan Broilers: <span
+              id="intro-preview"></span> Thank you.</em> WhatsApp needs those few fixed words around your text. (Shows
+          once the new designs are approved in the WhatsApp setup tab; then a change needs no approval.)</p>
+        <div class="row-form" style="margin:-4px 0 14px;"><button class="btn secondary small" id="intro-save"
+            type="button">Save message</button></div>
       </section>
 
       <section class="card" aria-labelledby="cust-title">
@@ -1356,7 +1364,7 @@
         <p class="muted"><strong>Big-photo slider (no prices).</strong> One swipeable message: each card is a big square
           photo, a small box with your website, and <em>Enroll Now</em> and <em>Stop</em> buttons.
           Enroll Now opens the order form with that item already marked; Stop unsubscribes the customer. Above the
-          photos WhatsApp requires one line of text: &ldquo;Sharhan Broilers catalogue&rdquo;. (WhatsApp writes the box&rsquo;s title from the web address:
+          photos goes the message you write in the Send catalogue tab. (WhatsApp writes the box&rsquo;s title from the web address:
           &ldquo;Pages&rdquo; now, most likely &ldquo;Sharhan&rdquo; once sharhan.co.in is connected.) Approved once per
           number of items (2&ndash;10). Sizes marked &ldquo;older version&rdquo; still work; submit the update and each
           switches over by itself once WhatsApp approves it.</p>
@@ -2767,9 +2775,10 @@
 
     let productsMeta = null, catalogConnected = false, photoMeta = null;
 
-    const PHOTO_VERSION = 6; // one short line above the photos + Stop button on every card; mirrors the Worker
+    const PHOTO_VERSION = 7; // message the admin writes + Stop button on every card; mirrors the Worker
     const photoTemplate = (n) => photoMeta && photoMeta.templates && photoMeta.templates["s" + n];
-    const photoNext = (n) => photoMeta && photoMeta.next && photoMeta.next["s" + n];
+    const currentOnly = (t, version) => (t && (t.version || 1) >= version ? t : null); // an older design still in review doesn't count
+    const photoNext = (n) => currentOnly(photoMeta && photoMeta.next && photoMeta.next["s" + n], PHOTO_VERSION);
     const photoIsCurrent = (n) => { const t = photoTemplate(n); return !!(t && t.status === "APPROVED" && (t.version || 1) >= PHOTO_VERSION); };
 
     function renderPhotoStatus() {
@@ -2814,8 +2823,8 @@
     let textMeta = null;
     // Only the "Enroll Now" (website button) versions count; older "Enquire Now" entries are superseded.
     const textTemplateOf = (n) => { const t = textMeta && textMeta.templates && textMeta.templates["s" + n]; return t && t.button === "url" ? t : null; };
-    const TEXT_VERSION = 3; // one short line above the cards + Stop button on every card; mirrors the Worker
-    const textNext = (n) => textMeta && textMeta.next && textMeta.next["s" + n];
+    const TEXT_VERSION = 4; // message the admin writes + Stop button on every card; mirrors the Worker
+    const textNext = (n) => currentOnly(textMeta && textMeta.next && textMeta.next["s" + n], TEXT_VERSION);
     const textIsCurrent = (n) => { const t = textTemplateOf(n); return !!(t && t.status === "APPROVED" && (t.version || 1) >= TEXT_VERSION); };
 
     function renderTextStatus() {
@@ -2855,6 +2864,28 @@
       logChange("WhatsApp setup", "Submitted photo + text designs for approval", ["Sizes: " + todo.join(", ")].concat(failed));
       renderTextStatus();
       setStatus("tpl-status", failed.length ? "Some failed — " + failed.join("; ") : "Submitted. Check back later with “Check approval status”.", failed.length ? "err" : "ok");
+    });
+
+    // Editable message above the catalogue photos (settings/whatsapp.intro), sent as the
+    // newest formats' body parameter. WhatsApp refuses line breaks inside it.
+    const INTRO_DEFAULT = "Fresh stock from Mumbai. Swipe through the photos and tap Enroll Now to place your order.";
+    const cleanIntro = (t) => String(t || "").replace(/[\r\n\t]+/g, " ").replace(/ {2,}/g, " ").trim();
+    function showIntro() {
+      const v = cleanIntro($("intro-text").value);
+      $("intro-preview").textContent = v || INTRO_DEFAULT;
+      $("intro-count").textContent = v.length + " / 500";
+    }
+    $("intro-text").addEventListener("input", showIntro);
+    $("intro-save").addEventListener("click", async () => {
+      const intro = cleanIntro($("intro-text").value) || INTRO_DEFAULT;
+      $("intro-text").value = intro;
+      showIntro();
+      try {
+        await trackedSet(db.collection("settings").doc("whatsapp"), { intro }, { merge: true }, "Send catalogue", "Message above the photos");
+        setStatus("send-status", "Message saved. It's used for the next catalogue sent.", "ok");
+      } catch (e) {
+        setStatus("send-status", "Couldn't save the message: " + e.message, "err");
+      }
     });
 
     // Card style switch (settings/whatsapp.cardStyle), read by the Worker for every send.
@@ -3603,6 +3634,8 @@
         .then((d) => {
           $("auto-reply-on").checked = !(d.exists && d.data().autoReply === false);
           const style = d.exists && d.data().cardStyle === "text" ? "text" : "photo";
+          $("intro-text").value = (d.exists && d.data().intro) || INTRO_DEFAULT;
+          showIntro();
           const radio = document.querySelector('input[name="card-style"][value="' + style + '"]');
           if (radio) radio.checked = true;
         })
