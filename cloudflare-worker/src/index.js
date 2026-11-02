@@ -668,6 +668,7 @@ const TEXT_VERSION = 4;
 const TEXT_BODY_V2 = "This week at Sharhan Broilers: {{1}}\n\nReply STOP anytime to unsubscribe from these updates.";
 const TEXT_BODY_V3 = "Sharhan Broilers line-up";
 const TEXT_BODY_V4 = "Sharhan Broilers update: {{1}} Have a good day.";
+const TEXT_SECOND_LINE = "More items."; // this format's second slider when the admin leaves its text empty
 
 function textCardText(it) {
   const t = pickCardText(it); // one line, without the old call to action
@@ -793,23 +794,27 @@ function fullPhotoMessages(env, meta, items, style, intro, intro2) {
   if (style === "text") {
     const ts = parts.map((p) => textTemplate(meta, p.length));
     if (ts.every(Boolean)) {
-      return parts.map((p, i) => { const m = textCards(ts[i], p, i ? intro2 : intro); m.language.code = env.TEMPLATE_LANGUAGE; return m; });
+      return parts.map((p, i) => { const m = textCards(ts[i], p, i ? intro2 || TEXT_SECOND_LINE : intro); m.language.code = env.TEMPLATE_LANGUAGE; return m; });
     }
   }
   const messages = [];
   for (const [index, part] of parts.entries()) {
     const t = meta.photo && meta.photo.templates && meta.photo.templates[photoKey(part.length)];
     if (!t || t.status !== "APPROVED") return null;
+    // No text for the second slider: Meta still requires one, so it takes the shortest approved
+    // format (v6, one fixed line) rather than repeating the first message.
+    const bare = index > 0 && !intro2 && t.intro;
+    const used = bare ? { name: `sharhan_photo_v6_${part.length}`, version: 6, stop: true } : t;
     messages.push({
-      name: t.name,
+      name: used.name,
       language: { code: env.TEMPLATE_LANGUAGE },
-      components: [...introParams(t, index ? intro2 : intro), {
+      components: [...introParams(used, index ? intro2 : intro), {
         type: "carousel",
         cards: part.map((it, i) => ({
           card_index: i,
           components: [
             { type: "header", parameters: [{ type: "image", image: { link: it.imageCard || it.image } }] },
-            ...photoButtons(t, it),
+            ...photoButtons(used, it),
           ],
         })),
       }],
@@ -831,8 +836,8 @@ function sliderMessage(env, meta, items, style, intro) {
 // Admin → card style + the editable message above the photos (settings/whatsapp).
 async function sendSettings(env) {
   const s = (await getDocument(env, "settings", "whatsapp").catch(() => null)) || {};
-  // intro2: above the second slider (11th photo onwards); empty = the same as the first.
-  return { style: s.cardStyle === "text" ? "text" : "photo", intro: cleanIntro(s.intro), intro2: cleanIntro(s.intro2 || s.intro) };
+  // intro2: above the second slider (11th photo onwards); may be empty, see fullPhotoMessages.
+  return { style: s.cardStyle === "text" ? "text" : "photo", intro: cleanIntro(s.intro), intro2: String(s.intro2 || "").trim() ? cleanIntro(s.intro2) : "" };
 }
 
 // The ticked items as one carousel, using the approved pick-any template of that size.
