@@ -786,24 +786,24 @@ function photoMessage(env, meta, items, intro) {
 
 // Every item with a real photo, as sliders of up to 10 cards (15 items = 10 + 5), in the
 // chosen card style. Uses the per-size formats, so no separate approval is needed.
-function fullPhotoMessages(env, meta, items, style, intro) {
+function fullPhotoMessages(env, meta, items, style, intro, intro2) {
   const all = items.filter((it) => it.image && !it.placeholder);
   if (all.length < PICK_MIN) return null;
   const parts = splitIntoCarousels(all);
   if (style === "text") {
     const ts = parts.map((p) => textTemplate(meta, p.length));
     if (ts.every(Boolean)) {
-      return parts.map((p, i) => { const m = textCards(ts[i], p, intro); m.language.code = env.TEMPLATE_LANGUAGE; return m; });
+      return parts.map((p, i) => { const m = textCards(ts[i], p, i ? intro2 : intro); m.language.code = env.TEMPLATE_LANGUAGE; return m; });
     }
   }
   const messages = [];
-  for (const part of parts) {
+  for (const [index, part] of parts.entries()) {
     const t = meta.photo && meta.photo.templates && meta.photo.templates[photoKey(part.length)];
     if (!t || t.status !== "APPROVED") return null;
     messages.push({
       name: t.name,
       language: { code: env.TEMPLATE_LANGUAGE },
-      components: [...introParams(t, intro), {
+      components: [...introParams(t, index ? intro2 : intro), {
         type: "carousel",
         cards: part.map((it, i) => ({
           card_index: i,
@@ -831,7 +831,8 @@ function sliderMessage(env, meta, items, style, intro) {
 // Admin → card style + the editable message above the photos (settings/whatsapp).
 async function sendSettings(env) {
   const s = (await getDocument(env, "settings", "whatsapp").catch(() => null)) || {};
-  return { style: s.cardStyle === "text" ? "text" : "photo", intro: cleanIntro(s.intro) };
+  // intro2: above the second slider (11th photo onwards); empty = the same as the first.
+  return { style: s.cardStyle === "text" ? "text" : "photo", intro: cleanIntro(s.intro), intro2: cleanIntro(s.intro2 || s.intro) };
 }
 
 // The ticked items as one carousel, using the approved pick-any template of that size.
@@ -869,11 +870,11 @@ async function sendCatalogueBatch(env, user, offset, limit, mode) {
   const customers = allCustomers.filter((c) => c.send !== false && !c.unsubscribed);
   if (!customers.length) throw new Error("No customers are ticked to receive the catalogue.");
 
-  const { style, intro } = await sendSettings(env);
+  const { style, intro, intro2 } = await sendSettings(env);
   let messages;
   if (mode === "pick") {
     messages = [sliderMessage(env, meta, items, style, intro)];
-  } else if ((messages = fullPhotoMessages(env, meta, items, style, intro))) {
+  } else if ((messages = fullPhotoMessages(env, meta, items, style, intro, intro2))) {
     // all items as big-photo sliders
   } else {
     if (!meta.live || !meta.live.templates || !meta.live.templates.length) {
