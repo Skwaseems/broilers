@@ -1138,6 +1138,12 @@
         <p class="muted" style="margin:-6px 0 12px;">Customers see: <em id="intro-preview-line">From Sharhan Broilers: <span
               id="intro-preview"></span> Thank you.</em> WhatsApp needs those few fixed words around your text. (Shows
           once the new designs are approved in the WhatsApp setup tab; then a change needs no approval.)</p>
+        <label class="site-field" style="margin:4px 0 12px;"><span class="cat-label">Message before the 11th photo <span
+              id="intro2-count">0 / 500</span></span>
+          <textarea id="intro2-text" maxlength="500" rows="2"></textarea></label>
+        <p class="muted" style="margin:-6px 0 12px;">WhatsApp allows 10 photos in one message, so a full catalogue of
+          more than 10 goes as two messages. This text goes above the second one, with the same fixed words. Leave it
+          empty to repeat the message above.</p>
         <div class="row-form" style="margin:-4px 0 14px;"><button class="btn secondary small" id="intro-save"
             type="button">Save message</button></div>
       </section>
@@ -1771,7 +1777,7 @@
     const FIELD_LABELS = {
       spec: "card text", packs: "packs", onWhatsApp: "Send on WhatsApp", onWebsite: "on website", fit: "photo fit", tag: "tag",
       image: "photo", groups: "groups", price: "price", placeholder: "no photo yet", autoReply: "Auto-reply", cardStyle: "card style",
-      days: "credit days", intro: "message above the photos", whatsapp: "WhatsApp numbers", emails: "emails", items: "products", customers: "customers",
+      days: "credit days", intro: "message above the photos", intro2: "message before the 11th photo", whatsapp: "WhatsApp numbers", emails: "emails", items: "products", customers: "customers",
       showForm: "show in order form", showSite: "show on website", qr: "QR photo", upi: "UPI ID", ifsc: "IFSC", hi: "Hindi", mr: "Marathi",
     };
     // Website sections and their fields are named as in the Website tab.
@@ -2874,14 +2880,18 @@
       const v = cleanIntro($("intro-text").value);
       $("intro-preview").textContent = v || INTRO_DEFAULT;
       $("intro-count").textContent = v.length + " / 500";
+      $("intro2-count").textContent = cleanIntro($("intro2-text").value).length + " / 500";
     }
     $("intro-text").addEventListener("input", showIntro);
+    $("intro2-text").addEventListener("input", showIntro);
     $("intro-save").addEventListener("click", async () => {
       const intro = cleanIntro($("intro-text").value) || INTRO_DEFAULT;
+      const intro2 = cleanIntro($("intro2-text").value);
       $("intro-text").value = intro;
+      $("intro2-text").value = intro2;
       showIntro();
       try {
-        await trackedSet(db.collection("settings").doc("whatsapp"), { intro }, { merge: true }, "Send catalogue", "Message above the photos");
+        await trackedSet(db.collection("settings").doc("whatsapp"), { intro, intro2 }, { merge: true }, "Send catalogue", "Message above the photos");
         setStatus("send-status", "Message saved. It's used for the next catalogue sent.", "ok");
       } catch (e) {
         setStatus("send-status", "Couldn't save the message: " + e.message, "err");
@@ -3635,6 +3645,7 @@
           $("auto-reply-on").checked = !(d.exists && d.data().autoReply === false);
           const style = d.exists && d.data().cardStyle === "text" ? "text" : "photo";
           $("intro-text").value = (d.exists && d.data().intro) || INTRO_DEFAULT;
+          $("intro2-text").value = (d.exists && d.data().intro2) || "";
           showIntro();
           const radio = document.querySelector('input[name="card-style"][value="' + style + '"]');
           if (radio) radio.checked = true;
