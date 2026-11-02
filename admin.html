@@ -1128,7 +1128,7 @@
         <p class="muted" style="margin:4px 0 6px;"><strong>Card style</strong> (also used for automatic replies)</p>
         <div class="send-modes" role="radiogroup" aria-label="Card style" style="margin-top:0;">
           <label class="check"><input type="radio" name="card-style" value="photo" checked> <span><strong>Big
-                photo</strong> &mdash; large square photo with the item name on it</span></label>
+                photo</strong> &mdash; large square photo</span></label>
           <label class="check"><input type="radio" name="card-style" value="text"> <span><strong>Photo + text
                 below</strong> &mdash; shorter photo with your card text underneath</span></label>
         </div>
@@ -1142,7 +1142,7 @@
               id="intro2-count">0 / 500</span></span>
           <textarea id="intro2-text" maxlength="500" rows="2"></textarea></label>
         <p class="muted" style="margin:-6px 0 12px;">WhatsApp allows 10 photos in one message, so a full catalogue of
-          more than 10 goes as two messages. This text goes above the second one, with the same fixed words. If you leave
+          more than 10 goes as two messages, the second as soon as the first reaches the customer. This text goes above the second one, with the same fixed words. If you leave
           it empty, the first message is not repeated: WhatsApp can't send it blank, so it shows the short line
           &ldquo;Sharhan Broilers catalogue&rdquo;.</p>
         <div class="row-form" style="margin:-4px 0 14px;"><button class="btn secondary small" id="intro-save"
@@ -2761,12 +2761,7 @@
       $("wa-count").className = "badge" + (n >= PICK_MIN && n <= PICK_MAX ? " ok" : " warn");
       let text;
       if (n < PICK_MIN) text = n + " ticked — tick at least " + PICK_MIN + " items with “Send on WhatsApp” in the catalogue.";
-      else if (catalogConnected && productsMeta && productsMeta.status === "APPROVED") {
-        const priced = ticked.filter((it) => typeof it.price === "number" && it.price > 0);
-        text = priced.length + " items as product cards with prices (" + priced.map((it) => it.name).join(", ") + ")" +
-          (priced.length < ticked.length ? " — " + (ticked.length - priced.length) + " ticked item(s) have no price and are left out" : "") +
-          (priced.length < PICK_MIN ? " — add prices to at least " + PICK_MIN + " ticked items" : "") + (dirty ? ". Save your catalogue changes first." : ".");
-      } else {
+      else {
         const t = pickTemplate(n);
         const big = photoTemplate(n);
         const state = big && big.status === "APPROVED" ? "ready to send as the big-photo slider"
