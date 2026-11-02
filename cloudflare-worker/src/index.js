@@ -1,4 +1,4 @@
-import { listDocuments, addDocument, getDocument, setDocument } from "./firestore.js";
+import { listDocuments, addDocument, getDocument, setDocument, deleteDocument } from "./firestore.js";
 import { verifyFirebaseIdToken } from "./verifyIdToken.js";
 import { staffRoute, requireStaff } from "./staff.js";
 
@@ -866,6 +866,44 @@ function pickMessage(env, meta, items) {
   };
 }
 
+// WhatsApp doesn't keep a customer's messages in the order they were sent (a 5-photo slider
+// overtook the 10-photo one sent before it), so the next message of a catalogue waits in
+// whatsapp_pending until the webhook reports the previous one delivered (releaseNextMessage).
+const PENDING_MAX_MS = 3 * 24 * 60 * 60 * 1000; // an older catalogue isn't worth sending on
+async function pendingKey(messageId) {
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(messageId));
+  return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function sendInOrder(env, to, messages) {
+  const [template, ...rest] = messages;
+  const sent = await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messaging_product: "whatsapp", to, type: "template", template }),
+  });
+  const id = sent.messages && sent.messages[0] && sent.messages[0].id;
+  if (rest.length && id) {
+    await setDocument(env, "whatsapp_pending", await pendingKey(id), { to, rest: JSON.stringify(rest), at: new Date().toISOString() });
+  }
+}
+
+// If the first message failed, the rest is dropped: the customer shouldn't get half a catalogue.
+async function releaseNextMessage(env, status) {
+  if (!["delivered", "read", "failed"].includes(status.status) || !status.waMessageId) return;
+  const key = await pendingKey(status.waMessageId);
+  const waiting = await getDocument(env, "whatsapp_pending", key);
+  if (!waiting) return;
+  await deleteDocument(env, "whatsapp_pending", key);
+  if (status.status === "failed" || Date.now() - new Date(waiting.at).getTime() > PENDING_MAX_MS) return;
+  try {
+    await sendInOrder(env, waiting.to, JSON.parse(waiting.rest));
+  } catch (e) {
+    const at = new Date().toISOString();
+    await addDocument(env, "whatsapp_status_log", { waMessageId: "", recipient: waiting.to, status: "failed", errors: [{ code: 0, title: e.message }], timestamp: at, receivedAt: at });
+  }
+}
+
 async function sendCatalogueBatch(env, user, offset, limit, mode) {
   const meta = (await getDocument(env, "catalogue_meta", "whatsapp")) || {};
   const [allCustomers, items] = await Promise.all([listDocuments(env, "whatsapp_customers"), sortedCatalogue(env)]);
@@ -902,13 +940,7 @@ async function sendCatalogueBatch(env, user, offset, limit, mode) {
     const to = (c.phone || "").replace(/\D/g, "");
     if (!to) continue;
     try {
-      for (const template of messages) {
-        await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messaging_product: "whatsapp", to, type: "template", template }),
-        });
-      }
+      await sendInOrder(env, to, messages);
       results.push({ to, ok: true });
     } catch (e) {
       results.push({ to, ok: false, error: e.message });
@@ -1155,6 +1187,7 @@ export default {
       for (const s of extractStatuses(payload)) {
         await addDocument(env, "whatsapp_status_log", s);
         if (signed) ctx.waitUntil(noteMarketingOptOut(env, s).catch(() => {}));
+        if (signed) ctx.waitUntil(releaseNextMessage(env, s).catch(() => {}));
       }
       return new Response("EVENT_RECEIVED", { status: 200 });
     }
