@@ -3442,7 +3442,35 @@
     });
 
     // ---------- Credit applications (credit_applications/{mobile}, KYC photos in the Worker's KV) ----------
-    const KYC_LABELS = { aadhaar_front: "Aadhaar (front)", aadhaar_back: "Aadhaar (back)", pan: "PAN card", business: "Business document" };
+    const KYC_LABELS = { aadhaar_front: "Aadhaar (front)", aadhaar_back: "Aadhaar (back)", pan: "PAN card", udyam: "Udyog Aadhaar / Udyam", cheque: "Cancelled cheque", selfie: "Selfie", signature: "Signature", business: "Business document" };
+    // The signed KYC form as a page of its own, to read, print or save as PDF. Same layout as the paper form.
+    function kycFormHtml(a, selfieUrl, signUrl) {
+      const esc = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const when = a.signedAt ? new Date(a.signedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true }) + " IST" : "";
+      const row = (label, value) => `<p class="row"><b>${esc(label)}:</b> ${esc(value)}</p>`;
+      return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>KYC ${esc(a.name || a.mobile)}</title><style>
+body{margin:0 auto;max-width:720px;padding:24px 20px;background:#fff;color:#14141c;font:15px/1.5 Arial,sans-serif}
+h1{margin:0;text-align:center;font:600 34px Georgia,serif;letter-spacing:.03em;color:#2f6ea5}
+.addr{margin:4px 0 22px;text-align:center}
+h2{margin:0 0 14px;text-align:center;font-size:15px;text-decoration:underline}
+.top{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.photo{flex:none;width:132px;border:1px solid #14141c;padding:3px}.photo img{display:block;width:100%}
+h3{margin:18px 0 8px;font-size:14px}.row{margin:6px 0}.legal{margin:6px 0;text-align:justify}
+.sign{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:22px;padding-bottom:8px;border-bottom:1px solid #14141c}
+.sign img{display:block;width:230px;max-width:100%}.note{margin-top:12px;font-size:12px;color:#54535c}
+button{margin-bottom:16px;padding:10px 18px;font-size:14px;cursor:pointer}@media print{button{display:none}body{padding:0}}
+</style></head><body><button type="button" onclick="print()">Print / Save as PDF</button>
+<h1>SHARHAN BROILERS</h1><p class="addr">27/28, 296, Nagdevi street, Opp Crawford Market, Mumbai &ndash; 400003.</p>
+<h2>KNOW YOUR CLIENT (KYC) APPLICATION FORM</h2>
+<div class="top"><p><b>Please fill this form if you want goods on Credit.</b></p><div class="photo"><img src="${esc(selfieUrl)}" alt="Applicant's selfie"></div></div>
+<h3>IDENTITY DETAILS</h3>
+${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.applicant)}${row("PAN Number", a.pan)}${row("Aadhaar Number", a.aadhaarLast4 ? "XXXX XXXX " + a.aadhaarLast4 : "")}${row("Mobile No", a.mobile)}${row("Email id", a.email)}
+<h3>DECLARATION</h3><p class="legal">${esc(a.declaration)}</p>
+<h3>TERMS AND CONDITIONS</h3><p class="legal">${esc(a.terms)}</p>
+<div class="sign"><div><b>Signature of the Applicant</b><img src="${esc(signUrl)}" alt="Applicant's signature"></div><div><b>Date:</b> ${esc(when)}</div></div>
+<p class="note">Signed online. Selfie time on the photo: ${esc(a.selfieStamp)}. Received by the server: ${esc(when)}.${a.signedIp ? " IP address: " + esc(a.signedIp) + "." : ""}</p>
+</body></html>`;
+    }
     let cappUnsub = null, capps = [];
     const cappShown = {}; // mobile -> object URLs of loaded photos
     function startCreditApps() {
@@ -3475,6 +3503,8 @@
           ]),
           el("div", { className: "muted", textContent: [a.owner && "Owner: " + a.owner, a.contact && "Contact: " + a.contact, a.location && "Location: " + a.location, "Sent " + when, a.reapplied ? "re-applied" : ""].filter(Boolean).join(" · ") }),
         ]);
+        if (a.pan) card.appendChild(el("div", { className: "muted", textContent: ["Applicant: " + (a.applicant || ""), "PAN: " + a.pan, "Aadhaar: XXXX " + (a.aadhaarLast4 || ""), "Email: " + (a.email || "")].join(" · ") }));
+        if (a.selfieStamp) card.appendChild(el("div", { className: "muted", textContent: "Selfie time on photo: " + a.selfieStamp + (a.selfieMode === "live" ? " (live camera)" : " (phone's picker: it may not be a fresh photo, check it)") }));
         if (a.status === "rejected" && a.rejectReason) card.appendChild(el("div", { className: "muted", textContent: "Reason: " + a.rejectReason }));
         if (a.decidedBy) card.appendChild(el("div", { className: "muted", textContent: label + " by " + a.decidedBy + (a.decidedAt ? " on " + new Date(a.decidedAt).toLocaleDateString() : "") }));
         const docs = el("div", { className: "capp-docs" });
@@ -3498,6 +3528,18 @@
             cappShown[a.mobile] = urls;
             renderCreditApps();
           } catch (e) { b.disabled = false; b.textContent = "View documents"; setStatus("credit-status", "Couldn't load the photos: " + e.message, "err"); }
+        });
+        if (a.terms && docList.includes("selfie") && docList.includes("signature")) button("Signed KYC form", "secondary", async (b) => {
+          const win = window.open("", "_blank"); // opened now: browsers block it after the wait below
+          if (!win) return setStatus("credit-status", "Your browser blocked the new window. Allow pop-ups for this page and try again.", "err");
+          b.disabled = true;
+          try {
+            const [selfie, signature] = await Promise.all([kycPhoto(a.mobile, "selfie"), kycPhoto(a.mobile, "signature")]);
+            win.document.open();
+            win.document.write(kycFormHtml(a, selfie, signature));
+            win.document.close();
+          } catch (e) { win.close(); setStatus("credit-status", "Couldn't load the signed form: " + e.message, "err"); }
+          b.disabled = false;
         });
         if (a.status !== "approved") button("Approve credit", "", () => decideCredit(a, "approved"));
         if (a.status === "pending") button("Reject", "secondary", () => decideCredit(a, "rejected"));

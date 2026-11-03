@@ -70,11 +70,15 @@ async function creditMobiles(env) {
   return set;
 }
 
-// ---- Credit applications: the customer uploads self-attested KYC photos from the order
-// form; an admin checks them in Admin → Payments & credit and approves or rejects.
-// Photos live in KV under kyc:<mobile>:<slot> and are only ever served to admins.
-const KYC_SLOTS = ["aadhaar_front", "aadhaar_back", "pan", "business"];
-const KYC_REQUIRED = ["aadhaar_front", "pan", "business"];
+// ---- Credit applications (eKYC): from the order form the customer fills the KYC form, uploads
+// document photos, takes a selfie and signs; an admin checks them in Admin → Payments & credit
+// and approves or rejects. Photos live in KV under kyc:<mobile>:<slot> and are only ever served
+// to admins. "business" is only on applications made before Udyam and the cheque were asked for.
+const KYC_SLOTS = ["aadhaar_front", "aadhaar_back", "pan", "udyam", "cheque", "selfie", "signature", "business"];
+const KYC_REQUIRED = ["aadhaar_front", "pan", "udyam", "cheque", "selfie", "signature"];
+// The wording the customer agreed to is kept on the application. Same text as the order form.
+const KYC_DECLARATION = "I hereby declare that the details furnished above are true and correct to the best of my knowledge and belief and I undertake to inform SHARHAN BROILERS of any changes therein, immediately. In case any of the above information is found to be false or untrue or misleading or misrepresenting, I am aware that I may be held liable for it.";
+const KYC_TERMS = "We may deposit the check that was obtained from you with the same outstanding amount in the bank if the client fails to make the payment within the time line or due to any other reason.";
 const KYC_MAX_BYTES = 1024 * 1024; // the form shrinks photos to ~300 KB before upload
 const KYC_MAX_PENDING = 100; // stops a flood of fake applications filling the free KV store
 const kycKey = (mobile, slot) => `kyc:${mobile}:${slot}`;
@@ -91,10 +95,20 @@ async function creditApply(env, request) {
     contact: text("contact", 100),
     location: text("location", 200),
     lang: text("lang", 5),
+    applicant: text("applicant", 100),
+    pan: text("panNo", 10).toUpperCase(),
+    aadhaarLast4: text("aadhaarLast4", 4),
+    email: text("email", 120),
+    selfieStamp: text("selfieStamp", 40),
+    selfieMode: form.get("selfieMode") === "live" ? "live" : "file",
   };
   if (mobile.length !== 10 || !/^[6-9]/.test(mobile)) return json({ error: "mobile" }, 400);
   if (!app.name) return json({ error: "name" }, 400);
-  if (form.get("consent") !== "yes") return json({ error: "consent" }, 400);
+  if (!app.applicant) return json({ error: "applicant" }, 400);
+  if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(app.pan)) return json({ error: "pan" }, 400);
+  if (!/^[0-9]{4}$/.test(app.aadhaarLast4)) return json({ error: "aadhaar" }, 400);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(app.email)) return json({ error: "email" }, 400);
+  if (form.get("consent") !== "yes" || form.get("terms") !== "yes") return json({ error: "consent" }, 400);
   if ((await creditMobiles(env)).has(mobile)) return json({ status: "approved" });
 
   const files = {};
@@ -122,6 +136,9 @@ async function creditApply(env, request) {
   const at = new Date().toISOString();
   await setDocument(env, "credit_applications", mobile, {
     ...app, docs: Object.keys(files), status: "pending", submittedAt: at, consentAt: at,
+    declaration: KYC_DECLARATION, terms: KYC_TERMS, signedAt: at,
+    signedIp: String(request.headers.get("CF-Connecting-IP") || "").slice(0, 45),
+    signedDevice: String(request.headers.get("User-Agent") || "").slice(0, 200),
     reapplied: !!prev, previousStatus: prev ? prev.status || "" : "",
   });
   return json({ status: "pending" });
