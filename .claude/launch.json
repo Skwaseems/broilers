@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8765", "--directory", "D:/GIT/broilers"],
       "port": 8765
+    },
+    {
+      "name": "pages-functions",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["wrangler", "pages", "dev", "dist", "--port", "8788"],
+      "port": 8788
     }
   ]
 }

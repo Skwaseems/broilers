@@ -8,6 +8,9 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "redirects": [
+      { "source": "/p/:slug", "destination": "https://sharhan-broilers.pages.dev/p/:slug", "type": 302 }
     ]
   }
 }
