@@ -1339,6 +1339,25 @@ table.sb-table-booking{min-width:0;}
 .sb-ca-consent input{flex:none;margin-top:2px;}
 #sb-ca-status.sb-ca-ok{color:#1d6b3c;font-weight:500;}
 #sb-ca-status.sb-ca-err{color:#b3302c;font-weight:500;}
+.sb-ca-sub{margin:16px 0 4px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#2f2f3a;}
+.sb-ca-legal{margin:6px 0;font-size:13px;line-height:1.55;color:#3a3a44;}
+.sb-ca-legal:empty{display:none;}
+.sb-ca-shot{display:block;width:150px;max-width:100%;margin:8px 0 2px;border:1px solid #d9d2c3;border-radius:3px;background:#fff;}
+.sb-ca-sign-shot{width:240px;}
+.sb-ca-end{height:14px;}
+.sb-ca-win{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(20,18,14,.75);}
+.sb-ca-win[hidden]{display:none;}
+.sb-ca-box{width:100%;max-width:520px;max-height:100%;overflow-y:auto;padding:16px;background:#fff;border-radius:6px;font-family:'Jost',sans-serif;color:#1c1c22;}
+.sb-ca-box h3{margin:0 0 4px;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:22px;}
+.sb-ca-box video{display:block;width:100%;max-height:60vh;margin:8px 0;background:#1c1c22;border-radius:3px;transform:scaleX(-1);}
+.sb-ca-pad{display:block;width:100%;height:220px;margin:8px 0;background:#fff;border:1px dashed #846e3e;border-radius:3px;touch-action:none;cursor:crosshair;}
+.sb-ca-btns{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:10px;}
+.sb-ca-btns button,.sb-ca-file{min-height:44px;padding:0 16px;border:1px solid #846e3e;border-radius:3px;background:#fff;color:#6e5b32;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;cursor:pointer;}
+.sb-ca-btns .sb-ca-main{background:#846e3e;color:#fff;}
+.sb-ca-btns button:disabled{opacity:.5;cursor:default;}
+.sb-ca-file{display:inline-flex;align-items:center;margin-top:8px;}
+.sb-ca-file input{display:none;}
+.sb-ca-winerr{margin:6px 0;font-size:13px;font-weight:500;color:#b3302c;}
 .sb-pay{margin:4px 0 14px;padding:14px;border:1px solid #e6e4e0;border-radius:4px;background:#faf9f7;}
 .sb-pay-title{font-family:'Cormorant Garamond',serif;font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:15px;margin-bottom:10px;}
 .sb-pay-body{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;}
@@ -1352,6 +1371,31 @@ table.sb-table-booking{min-width:0;}
 .sb-pay-note{margin-top:8px;font-size:12px;color:#54535c;}
 </style>
 <div class="sb-overlay" id="sb-overlay">
+  <div class="sb-ca-win" id="sb-ca-cam" role="dialog" aria-modal="true" aria-labelledby="sb-ca-cam-title" hidden>
+    <div class="sb-ca-box">
+      <h3 id="sb-ca-cam-title" data-i18n="caSelfieTitle">Selfie with date and time</h3>
+      <video id="sb-ca-video" autoplay playsinline muted></video>
+      <p class="sb-ca-winerr" id="sb-ca-cam-err" style="display:none;" data-i18n="caCamErr">The camera could not open. Allow the camera for this page, or use the button below.</p>
+      <label class="sb-ca-file" id="sb-ca-cam-file" style="display:none;"><span data-i18n="caCamFile">Open phone camera</span><input type="file" id="sb-ca-cam-input" accept="image/*" capture="user"></label>
+      <div class="sb-ca-btns">
+        <button type="button" onclick="sbCaSelfieClose()" data-i18n="caCancel">Cancel</button>
+        <button type="button" class="sb-ca-main" id="sb-ca-shoot" onclick="sbCaSelfieShoot()" data-i18n="caCapture">Click photo</button>
+      </div>
+    </div>
+  </div>
+  <div class="sb-ca-win" id="sb-ca-sign" role="dialog" aria-modal="true" aria-labelledby="sb-ca-sign-title" hidden>
+    <div class="sb-ca-box">
+      <h3 id="sb-ca-sign-title" data-i18n="caSignTitle">Your signature</h3>
+      <p class="sb-note" data-i18n="caSignHelp">Sign inside the box with your finger or mouse.</p>
+      <canvas class="sb-ca-pad" id="sb-ca-pad"></canvas>
+      <p class="sb-ca-winerr" id="sb-ca-sign-err" style="display:none;" data-i18n="caSignEmpty">Please sign inside the box.</p>
+      <div class="sb-ca-btns">
+        <button type="button" onclick="sbCaSignClose()" data-i18n="caCancel">Cancel</button>
+        <button type="button" onclick="sbCaPadClear()" data-i18n="caClear">Clear</button>
+        <button type="button" class="sb-ca-main" onclick="sbCaSignDone()" data-i18n="caSignDone">Done</button>
+      </div>
+    </div>
+  </div>
   <div class="sb-modal" role="dialog" aria-modal="true" aria-labelledby="sb-modal-title">
     <div class="sb-modal-head">
       <div>
@@ -1483,15 +1527,38 @@ table.sb-table-booking{min-width:0;}
         </div>
         <div class="sb-credit-apply" id="sb-credit-apply" style="display:none;">
           <div class="sb-pay-title" data-i18n="caTitle">Apply For Credit</div>
-          <p class="sb-note" data-i18n="caIntro">Upload clear photos of these documents. Sign each copy first (self-attested). We check them and contact you.</p>
+          <p class="sb-note" data-i18n="caIntro">Fill in your details, add the documents, take a selfie and sign. We check them and contact you.</p>
+          <div class="sb-ca-grid">
+            <label class="sb-field"><span><span data-i18n="caApplicant">Full name of the applicant</span> *</span><input type="text" id="sb-ca-applicant" maxlength="100" autocomplete="name"></label>
+            <label class="sb-field"><span><span data-i18n="caPanNo">PAN number</span> *</span><input type="text" id="sb-ca-pan" maxlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;"></label>
+            <label class="sb-field"><span><span data-i18n="caAadhaarNo">Aadhaar number (last 4 digits)</span> *</span><input type="text" id="sb-ca-aadhaar" maxlength="4" inputmode="numeric" autocomplete="off"></label>
+            <label class="sb-field"><span><span data-i18n="caEmail">Email ID</span> *</span><input type="text" id="sb-ca-email" maxlength="120" inputmode="email" autocomplete="email" spellcheck="false"></label>
+          </div>
+          <div class="sb-ca-sub" data-i18n="caDocsTitle">Documents</div>
           <div class="sb-ca-grid">
             <label class="sb-field"><span><span data-i18n="caAadhaarFront">Aadhaar card – front</span> *</span><input type="file" accept="image/*" data-kyc="aadhaar_front"></label>
             <label class="sb-field"><span data-i18n="caAadhaarBack">Aadhaar card – back (optional)</span><input type="file" accept="image/*" data-kyc="aadhaar_back"></label>
             <label class="sb-field"><span><span data-i18n="caPan">PAN card</span> *</span><input type="file" accept="image/*" data-kyc="pan"></label>
-            <label class="sb-field"><span><span data-i18n="caBusiness">Business document (GST, Shop Act, FSSAI or trade licence)</span> *</span><input type="file" accept="image/*" data-kyc="business"></label>
+            <label class="sb-field"><span><span data-i18n="caUdyam">Udyog Aadhaar / Udyam certificate</span> *</span><input type="file" accept="image/*" data-kyc="udyam"></label>
+            <label class="sb-field"><span><span data-i18n="caCheque">Cancelled cheque</span> *</span><input type="file" accept="image/*" data-kyc="cheque"></label>
           </div>
           <p class="sb-note" data-i18n="caMasked">Tip: a masked Aadhaar (only the last 4 digits showing, downloadable from the UIDAI website) is enough.</p>
+          <div class="sb-ca-sub"><span data-i18n="caSelfieTitle">Selfie with date and time</span> *</div>
+          <p class="sb-note" data-i18n="caSelfieHelp">The camera opens. The date and time are added to the photo automatically.</p>
+          <img class="sb-ca-shot" id="sb-ca-selfie-img" alt="" style="display:none;">
+          <button type="button" class="sb-ca-open" id="sb-ca-selfie-btn" onclick="sbCaSelfieOpen()" data-i18n="caSelfieTake">Take selfie</button>
+          <div class="sb-ca-sub" data-i18n="caDeclTitle">Declaration</div>
+          <p class="sb-ca-legal">I hereby declare that the details furnished above are true and correct to the best of my knowledge and belief and I undertake to inform SHARHAN BROILERS of any changes therein, immediately. In case any of the above information is found to be false or untrue or misleading or misrepresenting, I am aware that I may be held liable for it.</p>
+          <p class="sb-ca-legal" data-i18n="caDeclTr"></p>
+          <div class="sb-ca-sub" data-i18n="caTermsTitle">Terms and conditions</div>
+          <p class="sb-ca-legal">We may deposit the check that was obtained from you with the same outstanding amount in the bank if the client fails to make the payment within the time line or due to any other reason.</p>
+          <p class="sb-ca-legal" data-i18n="caTermsTr"></p>
+          <label class="sb-check-item sb-ca-consent"><input type="checkbox" id="sb-ca-terms"> <span data-i18n="caAgree">I have read the declaration and the terms and conditions, and I agree to them.</span></label>
           <label class="sb-check-item sb-ca-consent"><input type="checkbox" id="sb-ca-consent"> <span data-i18n="caConsent">I agree that Sharhan Broilers may keep these documents to check my credit application.</span></label>
+          <div class="sb-ca-sub"><span data-i18n="caSignTitle">Your signature</span> *</div>
+          <img class="sb-ca-shot sb-ca-sign-shot" id="sb-ca-sign-img" alt="" style="display:none;">
+          <button type="button" class="sb-ca-open" id="sb-ca-sign-btn" onclick="sbCaSignOpen()" data-i18n="caSignOpen">Sign the form</button>
+          <div class="sb-ca-end"></div>
           <button type="button" class="sb-btn sb-btn-email" id="sb-ca-submit" onclick="sbCreditApply()" data-i18n="caSubmit">Submit Application</button>
           <div class="sb-note" id="sb-ca-status" role="status"></div>
         </div>
@@ -1568,15 +1635,47 @@ table.sb-table-booking{min-width:0;}
       creditOnly: 'Credit is only for approved customers. Please choose Same Day payment for now, or apply for credit below.',
       creditPending: 'Your credit application is being checked. Until it is approved, please choose Same Day payment.',
       caOpen: 'Apply for credit', caTitle: 'Apply For Credit',
-      caIntro: 'Upload clear photos of these documents. Sign each copy first (self-attested). We check them and contact you.',
+      caIntro: 'Fill in your details, add the documents, take a selfie and sign. We check them and contact you.',
       caAadhaarFront: 'Aadhaar card – front', caAadhaarBack: 'Aadhaar card – back (optional)', caPan: 'PAN card',
-      caBusiness: 'Business document (GST, Shop Act, FSSAI or trade licence)',
+      caApplicant: 'Full name of the applicant',
+      caPanNo: 'PAN number',
+      caAadhaarNo: 'Aadhaar number (last 4 digits)',
+      caEmail: 'Email ID',
+      caDocsTitle: 'Documents',
+      caUdyam: 'Udyog Aadhaar / Udyam certificate',
+      caCheque: 'Cancelled cheque',
+      caSelfieTitle: 'Selfie with date and time',
+      caSelfieHelp: 'The camera opens. The date and time are added to the photo automatically.',
+      caSelfieTake: 'Take selfie',
+      caSelfieAgain: 'Take selfie again',
+      caCapture: 'Click photo',
+      caCamErr: 'The camera could not open. Allow the camera for this page, or use the button below.',
+      caCamFile: 'Open phone camera',
+      caCancel: 'Cancel',
+      caSignTitle: 'Your signature',
+      caSignHelp: 'Sign inside the box with your finger or mouse.',
+      caSignOpen: 'Sign the form',
+      caSignAgain: 'Sign again',
+      caClear: 'Clear',
+      caSignDone: 'Done',
+      caSignEmpty: 'Please sign inside the box.',
+      caDeclTitle: 'Declaration',
+      caTermsTitle: 'Terms and conditions',
+      caDeclTr: '',
+      caTermsTr: '',
+      caAgree: 'I have read the declaration and the terms and conditions, and I agree to them.',
+      caNeedApplicant: 'Please fill in the full name of the applicant.',
+      caBadPan: 'Please enter a valid PAN number, like ABCDE1234F.',
+      caBadAadhaar: 'Please enter the last 4 digits of your Aadhaar number.',
+      caBadEmail: 'Please enter a valid email ID.',
+      caNeedSelfie: 'Please take your selfie.',
+      caNeedSign: 'Please sign the form.',
       caMasked: 'Tip: a masked Aadhaar (only the last 4 digits showing, downloadable from the UIDAI website) is enough.',
       caConsent: 'I agree that Sharhan Broilers may keep these documents to check my credit application.',
       caSubmit: 'Submit Application', caSending: 'Uploading… please wait.',
       caDone: '✓ Application sent. We will check your documents and contact you on {mobile}. Until then, please choose Same Day payment.',
       caNeedDetails: 'Fill in Billing Name and Mobile Number above first.', caNeedFiles: 'Please add a photo of: {list}',
-      caNeedConsent: 'Please tick the agreement box.',
+      caNeedConsent: 'Please tick both agreement boxes.',
       caBadFile: 'That file couldn’t be read as a photo. Please take a photo (JPG/PNG) of the document.',
       caError: 'Couldn’t send the application. Please check your internet and try again.',
       caBusy: 'We are getting too many applications right now. Please call us on {phone}.',
@@ -1615,15 +1714,47 @@ table.sb-table-booking{min-width:0;}
       creditOnly: 'उधार केवल स्वीकृत ग्राहकों के लिए है। अभी के लिए "उसी दिन" भुगतान चुनें, या नीचे उधार के लिए आवेदन करें।',
       creditPending: 'आपके उधार आवेदन की जाँच चल रही है। मंज़ूरी मिलने तक कृपया "उसी दिन" भुगतान चुनें।',
       caOpen: 'उधार के लिए आवेदन करें', caTitle: 'उधार के लिए आवेदन',
-      caIntro: 'इन दस्तावेज़ों की साफ़ फ़ोटो अपलोड करें। हर कॉपी पर पहले अपने हस्ताक्षर करें (स्व-सत्यापित)। हम जाँच करके आपसे संपर्क करेंगे।',
+      caIntro: 'अपनी जानकारी भरें, दस्तावेज़ जोड़ें, सेल्फ़ी लें और हस्ताक्षर करें। हम जाँच करके आपसे संपर्क करेंगे।',
       caAadhaarFront: 'आधार कार्ड – आगे का हिस्सा', caAadhaarBack: 'आधार कार्ड – पीछे का हिस्सा (वैकल्पिक)', caPan: 'पैन कार्ड',
-      caBusiness: 'व्यवसाय का दस्तावेज़ (GST, शॉप एक्ट, FSSAI या ट्रेड लाइसेंस)',
+      caApplicant: 'आवेदक का पूरा नाम',
+      caPanNo: 'पैन नंबर',
+      caAadhaarNo: 'आधार नंबर (आख़िरी 4 अंक)',
+      caEmail: 'ईमेल आईडी',
+      caDocsTitle: 'दस्तावेज़',
+      caUdyam: 'उद्योग आधार / उद्यम प्रमाणपत्र',
+      caCheque: 'कैंसल चेक',
+      caSelfieTitle: 'तारीख़ और समय के साथ सेल्फ़ी',
+      caSelfieHelp: 'कैमरा खुलेगा। फ़ोटो पर तारीख़ और समय अपने आप लग जाएगा।',
+      caSelfieTake: 'सेल्फ़ी लें',
+      caSelfieAgain: 'सेल्फ़ी दोबारा लें',
+      caCapture: 'फ़ोटो लें',
+      caCamErr: 'कैमरा नहीं खुला। इस पेज के लिए कैमरे की अनुमति दें, या नीचे का बटन दबाएँ।',
+      caCamFile: 'फ़ोन का कैमरा खोलें',
+      caCancel: 'रद्द करें',
+      caSignTitle: 'आपके हस्ताक्षर',
+      caSignHelp: 'बॉक्स के अंदर उँगली या माउस से हस्ताक्षर करें।',
+      caSignOpen: 'फ़ॉर्म पर हस्ताक्षर करें',
+      caSignAgain: 'दोबारा हस्ताक्षर करें',
+      caClear: 'मिटाएँ',
+      caSignDone: 'हो गया',
+      caSignEmpty: 'कृपया बॉक्स के अंदर हस्ताक्षर करें।',
+      caDeclTitle: 'घोषणा',
+      caTermsTitle: 'नियम और शर्तें',
+      caDeclTr: 'मैं घोषित करता/करती हूँ कि ऊपर दी गई जानकारी मेरी जानकारी और विश्वास के अनुसार सही है, और इसमें कोई भी बदलाव होने पर मैं तुरंत SHARHAN BROILERS को बताऊँगा/बताऊँगी। यदि ऊपर दी गई कोई जानकारी झूठी, ग़लत या भ्रामक पाई जाती है, तो मुझे पता है कि इसके लिए मुझे ज़िम्मेदार ठहराया जा सकता है।',
+      caTermsTr: 'यदि ग्राहक तय समय में भुगतान नहीं करता है या किसी अन्य कारण से, तो आपसे लिया गया चेक हम उसी बकाया राशि के साथ बैंक में जमा कर सकते हैं।',
+      caAgree: 'मैंने घोषणा और नियम व शर्तें पढ़ ली हैं और मैं इनसे सहमत हूँ।',
+      caNeedApplicant: 'कृपया आवेदक का पूरा नाम भरें।',
+      caBadPan: 'कृपया सही पैन नंबर भरें, जैसे ABCDE1234F।',
+      caBadAadhaar: 'कृपया आधार नंबर के आख़िरी 4 अंक भरें।',
+      caBadEmail: 'कृपया सही ईमेल आईडी भरें।',
+      caNeedSelfie: 'कृपया अपनी सेल्फ़ी लें।',
+      caNeedSign: 'कृपया फ़ॉर्म पर हस्ताक्षर करें।',
       caMasked: 'सुझाव: मास्क्ड आधार (केवल आख़िरी 4 अंक दिखते हैं, UIDAI वेबसाइट से डाउनलोड करें) काफ़ी है।',
       caConsent: 'मैं सहमत हूँ कि शरहान ब्रॉयलर्स मेरे उधार आवेदन की जाँच के लिए ये दस्तावेज़ रख सकता है।',
       caSubmit: 'आवेदन भेजें', caSending: 'अपलोड हो रहा है… कृपया रुकें।',
       caDone: '✓ आवेदन भेज दिया गया। हम आपके दस्तावेज़ जाँचकर {mobile} पर संपर्क करेंगे। तब तक कृपया "उसी दिन" भुगतान चुनें।',
       caNeedDetails: 'पहले ऊपर बिलिंग नाम और मोबाइल नंबर भरें।', caNeedFiles: 'कृपया इनकी फ़ोटो जोड़ें: {list}',
-      caNeedConsent: 'कृपया सहमति वाले बॉक्स पर निशान लगाएँ।',
+      caNeedConsent: 'कृपया सहमति के दोनों बॉक्स पर टिक करें।',
       caBadFile: 'यह फ़ाइल फ़ोटो के रूप में नहीं पढ़ी जा सकी। कृपया दस्तावेज़ की फ़ोटो (JPG/PNG) लें।',
       caError: 'आवेदन नहीं भेजा जा सका। कृपया इंटरनेट जाँचें और फिर से कोशिश करें।',
       caBusy: 'अभी बहुत सारे आवेदन आ रहे हैं। कृपया हमें {phone} पर कॉल करें।',
@@ -1662,15 +1793,47 @@ table.sb-table-booking{min-width:0;}
       creditOnly: 'उधारी फक्त मंजूर ग्राहकांसाठी आहे. सध्या "त्याच दिवशी" पेमेंट निवडा, किंवा खाली उधारीसाठी अर्ज करा.',
       creditPending: 'तुमच्या उधारी अर्जाची तपासणी सुरू आहे. मंजुरी मिळेपर्यंत कृपया "त्याच दिवशी" पेमेंट निवडा.',
       caOpen: 'उधारीसाठी अर्ज करा', caTitle: 'उधारीसाठी अर्ज',
-      caIntro: 'या कागदपत्रांचे स्पष्ट फोटो अपलोड करा. प्रत्येक प्रतीवर आधी तुमची सही करा (स्व-साक्षांकित). आम्ही तपासून तुमच्याशी संपर्क करू.',
+      caIntro: 'तुमची माहिती भरा, कागदपत्रे जोडा, सेल्फी घ्या आणि सही करा. आम्ही तपासून तुमच्याशी संपर्क करू.',
       caAadhaarFront: 'आधार कार्ड – पुढची बाजू', caAadhaarBack: 'आधार कार्ड – मागची बाजू (पर्यायी)', caPan: 'पॅन कार्ड',
-      caBusiness: 'व्यवसायाचे कागदपत्र (GST, शॉप ॲक्ट, FSSAI किंवा ट्रेड लायसन्स)',
+      caApplicant: 'अर्जदाराचे पूर्ण नाव',
+      caPanNo: 'पॅन क्रमांक',
+      caAadhaarNo: 'आधार क्रमांक (शेवटचे 4 अंक)',
+      caEmail: 'ईमेल आयडी',
+      caDocsTitle: 'कागदपत्रे',
+      caUdyam: 'उद्योग आधार / उद्यम प्रमाणपत्र',
+      caCheque: 'रद्द केलेला चेक',
+      caSelfieTitle: 'तारीख आणि वेळेसह सेल्फी',
+      caSelfieHelp: 'कॅमेरा उघडेल. फोटोवर तारीख आणि वेळ आपोआप येईल.',
+      caSelfieTake: 'सेल्फी घ्या',
+      caSelfieAgain: 'सेल्फी पुन्हा घ्या',
+      caCapture: 'फोटो घ्या',
+      caCamErr: 'कॅमेरा उघडला नाही. या पेजसाठी कॅमेऱ्याला परवानगी द्या, किंवा खालचे बटण दाबा.',
+      caCamFile: 'फोनचा कॅमेरा उघडा',
+      caCancel: 'रद्द करा',
+      caSignTitle: 'तुमची सही',
+      caSignHelp: 'बॉक्समध्ये बोटाने किंवा माउसने सही करा.',
+      caSignOpen: 'फॉर्मवर सही करा',
+      caSignAgain: 'पुन्हा सही करा',
+      caClear: 'पुसा',
+      caSignDone: 'झाले',
+      caSignEmpty: 'कृपया बॉक्समध्ये सही करा.',
+      caDeclTitle: 'घोषणा',
+      caTermsTitle: 'नियम व अटी',
+      caDeclTr: 'मी घोषित करतो/करते की वर दिलेली माहिती माझ्या माहितीनुसार आणि विश्वासानुसार खरी व अचूक आहे, आणि त्यात कोणताही बदल झाल्यास मी SHARHAN BROILERS ला त्वरित कळवेन. वरील कोणतीही माहिती खोटी, चुकीची किंवा दिशाभूल करणारी आढळल्यास त्यासाठी मला जबाबदार धरले जाऊ शकते, याची मला जाणीव आहे.',
+      caTermsTr: 'ग्राहकाने ठरलेल्या वेळेत पैसे न दिल्यास किंवा इतर कोणत्याही कारणास्तव, तुमच्याकडून घेतलेला चेक आम्ही त्याच थकबाकी रकमेसह बँकेत जमा करू शकतो.',
+      caAgree: 'मी घोषणा आणि नियम व अटी वाचल्या आहेत आणि मला त्या मान्य आहेत.',
+      caNeedApplicant: 'कृपया अर्जदाराचे पूर्ण नाव भरा.',
+      caBadPan: 'कृपया योग्य पॅन क्रमांक भरा, उदा. ABCDE1234F.',
+      caBadAadhaar: 'कृपया आधार क्रमांकाचे शेवटचे 4 अंक भरा.',
+      caBadEmail: 'कृपया योग्य ईमेल आयडी भरा.',
+      caNeedSelfie: 'कृपया तुमची सेल्फी घ्या.',
+      caNeedSign: 'कृपया फॉर्मवर सही करा.',
       caMasked: 'सूचना: मास्क्ड आधार (फक्त शेवटचे 4 अंक दिसतात, UIDAI वेबसाइटवरून डाउनलोड करा) पुरेसे आहे.',
       caConsent: 'माझ्या उधारी अर्जाच्या तपासणीसाठी शरहान ब्रॉयलर्स ही कागदपत्रे ठेवू शकते, याला माझी संमती आहे.',
       caSubmit: 'अर्ज पाठवा', caSending: 'अपलोड होत आहे… कृपया थांबा.',
       caDone: '✓ अर्ज पाठवला. आम्ही तुमची कागदपत्रे तपासून {mobile} वर संपर्क करू. तोपर्यंत कृपया "त्याच दिवशी" पेमेंट निवडा.',
       caNeedDetails: 'आधी वर बिलिंग नाव आणि मोबाईल नंबर भरा.', caNeedFiles: 'कृपया यांचे फोटो जोडा: {list}',
-      caNeedConsent: 'कृपया संमतीच्या बॉक्सवर खूण करा.',
+      caNeedConsent: 'कृपया संमतीच्या दोन्ही बॉक्सवर टिक करा.',
       caBadFile: 'ही फाइल फोटो म्हणून वाचता आली नाही. कृपया कागदपत्राचा फोटो (JPG/PNG) काढा.',
       caError: 'अर्ज पाठवता आला नाही. कृपया इंटरनेट तपासून पुन्हा प्रयत्न करा.',
       caBusy: 'सध्या खूप अर्ज येत आहेत. कृपया आम्हाला {phone} वर कॉल करा.',
@@ -2482,9 +2645,137 @@ table.sb-table-booking{min-width:0;}
     return true;
   }
 
-  // ---- Credit application: self-attested KYC photos, checked by an admin ----
+  // ---- Credit application (eKYC): KYC form, document photos, selfie, signature; checked by an admin ----
   // [slot, label key, required]. Photos are shrunk in the browser (~1600 px JPEG) first.
-  var SB_KYC = [['aadhaar_front', 'caAadhaarFront', true], ['aadhaar_back', 'caAadhaarBack', false], ['pan', 'caPan', true], ['business', 'caBusiness', true]];
+  var SB_KYC = [['aadhaar_front', 'caAadhaarFront', true], ['aadhaar_back', 'caAadhaarBack', false], ['pan', 'caPan', true], ['udyam', 'caUdyam', true], ['cheque', 'caCheque', true]];
+  var sbCaSelfie = null; // { blob, stamp, mode: 'live' (camera on this page) | 'file' (phone's picker) }
+  var sbCaSign = null;   // the signature as a JPEG blob
+  var sbCaStream = null;
+  function sbCaEl(id){ return document.getElementById(id); }
+  function sbCaLabel(btn, key){ btn.setAttribute('data-i18n', key); btn.textContent = sbT(key); }
+  function sbCaShow(imgId, blob){
+    var img = sbCaEl(imgId);
+    if (img.src) URL.revokeObjectURL(img.src);
+    if (blob) { img.src = URL.createObjectURL(blob); img.style.display = ''; }
+    else { img.removeAttribute('src'); img.style.display = 'none'; }
+  }
+
+  // Selfie: the live camera; if it can't open (some in-app browsers), the phone's own camera.
+  // The date and time go on the photo; the Worker also records when the application arrived.
+  function sbCaStamp(source, w, h, mode){
+    var k = Math.min(1, 900 / Math.max(w, h));
+    var c = document.createElement('canvas');
+    c.width = Math.round(w * k); c.height = Math.round(h * k);
+    var ctx = c.getContext('2d');
+    ctx.drawImage(source, 0, 0, c.width, c.height);
+    var stamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) + ' IST';
+    var band = Math.max(28, Math.round(c.height * 0.06));
+    ctx.fillStyle = 'rgba(0,0,0,.65)';
+    ctx.fillRect(0, c.height - band, c.width, band);
+    ctx.fillStyle = '#fff';
+    ctx.font = '500 ' + Math.round(band * 0.55) + 'px Jost, Arial, sans-serif';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(stamp, Math.round(band * 0.35), c.height - band / 2, c.width - band);
+    c.toBlob(function(blob){
+      if (!blob) return;
+      sbCaSelfie = { blob: blob, stamp: stamp, mode: mode };
+      sbCaShow('sb-ca-selfie-img', blob);
+      sbCaLabel(sbCaEl('sb-ca-selfie-btn'), 'caSelfieAgain');
+      window.sbCaSelfieClose();
+    }, 'image/jpeg', 0.82);
+  }
+  window.sbCaSelfieClose = function(){
+    if (sbCaStream) { sbCaStream.getTracks().forEach(function(t){ t.stop(); }); sbCaStream = null; }
+    sbCaEl('sb-ca-video').srcObject = null;
+    sbCaEl('sb-ca-cam').hidden = true;
+  };
+  window.sbCaSelfieOpen = function(){
+    var video = sbCaEl('sb-ca-video'), shot = sbCaEl('sb-ca-shoot');
+    var fail = function(){
+      video.style.display = 'none';
+      shot.style.display = 'none';
+      sbCaEl('sb-ca-cam-err').style.display = '';
+      sbCaEl('sb-ca-cam-file').style.display = '';
+    };
+    video.style.display = '';
+    shot.style.display = '';
+    shot.disabled = true;
+    sbCaEl('sb-ca-cam-err').style.display = 'none';
+    sbCaEl('sb-ca-cam-file').style.display = 'none';
+    sbCaEl('sb-ca-cam').hidden = false;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { fail(); return; }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 } }, audio: false }).then(function(stream){
+      if (sbCaEl('sb-ca-cam').hidden) { stream.getTracks().forEach(function(t){ t.stop(); }); return; }
+      sbCaStream = stream;
+      video.srcObject = stream;
+      var played = video.play();
+      if (played && played.catch) played.catch(function(){});
+      shot.disabled = false;
+    }, fail);
+  };
+  window.sbCaSelfieShoot = function(){
+    var video = sbCaEl('sb-ca-video');
+    if (video.videoWidth) sbCaStamp(video, video.videoWidth, video.videoHeight, 'live');
+  };
+  document.addEventListener('change', function(e){
+    if (!e.target || e.target.id !== 'sb-ca-cam-input' || !e.target.files[0]) return;
+    var input = e.target, url = URL.createObjectURL(input.files[0]), img = new Image();
+    img.onload = function(){ sbCaStamp(img, img.naturalWidth, img.naturalHeight, 'file'); URL.revokeObjectURL(url); input.value = ''; };
+    img.onerror = function(){ URL.revokeObjectURL(url); input.value = ''; };
+    img.src = url;
+  });
+
+  // Signature: drawn with a finger or mouse in its own window.
+  var sbCaInk = 0, sbCaLast = null;
+  function sbCaPadPoint(pad, e){ var r = pad.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+  function sbCaPadClear(){
+    var pad = sbCaEl('sb-ca-pad'), ctx = pad.getContext('2d');
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, pad.width, pad.height);
+    var dpr = pad.width / pad.getBoundingClientRect().width;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#14141c';
+    sbCaInk = 0; sbCaLast = null;
+    sbCaEl('sb-ca-sign-err').style.display = 'none';
+  }
+  window.sbCaPadClear = sbCaPadClear;
+  window.sbCaSignOpen = function(){
+    var pad = sbCaEl('sb-ca-pad');
+    sbCaEl('sb-ca-sign').hidden = false;
+    var r = pad.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    pad.width = Math.round(r.width * dpr); pad.height = Math.round(r.height * dpr);
+    sbCaPadClear();
+    if (pad.getAttribute('data-ready')) return;
+    pad.setAttribute('data-ready', '1');
+    pad.addEventListener('pointerdown', function(e){
+      e.preventDefault();
+      if (pad.setPointerCapture) pad.setPointerCapture(e.pointerId);
+      sbCaLast = sbCaPadPoint(pad, e);
+      sbCaEl('sb-ca-sign-err').style.display = 'none';
+    });
+    pad.addEventListener('pointermove', function(e){
+      if (!sbCaLast) return;
+      var p = sbCaPadPoint(pad, e), ctx = pad.getContext('2d');
+      ctx.beginPath(); ctx.moveTo(sbCaLast.x, sbCaLast.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+      sbCaInk += Math.abs(p.x - sbCaLast.x) + Math.abs(p.y - sbCaLast.y);
+      sbCaLast = p;
+    });
+    var end = function(){ sbCaLast = null; };
+    pad.addEventListener('pointerup', end);
+    pad.addEventListener('pointercancel', end);
+  };
+  window.sbCaSignClose = function(){ sbCaEl('sb-ca-sign').hidden = true; };
+  window.sbCaSignDone = function(){
+    if (sbCaInk < 40) { sbCaEl('sb-ca-sign-err').style.display = ''; return; } // a dot or a slip isn't a signature
+    sbCaEl('sb-ca-pad').toBlob(function(blob){
+      if (!blob) return;
+      sbCaSign = blob;
+      sbCaShow('sb-ca-sign-img', blob);
+      sbCaLabel(sbCaEl('sb-ca-sign-btn'), 'caSignAgain');
+      window.sbCaSignClose();
+    }, 'image/jpeg', 0.9);
+  };
   window.sbCreditApplyOpen = function(){
     var panel = document.getElementById('sb-credit-apply');
     panel.style.display = '';
@@ -2514,16 +2805,26 @@ table.sb-table-booking{min-width:0;}
     var say = function(t, ok){ status.textContent = t; status.className = 'sb-note ' + (ok ? 'sb-ca-ok' : 'sb-ca-err'); };
     var fileOf = function(slot){ var f = document.querySelector('input[data-kyc="' + slot + '"]'); return f && f.files && f.files[0]; };
     var mobile = sbMobile10();
+    var pan = sbVal('sb-ca-pan').toUpperCase();
     if (!sbVal('sb-company') || mobile.length !== 10) { say(sbT('caNeedDetails')); return; }
+    if (!sbVal('sb-ca-applicant')) { say(sbT('caNeedApplicant')); return; }
+    if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) { say(sbT('caBadPan')); return; }
+    if (!/^[0-9]{4}$/.test(sbVal('sb-ca-aadhaar'))) { say(sbT('caBadAadhaar')); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sbVal('sb-ca-email'))) { say(sbT('caBadEmail')); return; }
     var missing = SB_KYC.filter(function(k){ return k[2] && !fileOf(k[0]); });
     if (missing.length) { say(sbT('caNeedFiles').replace('{list}', missing.map(function(k){ return sbT(k[1]); }).join(', '))); return; }
-    if (!document.getElementById('sb-ca-consent').checked) { say(sbT('caNeedConsent')); return; }
+    if (!sbCaSelfie) { say(sbT('caNeedSelfie')); return; }
+    if (!document.getElementById('sb-ca-terms').checked || !document.getElementById('sb-ca-consent').checked) { say(sbT('caNeedConsent')); return; }
+    if (!sbCaSign) { say(sbT('caNeedSign')); return; }
     var btn = document.getElementById('sb-ca-submit');
     btn.disabled = true;
     say(sbT('caSending'), true);
     var fd = new FormData();
-    [['mobile', mobile], ['name', sbVal('sb-company')], ['owner', sbVal('sb-owner')], ['contact', sbVal('sb-pm')], ['location', sbVal('sb-delivery-loc')], ['lang', window.sbLang ? window.sbLang() : 'en'], ['consent', 'yes']]
+    [['mobile', mobile], ['name', sbVal('sb-company')], ['owner', sbVal('sb-owner')], ['contact', sbVal('sb-pm')], ['location', sbVal('sb-delivery-loc')], ['lang', window.sbLang ? window.sbLang() : 'en'], ['consent', 'yes'], ['terms', 'yes'],
+      ['applicant', sbVal('sb-ca-applicant')], ['panNo', pan], ['aadhaarLast4', sbVal('sb-ca-aadhaar')], ['email', sbVal('sb-ca-email')], ['selfieStamp', sbCaSelfie.stamp], ['selfieMode', sbCaSelfie.mode]]
       .forEach(function(kv){ fd.append(kv[0], kv[1]); });
+    fd.append('selfie', sbCaSelfie.blob, 'selfie.jpg');
+    fd.append('signature', sbCaSign, 'signature.jpg');
     Promise.all(SB_KYC.map(function(k){
       var file = fileOf(k[0]);
       return file ? sbShrinkPhoto(file).then(function(b){ fd.append(k[0], b, k[0] + '.jpg'); }) : null;
@@ -2535,6 +2836,12 @@ table.sb-table-booking{min-width:0;}
           sbCredit = { mobile: mobile, state: d.status === 'approved' ? 'yes' : 'pending' };
           say(d.status === 'approved' ? sbT('creditOk') : sbT('caDone').replace('{mobile}', mobile), true);
           document.querySelectorAll('input[data-kyc]').forEach(function(f){ f.value = ''; });
+          ['sb-ca-applicant', 'sb-ca-pan', 'sb-ca-aadhaar', 'sb-ca-email'].forEach(function(id){ document.getElementById(id).value = ''; });
+          ['sb-ca-terms', 'sb-ca-consent'].forEach(function(id){ document.getElementById(id).checked = false; });
+          sbCaSelfie = null; sbCaSign = null;
+          sbCaShow('sb-ca-selfie-img', null); sbCaShow('sb-ca-sign-img', null);
+          sbCaLabel(document.getElementById('sb-ca-selfie-btn'), 'caSelfieTake');
+          sbCaLabel(document.getElementById('sb-ca-sign-btn'), 'caSignOpen');
           sbShowCredit();
         } else if (d.error === 'busy') say(sbT('caBusy').replace('{phone}', sbPrettyPhone(sbOrderTo().whatsapp[0])));
         else if (d.error === 'type' || d.error === 'size') say(sbT('caBadFile'));
@@ -2596,7 +2903,7 @@ table.sb-table-booking{min-width:0;}
   };
 
   document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape') sbCloseForm();
+    if (e.key === 'Escape' && !document.querySelector('.sb-ca-win:not([hidden])')) sbCloseForm();
   });
 
   // The rest of this page is a live React tree (hydrated from the "camel"
