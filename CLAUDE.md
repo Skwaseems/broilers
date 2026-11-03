@@ -20,7 +20,8 @@ Cloudflare Worker for WhatsApp and credit, Firestore for editable content.
 - `cloudflare-worker/src/index.js` — Worker `sharhan-whatsapp`: WhatsApp webhook (auto-reply,
   STOP/START), template submit/send, catalogue images in KV, `/credit-check`, `/credit-apply`,
   admin-only `/kyc/...`.
-- `functions/p/[slug].js` — Cloudflare Pages Function behind WhatsApp "Enroll Now" buttons.
+- `functions/p/[slug].js` — Cloudflare Pages Function behind WhatsApp "Enroll Now" buttons: the item's own page
+  (photo, description, other products, Order Now). Order Now goes to `/?item=<id>&order=1`, which shows only the form.
 - `firestore.rules` — security rules.
 - `tools/build_public.py` — copies the public files into `dist/` (an allowlist).
 

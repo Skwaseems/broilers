@@ -2,6 +2,7 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>if (/[?&]order=1(&|$)/.test(location.search)) document.documentElement.classList.add('sb-form-only');</script>
 <!-- SEO:START -->
 <title>Sharhan Broilers – Wholesale Chicken Supplier in Mumbai</title>
 <meta name="description" content="Sharhan Broilers supplies fresh and frozen chicken to hotels, restaurants, caterers and cloud kitchens across Mumbai. Send your weekly requirement online.">
@@ -1296,6 +1297,11 @@ td.sb-na{color:#b5b3ad;}
 #sb-preview{width:100%;min-height:150px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;padding:10px;border:1px solid #ddd8d0;border-radius:3px;color:#3b3b44;background:#faf9f7;}
 .sb-note{font-size:11px;color:#54535c;margin-top:6px;}
 @media (max-width:640px){.sb-modal-body{padding:16px 14px 22px;}}
+/* ?order=1 (Order Now on a product page): only the form, nothing of the site behind it. */
+html.sb-form-only body>*:not(#sb-overlay){display:none!important;}
+html.sb-form-only .sb-overlay{display:flex;background:#fff;padding:0;}
+html.sb-form-only .sb-modal{max-width:none;min-height:100vh;margin:0;border-radius:0;box-shadow:none;overflow:visible;}
+html.sb-form-only .sb-modal-body{max-width:920px;margin:0 auto;}
 .sb-checking{padding:40px 10px;text-align:center;color:#8a8a92;font-size:13px;}
 .sb-login{padding:20px 4px 6px;text-align:center;}
 .sb-login-copy{font-size:13px;color:#54535c;line-height:1.5;margin:0 0 20px;}
@@ -2107,6 +2113,14 @@ table.sb-table-booking{min-width:0;}
     return false;
   };
   window.sbCloseForm = function(){
+    if (document.documentElement.classList.contains('sb-form-only')) {
+      // Only the form is showing: closing it goes back to the product it came from.
+      var m = /[?&]item=([^&#]+)/.exec(window.location.search);
+      var page = m ? '/p/' + m[1] : '/';
+      if (m && document.referrer.indexOf(page) !== -1) window.history.back();
+      else window.location.replace(page);
+      return;
+    }
     document.getElementById('sb-overlay').classList.remove('sb-open');
     document.body.style.overflow = '';
   };
