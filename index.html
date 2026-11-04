@@ -1339,6 +1339,8 @@ table.sb-table-booking{min-width:0;}
 .sb-ca-consent input{flex:none;margin-top:2px;}
 #sb-ca-status.sb-ca-ok{color:#1d6b3c;font-weight:500;}
 #sb-ca-status.sb-ca-err{color:#b3302c;font-weight:500;}
+#sb-credit-apply:not(.sb-ekyc) .sb-ca-full{display:none!important;}
+#sb-credit-apply.sb-ekyc .sb-ca-basic{display:none!important;}
 .sb-ca-sub{margin:16px 0 4px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#2f2f3a;}
 .sb-ca-legal{margin:6px 0;font-size:13px;line-height:1.55;color:#3a3a44;}
 .sb-ca-legal:empty{display:none;}
@@ -1527,37 +1529,39 @@ table.sb-table-booking{min-width:0;}
         </div>
         <div class="sb-credit-apply" id="sb-credit-apply" style="display:none;">
           <div class="sb-pay-title" data-i18n="caTitle">Apply For Credit</div>
-          <p class="sb-note" data-i18n="caIntro">Fill in your details, add the documents, take a selfie and sign. We check them and contact you.</p>
-          <div class="sb-ca-grid">
+          <p class="sb-note sb-ca-full" data-i18n="caIntro">Fill in your details, add the documents, take a selfie and sign. We check them and contact you.</p>
+          <p class="sb-note sb-ca-basic" data-i18n="caIntroBasic">Upload clear photos of these documents. Sign each copy first (self-attested). We check them and contact you.</p>
+          <div class="sb-ca-grid sb-ca-full">
             <label class="sb-field"><span><span data-i18n="caApplicant">Full name of the applicant</span> *</span><input type="text" id="sb-ca-applicant" maxlength="100" autocomplete="name"></label>
             <label class="sb-field"><span><span data-i18n="caPanNo">PAN number</span> *</span><input type="text" id="sb-ca-pan" maxlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;"></label>
             <label class="sb-field"><span><span data-i18n="caAadhaarNo">Aadhaar number (last 4 digits)</span> *</span><input type="text" id="sb-ca-aadhaar" maxlength="4" inputmode="numeric" autocomplete="off"></label>
             <label class="sb-field"><span><span data-i18n="caEmail">Email ID</span> *</span><input type="text" id="sb-ca-email" maxlength="120" inputmode="email" autocomplete="email" spellcheck="false"></label>
           </div>
-          <div class="sb-ca-sub" data-i18n="caDocsTitle">Documents</div>
+          <div class="sb-ca-sub sb-ca-full" data-i18n="caDocsTitle">Documents</div>
           <div class="sb-ca-grid">
             <label class="sb-field"><span><span data-i18n="caAadhaarFront">Aadhaar card – front</span> *</span><input type="file" accept="image/*" data-kyc="aadhaar_front"></label>
             <label class="sb-field"><span data-i18n="caAadhaarBack">Aadhaar card – back (optional)</span><input type="file" accept="image/*" data-kyc="aadhaar_back"></label>
             <label class="sb-field"><span><span data-i18n="caPan">PAN card</span> *</span><input type="file" accept="image/*" data-kyc="pan"></label>
-            <label class="sb-field"><span><span data-i18n="caUdyam">Udyog Aadhaar / Udyam certificate</span> *</span><input type="file" accept="image/*" data-kyc="udyam"></label>
-            <label class="sb-field"><span><span data-i18n="caCheque">Cancelled cheque</span> *</span><input type="file" accept="image/*" data-kyc="cheque"></label>
+            <label class="sb-field sb-ca-basic"><span><span data-i18n="caBusiness">Business document (GST, Shop Act, FSSAI or trade licence)</span> *</span><input type="file" accept="image/*" data-kyc="business"></label>
+            <label class="sb-field sb-ca-full"><span><span data-i18n="caUdyam">Udyog Aadhaar / Udyam certificate</span> *</span><input type="file" accept="image/*" data-kyc="udyam"></label>
+            <label class="sb-field sb-ca-full"><span><span data-i18n="caCheque">Cancelled cheque</span> *</span><input type="file" accept="image/*" data-kyc="cheque"></label>
           </div>
           <p class="sb-note" data-i18n="caMasked">Tip: a masked Aadhaar (only the last 4 digits showing, downloadable from the UIDAI website) is enough.</p>
-          <div class="sb-ca-sub"><span data-i18n="caSelfieTitle">Selfie with date and time</span> *</div>
-          <p class="sb-note" data-i18n="caSelfieHelp">The camera opens. The date and time are added to the photo automatically.</p>
-          <img class="sb-ca-shot" id="sb-ca-selfie-img" alt="" style="display:none;">
-          <button type="button" class="sb-ca-open" id="sb-ca-selfie-btn" onclick="sbCaSelfieOpen()" data-i18n="caSelfieTake">Take selfie</button>
-          <div class="sb-ca-sub" data-i18n="caDeclTitle">Declaration</div>
-          <p class="sb-ca-legal">I hereby declare that the details furnished above are true and correct to the best of my knowledge and belief and I undertake to inform SHARHAN BROILERS of any changes therein, immediately. In case any of the above information is found to be false or untrue or misleading or misrepresenting, I am aware that I may be held liable for it.</p>
-          <p class="sb-ca-legal" data-i18n="caDeclTr"></p>
-          <div class="sb-ca-sub" data-i18n="caTermsTitle">Terms and conditions</div>
-          <p class="sb-ca-legal">We may deposit the check that was obtained from you with the same outstanding amount in the bank if the client fails to make the payment within the time line or due to any other reason.</p>
-          <p class="sb-ca-legal" data-i18n="caTermsTr"></p>
-          <label class="sb-check-item sb-ca-consent"><input type="checkbox" id="sb-ca-terms"> <span data-i18n="caAgree">I have read the declaration and the terms and conditions, and I agree to them.</span></label>
+          <div class="sb-ca-sub sb-ca-full"><span data-i18n="caSelfieTitle">Selfie with date and time</span> *</div>
+          <p class="sb-note sb-ca-full" data-i18n="caSelfieHelp">The camera opens. The date and time are added to the photo automatically.</p>
+          <img class="sb-ca-shot sb-ca-full" id="sb-ca-selfie-img" alt="" style="display:none;">
+          <button type="button" class="sb-ca-open sb-ca-full" id="sb-ca-selfie-btn" onclick="sbCaSelfieOpen()" data-i18n="caSelfieTake">Take selfie</button>
+          <div class="sb-ca-sub sb-ca-full" data-i18n="caDeclTitle">Declaration</div>
+          <p class="sb-ca-legal sb-ca-full">I hereby declare that the details furnished above are true and correct to the best of my knowledge and belief and I undertake to inform SHARHAN BROILERS of any changes therein, immediately. In case any of the above information is found to be false or untrue or misleading or misrepresenting, I am aware that I may be held liable for it.</p>
+          <p class="sb-ca-legal sb-ca-full" data-i18n="caDeclTr"></p>
+          <div class="sb-ca-sub sb-ca-full" data-i18n="caTermsTitle">Terms and conditions</div>
+          <p class="sb-ca-legal sb-ca-full">We may deposit the check that was obtained from you with the same outstanding amount in the bank if the client fails to make the payment within the time line or due to any other reason.</p>
+          <p class="sb-ca-legal sb-ca-full" data-i18n="caTermsTr"></p>
+          <label class="sb-check-item sb-ca-consent sb-ca-full"><input type="checkbox" id="sb-ca-terms"> <span data-i18n="caAgree">I have read the declaration and the terms and conditions, and I agree to them.</span></label>
           <label class="sb-check-item sb-ca-consent"><input type="checkbox" id="sb-ca-consent"> <span data-i18n="caConsent">I agree that Sharhan Broilers may keep these documents to check my credit application.</span></label>
-          <div class="sb-ca-sub"><span data-i18n="caSignTitle">Your signature</span> *</div>
-          <img class="sb-ca-shot sb-ca-sign-shot" id="sb-ca-sign-img" alt="" style="display:none;">
-          <button type="button" class="sb-ca-open" id="sb-ca-sign-btn" onclick="sbCaSignOpen()" data-i18n="caSignOpen">Sign the form</button>
+          <div class="sb-ca-sub sb-ca-full"><span data-i18n="caSignTitle">Your signature</span> *</div>
+          <img class="sb-ca-shot sb-ca-sign-shot sb-ca-full" id="sb-ca-sign-img" alt="" style="display:none;">
+          <button type="button" class="sb-ca-open sb-ca-full" id="sb-ca-sign-btn" onclick="sbCaSignOpen()" data-i18n="caSignOpen">Sign the form</button>
           <div class="sb-ca-end"></div>
           <button type="button" class="sb-btn sb-btn-email" id="sb-ca-submit" onclick="sbCreditApply()" data-i18n="caSubmit">Submit Application</button>
           <div class="sb-note" id="sb-ca-status" role="status"></div>
@@ -1632,11 +1636,11 @@ table.sb-table-booking{min-width:0;}
       locBlocked: 'Location permission was blocked — allow it in the browser, or paste a Google Maps link instead.',
       locFailed: 'Couldn’t get your location — please try again or paste a Google Maps link.',
       locUnsupported: 'This phone/browser can’t share its location — please paste a Google Maps link instead.',
-      creditOnlyNoApply: 'Credit is only for approved customers. Please choose Same Day payment for now.',
       creditOnly: 'Credit is only for approved customers. Please choose Same Day payment for now, or apply for credit below.',
       creditPending: 'Your credit application is being checked. Until it is approved, please choose Same Day payment.',
       caOpen: 'Apply for credit', caTitle: 'Apply For Credit',
       caIntro: 'Fill in your details, add the documents, take a selfie and sign. We check them and contact you.',
+      caIntroBasic: 'Upload clear photos of these documents. Sign each copy first (self-attested). We check them and contact you.', caBusiness: 'Business document (GST, Shop Act, FSSAI or trade licence)', caNeedConsentBasic: 'Please tick the agreement box.',
       caAadhaarFront: 'Aadhaar card – front', caAadhaarBack: 'Aadhaar card – back (optional)', caPan: 'PAN card',
       caApplicant: 'Full name of the applicant',
       caPanNo: 'PAN number',
@@ -1712,11 +1716,11 @@ table.sb-table-booking{min-width:0;}
       locBlocked: 'लोकेशन की अनुमति नहीं मिली — ब्राउज़र में अनुमति दें, या गूगल मैप्स लिंक पेस्ट करें।',
       locFailed: 'लोकेशन नहीं मिल सकी — फिर से कोशिश करें या गूगल मैप्स लिंक पेस्ट करें।',
       locUnsupported: 'यह फ़ोन/ब्राउज़र लोकेशन नहीं दे सकता — कृपया गूगल मैप्स लिंक पेस्ट करें।',
-      creditOnlyNoApply: 'उधार केवल स्वीकृत ग्राहकों के लिए है। अभी के लिए "उसी दिन" भुगतान चुनें।',
       creditOnly: 'उधार केवल स्वीकृत ग्राहकों के लिए है। अभी के लिए "उसी दिन" भुगतान चुनें, या नीचे उधार के लिए आवेदन करें।',
       creditPending: 'आपके उधार आवेदन की जाँच चल रही है। मंज़ूरी मिलने तक कृपया "उसी दिन" भुगतान चुनें।',
       caOpen: 'उधार के लिए आवेदन करें', caTitle: 'उधार के लिए आवेदन',
       caIntro: 'अपनी जानकारी भरें, दस्तावेज़ जोड़ें, सेल्फ़ी लें और हस्ताक्षर करें। हम जाँच करके आपसे संपर्क करेंगे।',
+      caIntroBasic: 'इन दस्तावेज़ों की साफ़ फ़ोटो अपलोड करें। हर कॉपी पर पहले अपने हस्ताक्षर करें (स्व-सत्यापित)। हम जाँच करके आपसे संपर्क करेंगे।', caBusiness: 'व्यवसाय का दस्तावेज़ (GST, शॉप एक्ट, FSSAI या ट्रेड लाइसेंस)', caNeedConsentBasic: 'कृपया सहमति वाले बॉक्स पर निशान लगाएँ।',
       caAadhaarFront: 'आधार कार्ड – आगे का हिस्सा', caAadhaarBack: 'आधार कार्ड – पीछे का हिस्सा (वैकल्पिक)', caPan: 'पैन कार्ड',
       caApplicant: 'आवेदक का पूरा नाम',
       caPanNo: 'पैन नंबर',
@@ -1792,11 +1796,11 @@ table.sb-table-booking{min-width:0;}
       locBlocked: 'लोकेशनची परवानगी नाकारली — ब्राउझरमध्ये परवानगी द्या, किंवा गूगल मॅप्स लिंक पेस्ट करा.',
       locFailed: 'लोकेशन मिळाले नाही — पुन्हा प्रयत्न करा किंवा गूगल मॅप्स लिंक पेस्ट करा.',
       locUnsupported: 'हा फोन/ब्राउझर लोकेशन देऊ शकत नाही — कृपया गूगल मॅप्स लिंक पेस्ट करा.',
-      creditOnlyNoApply: 'उधारी फक्त मंजूर ग्राहकांसाठी आहे. सध्या "त्याच दिवशी" पेमेंट निवडा.',
       creditOnly: 'उधारी फक्त मंजूर ग्राहकांसाठी आहे. सध्या "त्याच दिवशी" पेमेंट निवडा, किंवा खाली उधारीसाठी अर्ज करा.',
       creditPending: 'तुमच्या उधारी अर्जाची तपासणी सुरू आहे. मंजुरी मिळेपर्यंत कृपया "त्याच दिवशी" पेमेंट निवडा.',
       caOpen: 'उधारीसाठी अर्ज करा', caTitle: 'उधारीसाठी अर्ज',
       caIntro: 'तुमची माहिती भरा, कागदपत्रे जोडा, सेल्फी घ्या आणि सही करा. आम्ही तपासून तुमच्याशी संपर्क करू.',
+      caIntroBasic: 'या कागदपत्रांचे स्पष्ट फोटो अपलोड करा. प्रत्येक प्रतीवर आधी तुमची सही करा (स्व-साक्षांकित). आम्ही तपासून तुमच्याशी संपर्क करू.', caBusiness: 'व्यवसायाचे कागदपत्र (GST, शॉप ॲक्ट, FSSAI किंवा ट्रेड लायसन्स)', caNeedConsentBasic: 'कृपया संमतीच्या बॉक्सवर खूण करा.',
       caAadhaarFront: 'आधार कार्ड – पुढची बाजू', caAadhaarBack: 'आधार कार्ड – मागची बाजू (पर्यायी)', caPan: 'पॅन कार्ड',
       caApplicant: 'अर्जदाराचे पूर्ण नाव',
       caPanNo: 'पॅन क्रमांक',
@@ -2608,7 +2612,6 @@ table.sb-table-booking{min-width:0;}
     return !!(opt && opt.getAttribute('data-credit'));
   }
   function sbMobile10(){ return sbVal('sb-pm-mobile').replace(/\D/g, '').slice(-10); }
-  var SB_KYC_OPEN = false; // hidden for now: true shows the credit application (eKYC) to customers
   function sbShowCredit(){
     var note = document.getElementById('sb-credit-note');
     if (!note) return;
@@ -2619,7 +2622,7 @@ table.sb-table-booking{min-width:0;}
       else if (sbCredit.mobile === sbMobile10() && sbCredit.state === 'checking') text = sbT('creditChecking');
       else if (sbCredit.mobile === sbMobile10() && sbCredit.state === 'pending') text = sbT('creditPending');
       // Not approved - or the check couldn't be made - so credit stays closed.
-      else if (sbCredit.mobile === sbMobile10()) { text = sbT(SB_KYC_OPEN ? 'creditOnly' : 'creditOnlyNoApply'); canApply = SB_KYC_OPEN; }
+      else if (sbCredit.mobile === sbMobile10()) { text = sbT('creditOnly'); canApply = true; }
     }
     note.textContent = text;
     note.classList.toggle('sb-ok', ok);
@@ -2651,7 +2654,11 @@ table.sb-table-booking{min-width:0;}
 
   // ---- Credit application (eKYC): KYC form, document photos, selfie, signature; checked by an admin ----
   // [slot, label key, required]. Photos are shrunk in the browser (~1600 px JPEG) first.
-  var SB_KYC = [['aadhaar_front', 'caAadhaarFront', true], ['aadhaar_back', 'caAadhaarBack', false], ['pan', 'caPan', true], ['udyam', 'caUdyam', true], ['cheque', 'caCheque', true]];
+  // SB_EKYC false: the simple photo form. true (with EKYC="on" in wrangler.toml): KYC form, selfie, signature, terms.
+  var SB_EKYC = false;
+  var SB_KYC = SB_EKYC
+    ? [['aadhaar_front', 'caAadhaarFront', true], ['aadhaar_back', 'caAadhaarBack', false], ['pan', 'caPan', true], ['udyam', 'caUdyam', true], ['cheque', 'caCheque', true]]
+    : [['aadhaar_front', 'caAadhaarFront', true], ['aadhaar_back', 'caAadhaarBack', false], ['pan', 'caPan', true], ['business', 'caBusiness', true]];
   var sbCaSelfie = null; // { blob, stamp, mode: 'live' (camera on this page) | 'file' (phone's picker) }
   var sbCaSign = null;   // the signature as a JPEG blob
   var sbCaStream = null;
@@ -2782,6 +2789,7 @@ table.sb-table-booking{min-width:0;}
   };
   window.sbCreditApplyOpen = function(){
     var panel = document.getElementById('sb-credit-apply');
+    panel.classList.toggle('sb-ekyc', SB_EKYC);
     panel.style.display = '';
     panel.scrollIntoView({ block: 'start', behavior: 'smooth' });
   };
@@ -2811,24 +2819,28 @@ table.sb-table-booking{min-width:0;}
     var mobile = sbMobile10();
     var pan = sbVal('sb-ca-pan').toUpperCase();
     if (!sbVal('sb-company') || mobile.length !== 10) { say(sbT('caNeedDetails')); return; }
-    if (!sbVal('sb-ca-applicant')) { say(sbT('caNeedApplicant')); return; }
-    if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) { say(sbT('caBadPan')); return; }
-    if (!/^[0-9]{4}$/.test(sbVal('sb-ca-aadhaar'))) { say(sbT('caBadAadhaar')); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sbVal('sb-ca-email'))) { say(sbT('caBadEmail')); return; }
+    if (SB_EKYC && !sbVal('sb-ca-applicant')) { say(sbT('caNeedApplicant')); return; }
+    if (SB_EKYC && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) { say(sbT('caBadPan')); return; }
+    if (SB_EKYC && !/^[0-9]{4}$/.test(sbVal('sb-ca-aadhaar'))) { say(sbT('caBadAadhaar')); return; }
+    if (SB_EKYC && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sbVal('sb-ca-email'))) { say(sbT('caBadEmail')); return; }
     var missing = SB_KYC.filter(function(k){ return k[2] && !fileOf(k[0]); });
     if (missing.length) { say(sbT('caNeedFiles').replace('{list}', missing.map(function(k){ return sbT(k[1]); }).join(', '))); return; }
-    if (!sbCaSelfie) { say(sbT('caNeedSelfie')); return; }
-    if (!document.getElementById('sb-ca-terms').checked || !document.getElementById('sb-ca-consent').checked) { say(sbT('caNeedConsent')); return; }
-    if (!sbCaSign) { say(sbT('caNeedSign')); return; }
+    if (SB_EKYC && !sbCaSelfie) { say(sbT('caNeedSelfie')); return; }
+    if (!document.getElementById('sb-ca-consent').checked) { say(sbT(SB_EKYC ? 'caNeedConsent' : 'caNeedConsentBasic')); return; }
+    if (SB_EKYC && !document.getElementById('sb-ca-terms').checked) { say(sbT('caNeedConsent')); return; }
+    if (SB_EKYC && !sbCaSign) { say(sbT('caNeedSign')); return; }
     var btn = document.getElementById('sb-ca-submit');
     btn.disabled = true;
     say(sbT('caSending'), true);
     var fd = new FormData();
-    [['mobile', mobile], ['name', sbVal('sb-company')], ['owner', sbVal('sb-owner')], ['contact', sbVal('sb-pm')], ['location', sbVal('sb-delivery-loc')], ['lang', window.sbLang ? window.sbLang() : 'en'], ['consent', 'yes'], ['terms', 'yes'],
-      ['applicant', sbVal('sb-ca-applicant')], ['panNo', pan], ['aadhaarLast4', sbVal('sb-ca-aadhaar')], ['email', sbVal('sb-ca-email')], ['selfieStamp', sbCaSelfie.stamp], ['selfieMode', sbCaSelfie.mode]]
+    [['mobile', mobile], ['name', sbVal('sb-company')], ['owner', sbVal('sb-owner')], ['contact', sbVal('sb-pm')], ['location', sbVal('sb-delivery-loc')], ['lang', window.sbLang ? window.sbLang() : 'en'], ['consent', 'yes']]
       .forEach(function(kv){ fd.append(kv[0], kv[1]); });
-    fd.append('selfie', sbCaSelfie.blob, 'selfie.jpg');
-    fd.append('signature', sbCaSign, 'signature.jpg');
+    if (SB_EKYC) {
+      [['terms', 'yes'], ['applicant', sbVal('sb-ca-applicant')], ['panNo', pan], ['aadhaarLast4', sbVal('sb-ca-aadhaar')], ['email', sbVal('sb-ca-email')], ['selfieStamp', sbCaSelfie.stamp], ['selfieMode', sbCaSelfie.mode]]
+        .forEach(function(kv){ fd.append(kv[0], kv[1]); });
+      fd.append('selfie', sbCaSelfie.blob, 'selfie.jpg');
+      fd.append('signature', sbCaSign, 'signature.jpg');
+    }
     Promise.all(SB_KYC.map(function(k){
       var file = fileOf(k[0]);
       return file ? sbShrinkPhoto(file).then(function(b){ fd.append(k[0], b, k[0] + '.jpg'); }) : null;
