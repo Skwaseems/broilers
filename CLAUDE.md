@@ -57,6 +57,7 @@ Live: https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (s
   records" clears a number; `hidden_numbers` keeps only its hash, and the webhook then ignores it.
 - KYC photos (Aadhaar/PAN/cheque/selfie/signature) are sensitive: they are only served to signed-in admins.
   Only the last 4 Aadhaar digits are collected as text; the order form's saved copy must never hold KYC fields.
+- WhatsApp usage, Recharge and the payment alert in Admin → Send are hidden for now (`USAGE_ON` in admin.html).
 - eKYC (KYC form, selfie, signature, terms, admin PDF and share) is built but switched off until its bill is approved:
   to turn it on set `SB_EKYC` in index.html, `EKYC_TOOLS` in admin.html and `EKYC = "on"` in wrangler.toml.
 - The eKYC declaration and terms are in both index.html and the Worker (`KYC_DECLARATION`, `KYC_TERMS`): change both.
