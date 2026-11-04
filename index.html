@@ -1632,6 +1632,7 @@ table.sb-table-booking{min-width:0;}
       locBlocked: 'Location permission was blocked — allow it in the browser, or paste a Google Maps link instead.',
       locFailed: 'Couldn’t get your location — please try again or paste a Google Maps link.',
       locUnsupported: 'This phone/browser can’t share its location — please paste a Google Maps link instead.',
+      creditOnlyNoApply: 'Credit is only for approved customers. Please choose Same Day payment for now.',
       creditOnly: 'Credit is only for approved customers. Please choose Same Day payment for now, or apply for credit below.',
       creditPending: 'Your credit application is being checked. Until it is approved, please choose Same Day payment.',
       caOpen: 'Apply for credit', caTitle: 'Apply For Credit',
@@ -1711,6 +1712,7 @@ table.sb-table-booking{min-width:0;}
       locBlocked: 'लोकेशन की अनुमति नहीं मिली — ब्राउज़र में अनुमति दें, या गूगल मैप्स लिंक पेस्ट करें।',
       locFailed: 'लोकेशन नहीं मिल सकी — फिर से कोशिश करें या गूगल मैप्स लिंक पेस्ट करें।',
       locUnsupported: 'यह फ़ोन/ब्राउज़र लोकेशन नहीं दे सकता — कृपया गूगल मैप्स लिंक पेस्ट करें।',
+      creditOnlyNoApply: 'उधार केवल स्वीकृत ग्राहकों के लिए है। अभी के लिए "उसी दिन" भुगतान चुनें।',
       creditOnly: 'उधार केवल स्वीकृत ग्राहकों के लिए है। अभी के लिए "उसी दिन" भुगतान चुनें, या नीचे उधार के लिए आवेदन करें।',
       creditPending: 'आपके उधार आवेदन की जाँच चल रही है। मंज़ूरी मिलने तक कृपया "उसी दिन" भुगतान चुनें।',
       caOpen: 'उधार के लिए आवेदन करें', caTitle: 'उधार के लिए आवेदन',
@@ -1790,6 +1792,7 @@ table.sb-table-booking{min-width:0;}
       locBlocked: 'लोकेशनची परवानगी नाकारली — ब्राउझरमध्ये परवानगी द्या, किंवा गूगल मॅप्स लिंक पेस्ट करा.',
       locFailed: 'लोकेशन मिळाले नाही — पुन्हा प्रयत्न करा किंवा गूगल मॅप्स लिंक पेस्ट करा.',
       locUnsupported: 'हा फोन/ब्राउझर लोकेशन देऊ शकत नाही — कृपया गूगल मॅप्स लिंक पेस्ट करा.',
+      creditOnlyNoApply: 'उधारी फक्त मंजूर ग्राहकांसाठी आहे. सध्या "त्याच दिवशी" पेमेंट निवडा.',
       creditOnly: 'उधारी फक्त मंजूर ग्राहकांसाठी आहे. सध्या "त्याच दिवशी" पेमेंट निवडा, किंवा खाली उधारीसाठी अर्ज करा.',
       creditPending: 'तुमच्या उधारी अर्जाची तपासणी सुरू आहे. मंजुरी मिळेपर्यंत कृपया "त्याच दिवशी" पेमेंट निवडा.',
       caOpen: 'उधारीसाठी अर्ज करा', caTitle: 'उधारीसाठी अर्ज',
@@ -2605,6 +2608,7 @@ table.sb-table-booking{min-width:0;}
     return !!(opt && opt.getAttribute('data-credit'));
   }
   function sbMobile10(){ return sbVal('sb-pm-mobile').replace(/\D/g, '').slice(-10); }
+  var SB_KYC_OPEN = false; // the owner hid the credit application (eKYC) for now: true shows it again
   function sbShowCredit(){
     var note = document.getElementById('sb-credit-note');
     if (!note) return;
@@ -2615,7 +2619,7 @@ table.sb-table-booking{min-width:0;}
       else if (sbCredit.mobile === sbMobile10() && sbCredit.state === 'checking') text = sbT('creditChecking');
       else if (sbCredit.mobile === sbMobile10() && sbCredit.state === 'pending') text = sbT('creditPending');
       // Not approved - or the check couldn't be made - so credit stays closed.
-      else if (sbCredit.mobile === sbMobile10()) { text = sbT('creditOnly'); canApply = true; }
+      else if (sbCredit.mobile === sbMobile10()) { text = sbT(SB_KYC_OPEN ? 'creditOnly' : 'creditOnlyNoApply'); canApply = SB_KYC_OPEN; }
     }
     note.textContent = text;
     note.classList.toggle('sb-ok', ok);
