@@ -1,6 +1,6 @@
-import { listDocuments, addDocument, getDocument, setDocument, deleteDocument } from "./firestore.js";
+import { listDocuments, addDocument, getDocument, setDocument, deleteDocument, commitWrites } from "./firestore.js";
 import { verifyFirebaseIdToken } from "./verifyIdToken.js";
-import { staffRoute, requireStaff } from "./staff.js";
+import { staffRoute, requireStaff, isManager } from "./staff.js";
 
 const GRAPH = "https://graph.facebook.com/v21.0";
 const MAX_CARDS_PER_CAROUSEL = 10; // Meta's hard limit for carousel templates
@@ -74,6 +74,65 @@ async function whatsappUsage(env, now = Date.now()) {
     cost: Math.round(list.reduce((sum, p) => sum + (p.cost || 0), 0) * 100) / 100,
   });
   return { today: total(points.filter((p) => p.start >= today)), month: total(points) };
+}
+
+// ---- Removing a number from every record (Admin → Users, main admin only) ----
+// hidden_numbers holds only a hash of each removed number and has no client access (no rule in
+// firestore.rules). The webhook then ignores that number, so it doesn't come back into the Inbox,
+// the delivery records or the customer list. Numbers never go in this public repo.
+const PURGE_FIELDS = { whatsapp_customers: "phone", whatsapp_inbox: "from", whatsapp_status_log: "recipient", whatsapp_send_log: "to", whatsapp_pending: "to", whatsapp_autoreply: "id" };
+const lastTen = (v) => String(v || "").replace(/\D/g, "").slice(-10);
+async function numberKey(phone) {
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(lastTen(phone)));
+  return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+let hiddenCache = { at: 0, ids: new Set() };
+async function isHiddenNumber(env, phone) {
+  if (Date.now() - hiddenCache.at > 60000) {
+    const docs = await listDocuments(env, "hidden_numbers").catch(() => null);
+    if (docs) hiddenCache = { at: Date.now(), ids: new Set(docs.map((d) => d.id)) };
+  }
+  return hiddenCache.ids.size > 0 && hiddenCache.ids.has(await numberKey(phone));
+}
+
+// Without confirm it only counts; with confirm it deletes, permanently.
+async function purgeNumber(env, mobile, confirm) {
+  const writes = [], found = {};
+  for (const [collection, field] of Object.entries(PURGE_FIELDS)) {
+    const matches = (await listDocuments(env, collection)).filter((d) => lastTen(d[field]) === mobile);
+    found[collection] = matches.length;
+    matches.forEach((d) => writes.push({ delete: [collection, d.id] }));
+  }
+  const application = await getDocument(env, "credit_applications", mobile).catch(() => null);
+  found.credit_applications = application ? 1 : 0;
+  if (application) writes.push({ delete: ["credit_applications", mobile] });
+
+  const credit = await getDocument(env, "settings", "credit").catch(() => null);
+  const customers = credit && Array.isArray(credit.customers) ? credit.customers : [];
+  const kept = customers.filter((c) => lastTen(c && c.mobile) !== mobile);
+  found.credit_list = customers.length - kept.length;
+  if (found.credit_list) writes.push({ update: ["settings", "credit", { customers: kept }] });
+
+  // Activity entries keep what was done; only the number goes.
+  const pattern = new RegExp("(?<!\\d)(?:\\+?91[\\s-]?)?" + mobile.split("").join("[\\s-]?") + "(?!\\d)", "g");
+  const clean = (t) => String(t).replace(pattern, "(removed)");
+  found.activity_log = 0;
+  for (const d of await listDocuments(env, "activity_log")) {
+    const changes = Array.isArray(d.changes) ? d.changes : [];
+    const action = clean(d.action || "");
+    const cleaned = changes.map(clean);
+    if (action === (d.action || "") && cleaned.every((c, i) => c === String(changes[i]))) continue;
+    found.activity_log++;
+    writes.push({ update: ["activity_log", d.id, { action, changes: cleaned }] });
+  }
+
+  const total = Object.values(found).reduce((sum, n) => sum + n, 0);
+  if (!confirm) return { found, total, removed: false };
+  writes.push({ set: ["hidden_numbers", await numberKey(mobile), { at: new Date().toISOString() }] });
+  await commitWrites(env, writes);
+  for (const slot of KYC_SLOTS) await env.CATALOGUE_IMAGES.delete(kycKey(mobile, slot));
+  hiddenCache = { at: 0, ids: new Set() };
+  return { found, total, removed: true };
 }
 
 // ---- Credit approval (Admin → Payments & credit, stored in settings/credit) ----
@@ -1209,6 +1268,7 @@ export default {
       if (env.META_APP_SECRET && !signed) return new Response("Forbidden", { status: 403 });
       const payload = JSON.parse(raw);
       for (const m of extractIncomingMessages(payload)) {
+        if (await isHiddenNumber(env, m.from)) continue;
         // "Enquire Now" on a catalogue card: record which item, so the inbox reads clearly.
         let item = null;
         if (signed && m.type === "button" && m.payload && isValidSlug(m.payload)) {
@@ -1221,6 +1281,7 @@ export default {
         if (signed) ctx.waitUntil(autoReply(env, m, url.origin).catch(() => {}));
       }
       for (const s of extractStatuses(payload)) {
+        if (await isHiddenNumber(env, s.recipient)) continue;
         await addDocument(env, "whatsapp_status_log", s);
         if (signed) ctx.waitUntil(noteMarketingOptOut(env, s).catch(() => {}));
         if (signed) ctx.waitUntil(releaseNextMessage(env, s).catch(() => {}));
@@ -1274,7 +1335,7 @@ export default {
     try {
       user = await requireAuthorizedUser(request, env);
     } catch (e) {
-      if (["/inbox", "/usage", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
+      if (["/inbox", "/usage", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
         return json({ error: e.message }, 401);
       }
       return new Response("Not found", { status: 404 });
@@ -1292,6 +1353,20 @@ export default {
       const bytes = await env.CATALOGUE_IMAGES.get(kycKey(kycMatch[1], kycMatch[2]), "arrayBuffer");
       if (!bytes) return json({ error: "Not found" }, 404);
       return new Response(bytes, { headers: { "Content-Type": "image/jpeg", "Cache-Control": "private, no-store", ...CORS_HEADERS } });
+    }
+
+    // Main admin: remove a number from every record.
+    if (path === "/purge-number" && request.method === "POST") {
+      if (!isManager(env, user)) return json({ error: "Only the main admin can do this." }, 403);
+      const body = await request.json().catch(() => ({}));
+      const digits = String(body.mobile || "").replace(/\D/g, "");
+      const mobile = digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : digits;
+      if (!/^[0-9]{10}$/.test(mobile)) return json({ error: "Enter the 10-digit mobile number." }, 400);
+      try {
+        return json(await purgeNumber(env, mobile, body.confirm === true));
+      } catch (e) {
+        return json({ error: e.message }, 500);
+      }
     }
 
     // Admin: WhatsApp messages and charges, today and this month.

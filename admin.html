@@ -1560,6 +1560,19 @@
         <div class="status" id="mainadm-status" role="status"></div>
       </section>
 
+      <section class="card" aria-labelledby="purge-title" id="purge-card" hidden>
+        <h2 id="purge-title">Remove a number from all records</h2>
+        <p class="muted">Permanently removes a mobile number from the customer list, Inbox, delivery records, credit and
+          Activity. Messages from that number stop showing in the Inbox and get no automatic reply. Their WhatsApp chat
+          with the business on their own phone isn't affected.</p>
+        <div class="row-form">
+          <label class="site-field" style="margin:0;"><span class="cat-label">Mobile number</span>
+            <input type="tel" id="purge-number" maxlength="16" autocomplete="off" placeholder="10-digit number"></label>
+          <button type="button" class="btn secondary small" id="purge-btn">Find and remove</button>
+        </div>
+        <div class="status" id="purge-status" role="status"></div>
+      </section>
+
       <section class="card" aria-labelledby="users-title" id="users-card" hidden>
         <h2 id="users-title">Users <span class="badge" id="users-count">0</span></h2>
         <p class="muted">Everyone who can sign in to this admin panel with an ID and password. After 5 wrong
@@ -2061,6 +2074,7 @@
       $("mypw-card").hidden = !staff;
       $("mainadm-card").hidden = !me.owner;
       $("users-card").hidden = !me.manager;
+      $("purge-card").hidden = !me.manager;
       if (me.manager) loadUsers();
       if (location.hash === "#users") showTab($("tab-users").hidden ? "send" : "users");
       if (location.hash === "#activity") showTab(me.manager ? "activity" : "send");
@@ -3151,6 +3165,32 @@
           ". Whether each one was actually delivered shows under Last catalogue in Customers within a few seconds.", failed ? "err" : "ok");
       } catch (e) {
         setStatus("send-status", "Error: " + e.message + (sent ? " (sent to " + sent + " before stopping)" : ""), "err");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // ---------- Remove a number from all records (the number itself never goes in the activity log) ----------
+    const PURGE_LABELS = { whatsapp_customers: "customer list", whatsapp_inbox: "Inbox", whatsapp_status_log: "delivery records", whatsapp_send_log: "send records", whatsapp_pending: "waiting messages", whatsapp_autoreply: "auto-reply records", credit_applications: "credit application", credit_list: "credit list", activity_log: "Activity entries" };
+    $("purge-btn").addEventListener("click", async () => {
+      const mobile = $("purge-number").value;
+      const post = (confirm) => api("/purge-number", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mobile, confirm }) });
+      const btn = $("purge-btn");
+      btn.disabled = true;
+      setStatus("purge-status", "Looking for this number…", "");
+      try {
+        const look = await post(false);
+        if (!look.total) return setStatus("purge-status", "No records found for this number. Check the digits.", "err");
+        const list = Object.keys(PURGE_LABELS).filter((k) => look.found[k]).map((k) => PURGE_LABELS[k] + ": " + look.found[k]).join(", ");
+        if (!confirm("Found " + look.total + " record(s). " + list + ".\n\nPermanently remove this number? This can't be undone.")) return setStatus("purge-status", "Nothing was removed.", "");
+        setStatus("purge-status", "Removing…", "");
+        await post(true);
+        $("purge-number").value = "";
+        await logChange("Users", "Removed a number from all records", [look.total + " record(s)"]);
+        alert("Removed. The page will now reload.");
+        location.reload();
+      } catch (e) {
+        setStatus("purge-status", "Couldn't remove it: " + e.message, "err");
       } finally {
         btn.disabled = false;
       }

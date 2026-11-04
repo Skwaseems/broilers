@@ -159,7 +159,7 @@ export async function requireStaff(env, payload) {
 }
 
 const isOwner = (env, user) => !!(user.email_verified && env.OWNER_EMAIL && String(user.email).toLowerCase() === env.OWNER_EMAIL.toLowerCase());
-const isManager = (env, user) => (user.staff ? user.staff.role === "main" : isOwner(env, user));
+export const isManager = (env, user) => (user.staff ? user.staff.role === "main" : isOwner(env, user));
 
 // GET /staff-users (manager): every account, without password data.
 async function list(env, user) {

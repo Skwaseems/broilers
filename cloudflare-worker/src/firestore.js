@@ -140,6 +140,30 @@ export async function setDocument(env, collection, id, fields) {
   return data;
 }
 
+// Many changes in one request, all or nothing: Workers allow only 50 requests per call.
+// writes: [{ delete: [collection, id] } | { set: [collection, id, fields] } | { update: [collection, id, fields] }]
+// "update" changes only the given fields, so a timestamp elsewhere in the document stays one.
+export async function commitWrites(env, writes) {
+  if (!writes.length) return;
+  const token = await getAccessToken(env);
+  const name = (collection, id) => `projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents/${collection}/${id}`;
+  for (let i = 0; i < writes.length; i += 400) {
+    const body = writes.slice(i, i + 400).map((w) => {
+      if (w.delete) return { delete: name(...w.delete) };
+      const [collection, id, fields] = w.set || w.update;
+      const out = { update: { name: name(collection, id), fields: encodeFields(fields) } };
+      if (w.update) out.updateMask = { fieldPaths: Object.keys(fields) };
+      return out;
+    });
+    const res = await fetch(`${baseUrl(env)}:commit`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ writes: body }),
+    });
+    if (!res.ok) throw new Error("Firestore commit failed: " + (await res.text()));
+  }
+}
+
 export async function addDocument(env, collection, fields) {
   const token = await getAccessToken(env);
   const res = await fetch(`${baseUrl(env)}/${collection}`, {
