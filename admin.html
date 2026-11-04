@@ -70,52 +70,219 @@
     }
 
     .wrap {
-      max-width: 860px;
+      width: 100%;
+      max-width: 940px;
       margin: 0 auto;
       padding: 20px 16px 60px;
     }
 
-    /* Tabs: one job per screen */
-    .tabs {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      display: flex;
-      gap: 4px;
-      overflow-x: auto;
-      background: #fff;
-      border-bottom: 1px solid var(--line);
-      padding: 8px max(12px, calc((100% - 860px) / 2 + 16px));
-      scrollbar-width: none;
+    /* Menu: a side column on computers, a drop-down on phones */
+    #app {
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
     }
 
-    .tabs::-webkit-scrollbar {
+    .nav-toggle {
+      position: sticky;
+      top: 0;
+      z-index: 21;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 50px;
+      padding: 0 16px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font-family: 'Jost', sans-serif;
+      font-size: 18px;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .nav-arrow {
+      margin-left: auto;
+      color: var(--muted);
+    }
+
+    .nav-toggle[aria-expanded="true"] .nav-arrow {
+      transform: rotate(180deg);
+    }
+
+    .nav-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--err);
+    }
+
+    .tabs {
+      display: none;
+      position: sticky;
+      top: 50px;
+      z-index: 20;
+      max-height: calc(100vh - 50px);
+      overflow-y: auto;
+      padding: 8px 16px 14px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tabs.open {
+      display: block;
+    }
+
+    .tab-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .tab-group:not(:has(button:not([hidden]))) {
       display: none;
     }
 
+    .tab-group-name {
+      flex: 0 0 100%;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
     .tabs button {
-      flex: none;
-      min-height: 40px;
+      min-height: 42px;
       padding: 0 14px;
-      border: 1px solid transparent;
-      border-radius: 20px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
       background: none;
       font-family: 'Jost', sans-serif;
       font-size: 17px;
-      color: var(--muted);
+      color: var(--ink);
       cursor: pointer;
       white-space: nowrap;
     }
 
     .tabs button:hover {
-      color: var(--ink);
-      border-color: var(--line);
+      border-color: var(--ink);
     }
 
     .tabs button[aria-selected="true"] {
       background: var(--ink);
       border-color: var(--ink);
       color: #fff;
+    }
+
+    @media (min-width: 900px) {
+      #app {
+        grid-template-columns: 220px minmax(0, 1fr);
+      }
+
+      .nav-toggle {
+        display: none;
+      }
+
+      .tabs {
+        display: block;
+        top: 0;
+        align-self: start;
+        max-height: 100vh;
+        min-height: calc(100vh - 56px);
+        padding: 8px 12px 24px;
+        border-right: 1px solid var(--line);
+        border-bottom: 0;
+      }
+
+      .tab-group {
+        flex-direction: column;
+        gap: 2px;
+        margin-top: 16px;
+      }
+
+      .tab-group-name {
+        flex: none;
+        padding: 0 10px 4px;
+      }
+
+      .tabs button {
+        width: 100%;
+        padding: 0 10px;
+        border-color: transparent;
+        text-align: left;
+      }
+
+      .tabs button:hover {
+        border-color: var(--line);
+      }
+    }
+
+    /* A rarely needed section stays folded */
+    .card-fold summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .card-fold summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .card-fold summary::after {
+      content: "\25BE";
+      color: var(--muted);
+    }
+
+    .card-fold[open] summary::after {
+      transform: rotate(180deg);
+    }
+
+    .card-fold summary h2 {
+      margin: 0;
+    }
+
+    .card-fold[open] summary {
+      margin-bottom: 10px;
+    }
+
+    /* Signed in: the top bar takes over from the big header */
+    body.signed-in header {
+      display: none;
+    }
+
+    .topbar-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 21px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      color: var(--ink);
+    }
+
+    .topbar-who {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      line-height: 1.25;
+    }
+
+    #who {
+      overflow: hidden;
+      font-size: 14px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 600px) {
+      #mypw-btn {
+        display: none;
+      }
     }
 
     .tab-badge {
@@ -442,9 +609,9 @@
       justify-content: space-between;
       align-items: center;
       gap: 10px;
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 10px 16px;
+      padding: 8px 16px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
       font-size: 15px;
       color: var(--muted);
     }
@@ -1119,7 +1286,7 @@
   </div>
 
   <div id="topbar" style="display:none;">
-    <span id="who"></span>
+    <span class="topbar-who"><span class="topbar-brand">Sharhan Broilers</span><span id="who"></span></span>
     <span class="topbar-actions">
       <button class="btn secondary small" id="mypw-btn" type="button" hidden>Change password</button>
       <button class="btn secondary small" id="signout-btn">Sign out</button>
@@ -1127,37 +1294,35 @@
   </div>
 
   <div id="app">
-    <nav class="tabs" role="tablist" aria-label="Admin sections">
-      <button type="button" role="tab" id="tab-send" aria-controls="panel-send" data-tab="send">Send catalogue</button>
-      <button type="button" role="tab" id="tab-credit" aria-controls="panel-credit" data-tab="credit">Credit &amp; payments <span class="tab-badge" id="tab-badge-credit" hidden></span></button>
-      <button type="button" role="tab" id="tab-products" aria-controls="panel-products" data-tab="products">Products</button>
-      <button type="button" role="tab" id="tab-orders" aria-controls="panel-orders" data-tab="orders">Order form</button>
-      <button type="button" role="tab" id="tab-website" aria-controls="panel-website" data-tab="website">Website</button>
-      <button type="button" role="tab" id="tab-whatsapp" aria-controls="panel-whatsapp" data-tab="whatsapp">WhatsApp setup</button>
-      <button type="button" role="tab" id="tab-inbox" aria-controls="panel-inbox" data-tab="inbox">Inbox</button>
-      <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" data-tab="activity" hidden>Activity</button>
-      <button type="button" role="tab" id="tab-users" aria-controls="panel-users" data-tab="users" hidden>Users</button>
+    <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="admin-nav">
+      <span id="nav-current">Menu</span><span class="nav-dot" id="nav-dot" aria-label="Something is waiting" hidden></span>
+      <span class="nav-arrow" aria-hidden="true">&#9662;</span>
+    </button>
+    <nav class="tabs" id="admin-nav" role="tablist" aria-label="Admin sections">
+      <div class="tab-group" role="presentation"><span class="tab-group-name" aria-hidden="true">WhatsApp</span>
+        <button type="button" role="tab" id="tab-send" aria-controls="panel-send" data-tab="send">Send catalogue</button>
+        <button type="button" role="tab" id="tab-inbox" aria-controls="panel-inbox" data-tab="inbox">Inbox</button>
+        <button type="button" role="tab" id="tab-whatsapp" aria-controls="panel-whatsapp" data-tab="whatsapp">WhatsApp setup</button>
+      </div>
+      <div class="tab-group" role="presentation"><span class="tab-group-name" aria-hidden="true">Customers</span>
+        <button type="button" role="tab" id="tab-credit" aria-controls="panel-credit" data-tab="credit">Credit &amp; payments <span class="tab-badge" id="tab-badge-credit" hidden></span></button>
+        <button type="button" role="tab" id="tab-orders" aria-controls="panel-orders" data-tab="orders">Order form</button>
+      </div>
+      <div class="tab-group" role="presentation"><span class="tab-group-name" aria-hidden="true">Website</span>
+        <button type="button" role="tab" id="tab-products" aria-controls="panel-products" data-tab="products">Products</button>
+        <button type="button" role="tab" id="tab-website" aria-controls="panel-website" data-tab="website">Website</button>
+      </div>
+      <div class="tab-group" role="presentation"><span class="tab-group-name" aria-hidden="true">Admin</span>
+        <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" data-tab="activity" hidden>Activity</button>
+        <button type="button" role="tab" id="tab-users" aria-controls="panel-users" data-tab="users" hidden>Users</button>
+      </div>
     </nav>
     <div class="wrap">
 
       <div class="tab-panel" role="tabpanel" id="panel-send" aria-labelledby="tab-send" hidden>
-      <section class="card" aria-labelledby="usage-title">
-        <h2 id="usage-title">WhatsApp usage &amp; balance</h2>
-        <div class="usage-alert" id="usage-alert" role="alert" hidden><strong>WhatsApp payment problem.</strong> The last
-          catalogue failed with a payment issue. Check your balance and recharge, then send one test.</div>
-        <div class="usage-grid">
-          <div class="usage-box"><span class="muted">Today</span><strong id="usage-today">–</strong></div>
-          <div class="usage-box"><span class="muted">This month</span><strong id="usage-month">–</strong></div>
-        </div>
-        <p class="muted">Delivered paid messages and Meta's approximate charges; GST is extra and new messages can take time
-          to show. Meta doesn't let any website show your balance or add money, so both are on Meta's page.</p>
-        <div class="row-form">
-          <a class="btn small" href="https://business.facebook.com/billing_hub/accounts/" target="_blank" rel="noopener">Recharge / see balance</a>
-          <button type="button" class="btn secondary small" id="usage-refresh">Refresh usage</button>
-        </div>
-        <div class="status" id="usage-status" role="status"></div>
-      </section>
-      <section class="card" aria-labelledby="send-title">
+      <div class="usage-alert" id="usage-alert" role="alert" hidden><strong>WhatsApp payment problem.</strong> The last
+        catalogue failed with a payment issue. <a href="https://business.facebook.com/billing_hub/accounts/" target="_blank" rel="noopener">Check your balance and recharge</a>, then send one test.</div>
+            <section class="card" aria-labelledby="send-title">
         <h2 id="send-title"><span class="step">1</span> Choose what to send</h2>
         <p class="muted">Pick the items and the look. Then check who gets it (step 2) and press Send (step 3).</p>
         <div class="send-modes" role="radiogroup" aria-label="What to send">
@@ -1228,8 +1393,22 @@
         <div class="status" id="send-status" role="status"></div>
       </section>
 
+      <section class="card" aria-labelledby="usage-title">
+        <h2 id="usage-title">WhatsApp usage &amp; balance</h2>
+        <div class="usage-grid">
+          <div class="usage-box"><span class="muted">Today</span><strong id="usage-today">–</strong></div>
+          <div class="usage-box"><span class="muted">This month</span><strong id="usage-month">–</strong></div>
+        </div>
+        <p class="muted">Meta's approximate figures for delivered paid messages; GST is extra. Your balance and recharge are on Meta's page.</p>
+        <div class="row-form">
+          <a class="btn small" href="https://business.facebook.com/billing_hub/accounts/" target="_blank" rel="noopener">Recharge / see balance</a>
+          <button type="button" class="btn secondary small" id="usage-refresh">Refresh usage</button>
+        </div>
+        <div class="status" id="usage-status" role="status"></div>
+      </section>
+
       <section class="card" aria-labelledby="unsub-title">
-        <h2 id="unsub-title">Said STOP (unsubscribed) <span class="badge" id="unsub-count">0</span></h2>
+        <details class="card-fold"><summary><h2 id="unsub-title">Said STOP (unsubscribed) <span class="badge" id="unsub-count">0</span></h2></summary>
         <p class="muted">Customers who tapped <strong>Stop</strong> or replied <strong>STOP</strong> (or turned off marketing messages in WhatsApp).
           They are never sent the catalogue again &mdash; not by &ldquo;Send Catalogue Now&rdquo; and not by the automatic
           reply. Only the customer can undo it, by sending <strong>START</strong> to your WhatsApp.</p>
@@ -1238,6 +1417,7 @@
           <tbody id="unsub-body"></tbody>
         </table>
         <div class="row-form"><button class="btn secondary small" id="unsub-csv" type="button">Download list (CSV)</button></div>
+        </details>
       </section>
       </div>
 
@@ -1245,16 +1425,17 @@
       <section class="card" aria-labelledby="capp-title">
         <h2 id="capp-title">Credit applications <span class="badge" id="capp-count">0 waiting</span></h2>
         <p class="muted">Customers who chose credit in the order form, filled the KYC form, uploaded their documents,
-          took a selfie and signed. Check them, then <strong>Approve</strong> (adds them to the list below) or
+          took a selfie and signed. Check them, then <strong>Approve</strong> (adds them to the next list) or
           <strong>Reject</strong>. These are sensitive documents: share the PDF only with people who need it, and delete
           the photos once you no longer need them.</p>
+        <div class="status" id="capp-status" role="status"></div>
         <div id="capp-list"></div>
+      </section>
 
-        <h3 class="pay-sub">Credit-approved customers <span class="badge" id="credit-count">0</span></h3>
-        <p class="muted">&ldquo;On Credit&rdquo; in the order form only works for these mobile numbers;
-          everyone else is asked to choose Same Day payment or apply with their documents (above). Enter how many
-          credit days each customer gets. The list stays private: the form only learns yes/no and the credit days for
-          the number the customer typed.</p>
+      <section class="card" aria-labelledby="credit-title">
+        <h2 id="credit-title">Credit-approved customers <span class="badge" id="credit-count">0</span></h2>
+        <p class="muted">&ldquo;On Credit&rdquo; in the order form only works for these mobile numbers. Enter how many
+          credit days each customer gets. The list stays private.</p>
         <table>
           <thead><tr><th>Customer</th><th>Mobile</th><th>Credit days</th><th></th></tr></thead>
           <tbody id="credit-rows"></tbody>
@@ -1524,6 +1705,27 @@
       </div>
 
       <div class="tab-panel" role="tabpanel" id="panel-users" aria-labelledby="tab-users" hidden>
+      <section class="card" aria-labelledby="users-title" id="users-card" hidden>
+        <h2 id="users-title">Users <span class="badge" id="users-count">0</span></h2>
+        <p class="muted">Everyone who can sign in to this admin panel with an ID and password. After 5 wrong
+          passwords in a row an ID is locked for 15 minutes &mdash; you can unlock it here. Switching a user off or
+          setting a new password signs them out straight away.</p>
+        <div id="users-list"></div>
+        <h3 class="pay-sub">Add a user</h3>
+        <div class="pw-grid">
+          <label class="login-field"><span class="cat-label">ID (they type this to sign in)</span>
+            <input type="text" id="user-new-id" autocapitalize="none" spellcheck="false" autocomplete="off"
+              placeholder="e.g. sadiya"></label>
+          <label class="login-field"><span class="cat-label">Name</span>
+            <input type="text" id="user-new-name" maxlength="60" placeholder="e.g. Sadiya"></label>
+          <label class="login-field"><span class="cat-label">Password (8 or more characters)</span>
+            <input type="password" id="user-new-pw" autocomplete="new-password"></label>
+        </div>
+        <label class="check"><input type="checkbox" data-show="user-new-pw"> Show password</label>
+        <div class="row-form"><button class="btn" type="button" id="user-add">Add user</button></div>
+        <div class="status" id="users-status" role="status"></div>
+      </section>
+
       <section class="card" aria-labelledby="mypw-title" id="mypw-card" hidden>
         <h2 id="mypw-title">My password</h2>
         <p class="muted">Changing it signs you out on your other phones and computers.</p>
@@ -1561,7 +1763,7 @@
       </section>
 
       <section class="card" aria-labelledby="purge-title" id="purge-card" hidden>
-        <h2 id="purge-title">Remove a number from all records</h2>
+        <details class="card-fold"><summary><h2 id="purge-title">Remove a number from all records</h2></summary>
         <p class="muted">Permanently removes a mobile number from the customer list, Inbox, delivery records, credit and
           Activity. Messages from that number stop showing in the Inbox and get no automatic reply. Their WhatsApp chat
           with the business on their own phone isn't affected.</p>
@@ -1571,29 +1773,9 @@
           <button type="button" class="btn secondary small" id="purge-btn">Find and remove</button>
         </div>
         <div class="status" id="purge-status" role="status"></div>
+        </details>
       </section>
-
-      <section class="card" aria-labelledby="users-title" id="users-card" hidden>
-        <h2 id="users-title">Users <span class="badge" id="users-count">0</span></h2>
-        <p class="muted">Everyone who can sign in to this admin panel with an ID and password. After 5 wrong
-          passwords in a row an ID is locked for 15 minutes &mdash; you can unlock it here. Switching a user off or
-          setting a new password signs them out straight away.</p>
-        <div id="users-list"></div>
-        <h3 class="pay-sub">Add a user</h3>
-        <div class="pw-grid">
-          <label class="login-field"><span class="cat-label">ID (they type this to sign in)</span>
-            <input type="text" id="user-new-id" autocapitalize="none" spellcheck="false" autocomplete="off"
-              placeholder="e.g. sadiya"></label>
-          <label class="login-field"><span class="cat-label">Name</span>
-            <input type="text" id="user-new-name" maxlength="60" placeholder="e.g. Sadiya"></label>
-          <label class="login-field"><span class="cat-label">Password (8 or more characters)</span>
-            <input type="password" id="user-new-pw" autocomplete="new-password"></label>
-        </div>
-        <label class="check"><input type="checkbox" data-show="user-new-pw"> Show password</label>
-        <div class="row-form"><button class="btn" type="button" id="user-add">Add user</button></div>
-        <div class="status" id="users-status" role="status"></div>
-      </section>
-      </div>
+                              </div>
 
     </div>
   </div>
@@ -1651,15 +1833,22 @@
 
     // ---------- Tabs: one job per screen; the open tab is kept in the address (#credit) ----------
     const TAB_NAMES = [...document.querySelectorAll(".tabs [data-tab]")].map((b) => b.dataset.tab);
+    function setNavOpen(open) {
+      $("admin-nav").classList.toggle("open", open);
+      $("nav-toggle").setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    $("nav-toggle").addEventListener("click", () => setNavOpen(!$("admin-nav").classList.contains("open")));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") setNavOpen(false); });
     function showTab(name, focus) {
       if (!TAB_NAMES.includes(name)) name = TAB_NAMES[0];
       document.querySelectorAll(".tabs [data-tab]").forEach((b) => {
         const on = b.dataset.tab === name;
         b.setAttribute("aria-selected", on ? "true" : "false");
         b.tabIndex = on ? 0 : -1;
-        if (on) { b.scrollIntoView({ block: "nearest", inline: "nearest" }); if (focus) b.focus(); }
+        if (on) { $("nav-current").textContent = b.firstChild.textContent.trim(); if (focus) b.focus(); }
       });
       document.querySelectorAll(".tab-panel").forEach((p) => { p.hidden = p.id !== "panel-" + name; });
+      if (!focus) setNavOpen(false);
       if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
       window.scrollTo(0, 0);
       document.dispatchEvent(new CustomEvent("sb-tab", { detail: name }));
@@ -1679,7 +1868,7 @@
     // Red counter on the Credit tab: applications waiting for a check.
     function mirrorBadge(sourceId, badgeId) {
       const src = $(sourceId), badge = $(badgeId);
-      const sync = () => { const n = parseInt(src.textContent, 10) || 0; badge.textContent = n; badge.hidden = !n; };
+      const sync = () => { const n = parseInt(src.textContent, 10) || 0; badge.textContent = n; badge.hidden = !n; $("nav-dot").hidden = !n; };
       new MutationObserver(sync).observe(src, { childList: true, characterData: true, subtree: true });
       sync();
     }
@@ -1793,7 +1982,8 @@
       if (ok) $("signin-error").textContent = "";
       $("signin-gate").style.display = ok ? "none" : "block";
       $("topbar").style.display = ok ? "flex" : "none";
-      $("app").style.display = ok ? "block" : "none";
+      $("app").style.display = ok ? "grid" : "none";
+      document.body.classList.toggle("signed-in", ok);
       if (ok) {
         $("who").textContent = me.label + (me.staff && me.staff.role === "main" ? " · main admin" : "");
         setupUsersTab();
@@ -3735,17 +3925,17 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
         try {
           await navigator.share({ files: [file], title: file.name });
           logChange("Credit & payments", "Shared KYC PDF: " + who, []);
-          return setStatus("credit-status", "KYC PDF of " + (a.name || a.mobile) + " shared.", "ok");
+          return setStatus("capp-status", "KYC PDF of " + (a.name || a.mobile) + " shared.", "ok");
         } catch (e) {
           if (e.name === "AbortError") return; // closed the share window
           // The browser allows sharing only right after a tap, and building the PDF took longer.
-          if (e.name === "NotAllowedError") return setStatus("credit-status", "The PDF is ready: press Share on WhatsApp once more.", "ok");
+          if (e.name === "NotAllowedError") return setStatus("capp-status", "The PDF is ready: press Share on WhatsApp once more.", "ok");
         }
       }
       kycPdfSave(file);
       logChange("Credit & payments", "Downloaded KYC PDF to share on WhatsApp: " + who, []);
       window.open("https://wa.me/?text=" + encodeURIComponent("KYC documents"), "_blank", "noopener");
-      setStatus("credit-status", "PDF downloaded. WhatsApp can't take a file from a link here: in the chat, attach " + file.name + " with the paperclip.", "ok");
+      setStatus("capp-status", "PDF downloaded. WhatsApp can't take a file from a link here: in the chat, attach " + file.name + " with the paperclip.", "ok");
     }
     function renderCreditApps() {
       const box = $("capp-list");
@@ -3788,26 +3978,26 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
             for (const slot of docList) urls[slot] = await kycPhoto(a.mobile, slot);
             cappShown[a.mobile] = urls;
             renderCreditApps();
-          } catch (e) { b.disabled = false; b.textContent = "View documents"; setStatus("credit-status", "Couldn't load the photos: " + e.message, "err"); }
+          } catch (e) { b.disabled = false; b.textContent = "View documents"; setStatus("capp-status", "Couldn't load the photos: " + e.message, "err"); }
         });
         const pdfButton = (text, fn) => { if (docList.length) button(text, "secondary", async (b) => {
           b.disabled = true; b.textContent = "Preparing PDF…";
           try { await fn(await kycPdfFile(a)); }
-          catch (e) { setStatus("credit-status", "Couldn't make the PDF: " + e.message, "err"); }
+          catch (e) { setStatus("capp-status", "Couldn't make the PDF: " + e.message, "err"); }
           b.disabled = false; b.textContent = text;
         }); };
         pdfButton("Download PDF", (file) => { kycPdfSave(file); logChange("Credit & payments", "Downloaded KYC PDF: " + (a.name || "") + " · " + a.mobile, []); });
         pdfButton("Share on WhatsApp", (file) => kycPdfShare(a, file));
         if (a.terms && docList.includes("selfie") && docList.includes("signature")) button("Signed KYC form", "secondary", async (b) => {
           const win = window.open("", "_blank"); // opened now: browsers block it after the wait below
-          if (!win) return setStatus("credit-status", "Your browser blocked the new window. Allow pop-ups for this page and try again.", "err");
+          if (!win) return setStatus("capp-status", "Your browser blocked the new window. Allow pop-ups for this page and try again.", "err");
           b.disabled = true;
           try {
             const [selfie, signature] = await Promise.all([kycPhoto(a.mobile, "selfie"), kycPhoto(a.mobile, "signature")]);
             win.document.open();
             win.document.write(kycFormHtml(a, selfie, signature));
             win.document.close();
-          } catch (e) { win.close(); setStatus("credit-status", "Couldn't load the signed form: " + e.message, "err"); }
+          } catch (e) { win.close(); setStatus("capp-status", "Couldn't load the signed form: " + e.message, "err"); }
           b.disabled = false;
         });
         if (a.status !== "approved") button("Approve credit", "", () => decideCredit(a, "approved"));
@@ -3816,7 +4006,7 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
           if (!confirm("Permanently delete the document photos of " + (a.name || a.mobile) + "? The application and decision stay in the list.")) return;
           b.disabled = true;
           try { await api("/kyc-delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mobile: a.mobile }) }); delete cappShown[a.mobile]; delete kycPdfs[a.mobile + "|" + (a.submittedAt || "")]; logChange("Credit & payments", "Deleted document photos: " + (a.name || "") + " · " + a.mobile, []); }
-          catch (e) { b.disabled = false; setStatus("credit-status", "Couldn't delete the photos: " + e.message, "err"); }
+          catch (e) { b.disabled = false; setStatus("capp-status", "Couldn't delete the photos: " + e.message, "err"); }
         });
         const onList = creditList.find((c) => c.mobile === a.mobile);
         const msg = a.status === "approved" ? "Your credit account with Sharhan Broilers is approved" + (onList && onList.days ? " for " + onList.days + " credit days" : "") + ". You can now choose On Credit in the order form."
@@ -3838,7 +4028,7 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
         days = prompt("How many credit days for " + (a.name || a.mobile) + " · " + a.mobile + "?", (known && known.days) || "");
         if (days === null) return;
         days = days.replace(/\D/g, "");
-        if (!creditDaysOk(days)) return setStatus("credit-status", "Not approved: enter the credit days as a number, e.g. 7.", "err");
+        if (!creditDaysOk(days)) return setStatus("capp-status", "Not approved: enter the credit days as a number, e.g. 7.", "err");
         days = String(Number(days));
       }
       try {
@@ -3851,9 +4041,9 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
         }
         await db.collection("credit_applications").doc(a.id).update({ status, rejectReason: reason.trim(), decidedBy: whoLabel(), decidedAt: new Date().toISOString() });
         logChange("Credit & payments", (status === "approved" ? "Approved credit: " : "Rejected credit: ") + (a.name || "") + " · " + a.mobile, status === "approved" ? ["Credit days: " + days] : reason.trim() ? ["Reason: " + reason.trim()] : []);
-        setStatus("credit-status", status === "approved" ? (a.name || a.mobile) + " approved for credit — the order form allows it within a minute." : "Application rejected.", "ok");
+        setStatus("capp-status", status === "approved" ? (a.name || a.mobile) + " approved for credit — the order form allows it within a minute." : "Application rejected.", "ok");
       } catch (e) {
-        setStatus("credit-status", "Couldn't save the decision: " + e.message, "err");
+        setStatus("capp-status", "Couldn't save the decision: " + e.message, "err");
       }
     }
 
