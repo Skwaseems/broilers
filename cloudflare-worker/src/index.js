@@ -57,6 +57,25 @@ async function graph(env, path, init = {}) {
   return data;
 }
 
+// ---- WhatsApp usage (Admin → Send): delivered messages and Meta's approximate charges, without
+// GST. Today and this month in Indian time. Meta has no API for the balance or for adding funds.
+const IST_SECONDS = 5.5 * 3600;
+async function whatsappUsage(env, now = Date.now()) {
+  const nowS = Math.floor(now / 1000);
+  const ist = new Date((nowS + IST_SECONDS) * 1000);
+  const today = Math.floor((nowS + IST_SECONDS) / 86400) * 86400 - IST_SECONDS;
+  const month = Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), 1) / 1000 - IST_SECONDS;
+  const fields = `pricing_analytics.start(${month}).end(${nowS}).granularity(DAILY).metric_types(COST,VOLUME).dimensions(PRICING_CATEGORY,PRICING_TYPE)`;
+  const data = await graph(env, `${env.META_WABA_ID}?fields=${encodeURIComponent(fields)}`);
+  const blocks = (data.pricing_analytics && data.pricing_analytics.data) || [];
+  const points = blocks.flatMap((b) => b.data_points || []).filter((p) => p.start >= month);
+  const total = (list) => ({
+    messages: list.filter((p) => p.cost > 0).reduce((sum, p) => sum + (p.volume || 0), 0), // free ones aren't charged
+    cost: Math.round(list.reduce((sum, p) => sum + (p.cost || 0), 0) * 100) / 100,
+  });
+  return { today: total(points.filter((p) => p.start >= today)), month: total(points) };
+}
+
 // ---- Credit approval (Admin → Payments & credit, stored in settings/credit) ----
 
 // Cached per isolate for a minute, so repeated checks don't each cost a Firestore read.
@@ -1255,7 +1274,7 @@ export default {
     try {
       user = await requireAuthorizedUser(request, env);
     } catch (e) {
-      if (["/inbox", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
+      if (["/inbox", "/usage", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
         return json({ error: e.message }, 401);
       }
       return new Response("Not found", { status: 404 });
@@ -1273,6 +1292,15 @@ export default {
       const bytes = await env.CATALOGUE_IMAGES.get(kycKey(kycMatch[1], kycMatch[2]), "arrayBuffer");
       if (!bytes) return json({ error: "Not found" }, 404);
       return new Response(bytes, { headers: { "Content-Type": "image/jpeg", "Cache-Control": "private, no-store", ...CORS_HEADERS } });
+    }
+
+    // Admin: WhatsApp messages and charges, today and this month.
+    if (path === "/usage" && request.method === "GET") {
+      try {
+        return json(await whatsappUsage(env));
+      } catch (e) {
+        return json({ error: e.message }, 502);
+      }
     }
 
     // Admin: delete an application's KYC photos (the decision and details are kept).
