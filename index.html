@@ -2608,7 +2608,7 @@ table.sb-table-booking{min-width:0;}
     return !!(opt && opt.getAttribute('data-credit'));
   }
   function sbMobile10(){ return sbVal('sb-pm-mobile').replace(/\D/g, '').slice(-10); }
-  var SB_KYC_OPEN = false; // the owner hid the credit application (eKYC) for now: true shows it again
+  var SB_KYC_OPEN = true; // false hides the credit application (eKYC) from customers
   function sbShowCredit(){
     var note = document.getElementById('sb-credit-note');
     if (!note) return;
