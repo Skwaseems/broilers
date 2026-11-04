@@ -1424,10 +1424,9 @@
       <div class="tab-panel" role="tabpanel" id="panel-credit" aria-labelledby="tab-credit" hidden>
       <section class="card" aria-labelledby="capp-title">
         <h2 id="capp-title">Credit applications <span class="badge" id="capp-count">0 waiting</span></h2>
-        <p class="muted">Customers who chose credit in the order form, filled the KYC form, uploaded their documents,
-          took a selfie and signed. Check them, then <strong>Approve</strong> (adds them to the next list) or
-          <strong>Reject</strong>. These are sensitive documents: share the PDF only with people who need it, and delete
-          the photos once you no longer need them.</p>
+        <p class="muted">Customers who chose credit in the order form and uploaded self-attested Aadhaar, PAN and a
+          business document. Check the photos, then <strong>Approve</strong> (adds them to the next list) or
+          <strong>Reject</strong>. These are sensitive documents: delete the photos once you no longer need them.</p>
         <div class="status" id="capp-status" role="status"></div>
         <div id="capp-list"></div>
       </section>
@@ -3892,6 +3891,7 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
       para("Signed online. Selfie time on the photo: " + (a.selfieStamp || "") + ". Received by the server: " + when + "." + (a.signedIp ? " IP address: " + a.signedIp + "." : ""), W - M * 2, "21px Arial, sans-serif");
       return new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error("the form couldn't be drawn"))), "image/jpeg", 0.85));
     }
+    const EKYC_TOOLS = false; // the PDF, WhatsApp share and signed-form buttons; on with eKYC (SB_EKYC in index.html)
     const kycPdfs = {}; // built PDFs, so a second tap (e.g. share after download) doesn't fetch everything again
     async function kycPdfFile(a) {
       const key = a.mobile + "|" + (a.submittedAt || "");
@@ -3980,7 +3980,7 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
             renderCreditApps();
           } catch (e) { b.disabled = false; b.textContent = "View documents"; setStatus("capp-status", "Couldn't load the photos: " + e.message, "err"); }
         });
-        const pdfButton = (text, fn) => { if (docList.length) button(text, "secondary", async (b) => {
+        const pdfButton = (text, fn) => { if (EKYC_TOOLS && docList.length) button(text, "secondary", async (b) => {
           b.disabled = true; b.textContent = "Preparing PDF…";
           try { await fn(await kycPdfFile(a)); }
           catch (e) { setStatus("capp-status", "Couldn't make the PDF: " + e.message, "err"); }
@@ -3988,7 +3988,7 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
         }); };
         pdfButton("Download PDF", (file) => { kycPdfSave(file); logChange("Credit & payments", "Downloaded KYC PDF: " + (a.name || "") + " · " + a.mobile, []); });
         pdfButton("Share on WhatsApp", (file) => kycPdfShare(a, file));
-        if (a.terms && docList.includes("selfie") && docList.includes("signature")) button("Signed KYC form", "secondary", async (b) => {
+        if (EKYC_TOOLS && a.terms && docList.includes("selfie") && docList.includes("signature")) button("Signed KYC form", "secondary", async (b) => {
           const win = window.open("", "_blank"); // opened now: browsers block it after the wait below
           if (!win) return setStatus("capp-status", "Your browser blocked the new window. Allow pop-ups for this page and try again.", "err");
           b.disabled = true;
