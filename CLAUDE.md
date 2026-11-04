@@ -53,6 +53,8 @@ Live: https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (s
 - The owner prefers free options over paid services.
 - WhatsApp template wording that echoes an existing template gets auto-rejected by Meta
   (INVALID_FORMAT); new templates need fresh wording.
+- Never put a customer's or the owner's family's phone number in this repo. Admin → Users → "Remove a number from all
+  records" clears a number; `hidden_numbers` keeps only its hash, and the webhook then ignores it.
 - KYC photos (Aadhaar/PAN/cheque/selfie/signature) are sensitive: they are only served to signed-in admins.
   Only the last 4 Aadhaar digits are collected as text; the order form's saved copy must never hold KYC fields.
 - The eKYC declaration and terms are in both index.html and the Worker (`KYC_DECLARATION`, `KYC_TERMS`): change both.
