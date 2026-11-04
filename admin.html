@@ -509,6 +509,31 @@
       line-height: 1.55;
     }
 
+    .usage-alert {
+      margin: 0 0 12px;
+      padding: 12px 14px;
+      border-left: 4px solid #b3302c;
+      border-radius: 4px;
+      background: #fbeaea;
+      color: #8a231f;
+    }
+
+    .usage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px;
+      margin: 0 0 10px;
+    }
+
+    .usage-box {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 10px 14px;
+      border: 1px solid #e3e0da;
+      border-radius: 4px;
+    }
+
     .status {
       margin-top: 10px;
       font-size: 16px;
@@ -1116,6 +1141,22 @@
     <div class="wrap">
 
       <div class="tab-panel" role="tabpanel" id="panel-send" aria-labelledby="tab-send" hidden>
+      <section class="card" aria-labelledby="usage-title">
+        <h2 id="usage-title">WhatsApp usage &amp; balance</h2>
+        <div class="usage-alert" id="usage-alert" role="alert" hidden><strong>WhatsApp payment problem.</strong> The last
+          catalogue failed with a payment issue. Check your balance and recharge, then send one test.</div>
+        <div class="usage-grid">
+          <div class="usage-box"><span class="muted">Today</span><strong id="usage-today">–</strong></div>
+          <div class="usage-box"><span class="muted">This month</span><strong id="usage-month">–</strong></div>
+        </div>
+        <p class="muted">Delivered paid messages and Meta's approximate charges; GST is extra and new messages can take time
+          to show. Meta doesn't let any website show your balance or add money, so both are on Meta's page.</p>
+        <div class="row-form">
+          <a class="btn small" href="https://business.facebook.com/billing_hub/accounts/" target="_blank" rel="noopener">Recharge / see balance</a>
+          <button type="button" class="btn secondary small" id="usage-refresh">Refresh usage</button>
+        </div>
+        <div class="status" id="usage-status" role="status"></div>
+      </section>
       <section class="card" aria-labelledby="send-title">
         <h2 id="send-title"><span class="step">1</span> Choose what to send</h2>
         <p class="muted">Pick the items and the look. Then check who gets it (step 2) and press Send (step 3).</p>
@@ -3104,6 +3145,8 @@
           offset = data.nextOffset;
         } while (offset !== null && offset !== undefined);
         logChange("Send catalogue", "Sent " + what + " to " + who, ["Accepted by WhatsApp: " + sent + (failed ? ", failed: " + failed : "")]);
+        if (failures.some((message) => isPaymentError({ message }))) $("usage-alert").hidden = false;
+        loadUsage();
         setStatus("send-status", "WhatsApp accepted it for " + sent + " customer(s)" + (failed ? ", " + failed + " failed — " + failures.slice(0, 3).join("; ") : "") +
           ". Whether each one was actually delivered shows under Last catalogue in Customers within a few seconds.", failed ? "err" : "ok");
       } catch (e) {
@@ -3112,6 +3155,34 @@
         btn.disabled = false;
       }
     });
+
+    // ---------- WhatsApp usage & balance ----------
+    let usageAt = 0;
+    const usageText = (u) => u.messages + (u.messages === 1 ? " message · ₹" : " messages · ₹") + u.cost.toFixed(2) + " + GST";
+    async function loadUsage() {
+      usageAt = Date.now();
+      setStatus("usage-status", "Loading usage…", "");
+      try {
+        const u = await api("/usage");
+        $("usage-today").textContent = usageText(u.today);
+        $("usage-month").textContent = usageText(u.month);
+        setStatus("usage-status", "", "");
+      } catch (e) {
+        setStatus("usage-status", "Couldn't load usage: " + e.message, "err");
+      }
+    }
+    $("usage-refresh").addEventListener("click", loadUsage);
+    document.addEventListener("sb-tab", (e) => { if (e.detail === "send" && Date.now() - usageAt > 60000) loadUsage(); });
+
+    // Newest first. A delivery after the failure means payment works again.
+    const isPaymentError = (e) => !!e && (Number(e.code) === 131042 || /131042|eligibility payment/i.test(String(e.title || e.message || "")));
+    function paymentBlocked(statuses) {
+      for (const s of statuses) {
+        if (s.status === "delivered" || s.status === "read") return false;
+        if (s.status === "failed" && (s.errors || []).some(isPaymentError)) return true;
+      }
+      return false;
+    }
 
     // ---------- Customers + inbox ----------
     // Meta accepting a send doesn't mean it arrived: delivery reports come back later
@@ -3248,8 +3319,10 @@
         renderCustomers();
       });
 
+      loadUsage();
       statusUnsub = db.collection("whatsapp_status_log").orderBy("timestamp", "desc").limit(300).onSnapshot((snap) => {
         latestStatus = summarizeStatuses(snap.docs.map((doc) => doc.data()));
+        $("usage-alert").hidden = !paymentBlocked(snap.docs.map((doc) => doc.data()));
         renderCustomers();
       });
 
