@@ -1393,7 +1393,7 @@
         <div class="status" id="send-status" role="status"></div>
       </section>
 
-      <section class="card" aria-labelledby="usage-title">
+      <section class="card" aria-labelledby="usage-title" hidden>
         <h2 id="usage-title">WhatsApp usage &amp; balance</h2>
         <div class="usage-grid">
           <div class="usage-box"><span class="muted">Today</span><strong id="usage-today">–</strong></div>
@@ -3348,7 +3348,7 @@
           offset = data.nextOffset;
         } while (offset !== null && offset !== undefined);
         logChange("Send catalogue", "Sent " + what + " to " + who, ["Accepted by WhatsApp: " + sent + (failed ? ", failed: " + failed : "")]);
-        if (failures.some((message) => isPaymentError({ message }))) $("usage-alert").hidden = false;
+        if (USAGE_ON && failures.some((message) => isPaymentError({ message }))) $("usage-alert").hidden = false;
         loadUsage();
         setStatus("send-status", "WhatsApp accepted it for " + sent + " customer(s)" + (failed ? ", " + failed + " failed — " + failures.slice(0, 3).join("; ") : "") +
           ". Whether each one was actually delivered shows under Last catalogue in Customers within a few seconds.", failed ? "err" : "ok");
@@ -3386,9 +3386,11 @@
     });
 
     // ---------- WhatsApp usage & balance ----------
+    const USAGE_ON = false; // hidden for now: true needs "hidden" removed from the usage card too
     let usageAt = 0;
     const usageText = (u) => u.messages + (u.messages === 1 ? " message · ₹" : " messages · ₹") + u.cost.toFixed(2) + " + GST";
     async function loadUsage() {
+      if (!USAGE_ON) return;
       usageAt = Date.now();
       setStatus("usage-status", "Loading usage…", "");
       try {
@@ -3551,7 +3553,7 @@
       loadUsage();
       statusUnsub = db.collection("whatsapp_status_log").orderBy("timestamp", "desc").limit(300).onSnapshot((snap) => {
         latestStatus = summarizeStatuses(snap.docs.map((doc) => doc.data()));
-        $("usage-alert").hidden = !paymentBlocked(snap.docs.map((doc) => doc.data()));
+        $("usage-alert").hidden = !USAGE_ON || !paymentBlocked(snap.docs.map((doc) => doc.data()));
         renderCustomers();
       });
 
