@@ -73,151 +73,89 @@
       width: 100%;
       max-width: 940px;
       margin: 0 auto;
-      padding: 20px 16px 60px;
+      padding: 20px 16px calc(160px + env(safe-area-inset-bottom));
     }
 
-    /* Menu: a side column on computers, a drop-down on phones */
+    @media (min-width: 720px) {
+      .wrap {
+        padding-bottom: 110px;
+      }
+    }
+
+    /* Menu: app-style icons floating along the bottom of the screen */
     #app {
       grid-template-columns: minmax(0, 1fr);
       align-content: start;
     }
 
-    .nav-toggle {
-      position: sticky;
-      top: 0;
-      z-index: 21;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: 100%;
-      min-height: 50px;
-      padding: 0 16px;
-      border: 0;
-      border-bottom: 1px solid var(--line);
-      background: #fff;
-      color: var(--ink);
-      font-family: 'Jost', sans-serif;
-      font-size: 18px;
-      font-weight: 500;
-      text-align: left;
-      cursor: pointer;
-    }
-
-    .nav-arrow {
-      margin-left: auto;
-      color: var(--muted);
-    }
-
-    .nav-toggle[aria-expanded="true"] .nav-arrow {
-      transform: rotate(180deg);
-    }
-
-    .nav-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--err);
-    }
-
     .tabs {
-      display: none;
-      position: sticky;
-      top: 50px;
-      z-index: 20;
-      max-height: calc(100vh - 50px);
-      overflow-y: auto;
-      padding: 8px 16px 14px;
+      position: fixed;
+      left: 8px;
+      right: 8px;
+      bottom: calc(8px + env(safe-area-inset-bottom));
+      z-index: 30;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 2px;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 6px;
       background: #fff;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .tabs.open {
-      display: block;
-    }
-
-    .tab-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    .tab-group:not(:has(button:not([hidden]))) {
-      display: none;
-    }
-
-    .tab-group-name {
-      flex: 0 0 100%;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 6px 24px rgba(20, 18, 14, .18);
     }
 
     .tabs button {
-      min-height: 42px;
-      padding: 0 14px;
-      border: 1px solid var(--line);
-      border-radius: 4px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      min-height: 56px;
+      padding: 4px 2px;
+      border: 0;
+      border-radius: 10px;
       background: none;
+      color: var(--muted);
       font-family: 'Jost', sans-serif;
-      font-size: 17px;
-      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.1;
       cursor: pointer;
-      white-space: nowrap;
     }
 
     .tabs button:hover {
-      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .tabs button svg {
+      width: 23px;
+      height: 23px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .tabs button[aria-selected="true"] {
       background: var(--ink);
-      border-color: var(--ink);
       color: #fff;
     }
 
-    @media (min-width: 900px) {
-      #app {
-        grid-template-columns: 220px minmax(0, 1fr);
-      }
+    .tabs .tab-badge {
+      position: absolute;
+      top: 2px;
+      left: calc(50% + 6px);
+      margin: 0;
+    }
 
-      .nav-toggle {
-        display: none;
-      }
-
+    @media (min-width: 720px) {
       .tabs {
-        display: block;
-        top: 0;
-        align-self: start;
-        max-height: 100vh;
-        min-height: calc(100vh - 56px);
-        padding: 8px 12px 24px;
-        border-right: 1px solid var(--line);
-        border-bottom: 0;
-      }
-
-      .tab-group {
-        flex-direction: column;
-        gap: 2px;
-        margin-top: 16px;
-      }
-
-      .tab-group-name {
-        flex: none;
-        padding: 0 10px 4px;
-      }
-
-      .tabs button {
-        width: 100%;
-        padding: 0 10px;
-        border-color: transparent;
-        text-align: left;
-      }
-
-      .tabs button:hover {
-        border-color: var(--line);
+        grid-template-columns: none;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(0, 1fr);
       }
     }
 
@@ -1294,28 +1232,16 @@
   </div>
 
   <div id="app">
-    <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="admin-nav">
-      <span id="nav-current">Menu</span><span class="nav-dot" id="nav-dot" aria-label="Something is waiting" hidden></span>
-      <span class="nav-arrow" aria-hidden="true">&#9662;</span>
-    </button>
     <nav class="tabs" id="admin-nav" role="tablist" aria-label="Admin sections">
-      <div class="tab-group" role="presentation"><span class="tab-group-name" aria-hidden="true">WhatsApp</span>
-        <button type="button" role="tab" id="tab-send" aria-controls="panel-send" data-tab="send">Send catalogue</button>
-        <button type="button" role="tab" id="tab-inbox" aria-controls="panel-inbox" data-tab="inbox">Inbox</button>
-        <button type="button" role="tab" id="tab-whatsapp" aria-controls="panel-whatsapp" data-tab="whatsapp">WhatsApp setup</button>
-      </div>
-      <div class="tab-group" role="presentation"><span class="tab-group-name" aria-hidden="true">Customers</span>
-        <button type="button" role="tab" id="tab-credit" aria-controls="panel-credit" data-tab="credit">Credit &amp; payments <span class="tab-badge" id="tab-badge-credit" hidden></span></button>
-        <button type="button" role="tab" id="tab-orders" aria-controls="panel-orders" data-tab="orders">Order form</button>
-      </div>
-      <div class="tab-group" role="presentation"><span class="tab-group-name" aria-hidden="true">Website</span>
-        <button type="button" role="tab" id="tab-products" aria-controls="panel-products" data-tab="products">Products</button>
-        <button type="button" role="tab" id="tab-website" aria-controls="panel-website" data-tab="website">Website</button>
-      </div>
-      <div class="tab-group" role="presentation"><span class="tab-group-name" aria-hidden="true">Admin</span>
-        <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" data-tab="activity" hidden>Activity</button>
-        <button type="button" role="tab" id="tab-users" aria-controls="panel-users" data-tab="users" hidden>Users</button>
-      </div>
+      <button type="button" role="tab" id="tab-send" aria-controls="panel-send" data-tab="send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg><span class="tab-label">Send</span></button>
+      <button type="button" role="tab" id="tab-inbox" aria-controls="panel-inbox" data-tab="inbox"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-7a2 2 0 0 0-1.8-1H7.3a2 2 0 0 0-1.8 1Z"/></svg><span class="tab-label">Inbox</span></button>
+      <button type="button" role="tab" id="tab-whatsapp" aria-controls="panel-whatsapp" data-tab="whatsapp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5Z"/></svg><span class="tab-label">WhatsApp</span></button>
+      <button type="button" role="tab" id="tab-credit" aria-controls="panel-credit" data-tab="credit"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span class="tab-label">Credit</span><span class="tab-badge" id="tab-badge-credit" hidden></span></button>
+      <button type="button" role="tab" id="tab-orders" aria-controls="panel-orders" data-tab="orders"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg><span class="tab-label">Order form</span></button>
+      <button type="button" role="tab" id="tab-products" aria-controls="panel-products" data-tab="products"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 8-9-5-9 5v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><span class="tab-label">Products</span></button>
+      <button type="button" role="tab" id="tab-website" aria-controls="panel-website" data-tab="website"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><span class="tab-label">Website</span></button>
+      <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" data-tab="activity" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span class="tab-label">Activity</span></button>
+      <button type="button" role="tab" id="tab-users" aria-controls="panel-users" data-tab="users" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span class="tab-label">Users</span></button>
     </nav>
     <div class="wrap">
 
@@ -1832,22 +1758,15 @@
 
     // ---------- Tabs: one job per screen; the open tab is kept in the address (#credit) ----------
     const TAB_NAMES = [...document.querySelectorAll(".tabs [data-tab]")].map((b) => b.dataset.tab);
-    function setNavOpen(open) {
-      $("admin-nav").classList.toggle("open", open);
-      $("nav-toggle").setAttribute("aria-expanded", open ? "true" : "false");
-    }
-    $("nav-toggle").addEventListener("click", () => setNavOpen(!$("admin-nav").classList.contains("open")));
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") setNavOpen(false); });
     function showTab(name, focus) {
       if (!TAB_NAMES.includes(name)) name = TAB_NAMES[0];
       document.querySelectorAll(".tabs [data-tab]").forEach((b) => {
         const on = b.dataset.tab === name;
         b.setAttribute("aria-selected", on ? "true" : "false");
         b.tabIndex = on ? 0 : -1;
-        if (on) { $("nav-current").textContent = b.firstChild.textContent.trim(); if (focus) b.focus(); }
+        if (on && focus) b.focus();
       });
       document.querySelectorAll(".tab-panel").forEach((p) => { p.hidden = p.id !== "panel-" + name; });
-      if (!focus) setNavOpen(false);
       if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
       window.scrollTo(0, 0);
       document.dispatchEvent(new CustomEvent("sb-tab", { detail: name }));
@@ -1867,7 +1786,7 @@
     // Red counter on the Credit tab: applications waiting for a check.
     function mirrorBadge(sourceId, badgeId) {
       const src = $(sourceId), badge = $(badgeId);
-      const sync = () => { const n = parseInt(src.textContent, 10) || 0; badge.textContent = n; badge.hidden = !n; $("nav-dot").hidden = !n; };
+      const sync = () => { const n = parseInt(src.textContent, 10) || 0; badge.textContent = n; badge.hidden = !n; };
       new MutationObserver(sync).observe(src, { childList: true, characterData: true, subtree: true });
       sync();
     }
@@ -2257,7 +2176,7 @@
     function setupUsersTab() {
       const staff = !!me.staff;
       $("tab-users").hidden = !staff && !me.manager;
-      $("tab-users").firstChild.textContent = me.manager ? "Users" : "My password";
+      $("tab-users").querySelector(".tab-label").textContent = me.manager ? "Users" : "My password";
       $("tab-activity").hidden = !me.manager;
       $("mypw-btn").hidden = !staff;
       $("mypw-card").hidden = !staff;
