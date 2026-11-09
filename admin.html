@@ -1250,7 +1250,6 @@
         catalogue failed with a payment issue. <a href="https://business.facebook.com/billing_hub/accounts/" target="_blank" rel="noopener">Check your balance and recharge</a>, then send one test.</div>
             <section class="card" aria-labelledby="send-title">
         <h2 id="send-title"><span class="step">1</span> Choose what to send</h2>
-        <p class="muted">Pick the items and the look. Then check who gets it (step 2) and press Send (step 3).</p>
         <div class="send-modes" role="radiogroup" aria-label="What to send">
           <label class="check"><input type="radio" name="send-mode" value="pick" checked> <span><strong>Ticked
                 items</strong> &mdash; <span id="pick-summary">loading&hellip;</span></span></label>
@@ -1267,24 +1266,18 @@
         <label class="site-field" style="margin:4px 0 12px;"><span class="cat-label">Message above the photos <span
               id="intro-count">0 / 500</span></span>
           <textarea id="intro-text" maxlength="500" rows="2"></textarea></label>
-        <p class="muted" style="margin:-6px 0 12px;">Customers see: <em id="intro-preview-line">From Sharhan Broilers: <span
+        <p class="muted" style="margin:-6px 0 12px;" hidden>Customers see: <em id="intro-preview-line">From Sharhan Broilers: <span
               id="intro-preview"></span> Thank you.</em> WhatsApp needs those few fixed words around your text. (Shows
           once the new designs are approved in the WhatsApp setup tab; then a change needs no approval.)</p>
         <label class="site-field" style="margin:4px 0 12px;"><span class="cat-label">Message before the 11th photo <span
               id="intro2-count">0 / 500</span></span>
           <textarea id="intro2-text" maxlength="500" rows="2"></textarea></label>
-        <p class="muted" style="margin:-6px 0 12px;">WhatsApp allows 10 photos in one message, so a full catalogue of
-          more than 10 goes as two messages, the second as soon as the first reaches the customer. This text goes above the second one, with the same fixed words. If you leave
-          it empty, the first message is not repeated: WhatsApp can't send it blank, so it shows the short line
-          &ldquo;Sharhan Broilers catalogue&rdquo;.</p>
         <div class="row-form" style="margin:-4px 0 14px;"><button class="btn secondary small" id="intro-save"
             type="button">Save message</button></div>
       </section>
 
       <section class="card" aria-labelledby="cust-title">
         <h2 id="cust-title"><span class="step">2</span> Choose who gets it</h2>
-        <p class="muted">Only add customers who have agreed to receive the catalogue on WhatsApp. Tick who should get
-          the next catalogue &mdash; unticked customers are skipped.</p>
         <div class="cust-tools">
           <span class="badge" id="cust-count">0 of 0 ticked</span>
           <button class="btn secondary small" id="cust-all">Tick all</button>
@@ -1314,7 +1307,6 @@
 
       <section class="card send-now" aria-labelledby="sendnow-title">
         <h2 id="sendnow-title"><span class="step">3</span> Send</h2>
-        <p class="muted">Sends to everyone ticked in step 2.</p>
         <button class="btn" id="send-btn">Send Catalogue Now</button>
         <div class="status" id="send-status" role="status"></div>
       </section>
@@ -1325,7 +1317,6 @@
           <div class="usage-box"><span class="muted">Today</span><strong id="usage-today">–</strong></div>
           <div class="usage-box"><span class="muted">This month</span><strong id="usage-month">–</strong></div>
         </div>
-        <p class="muted">Meta's approximate figures for delivered paid messages; GST is extra. Your balance and recharge are on Meta's page.</p>
         <div class="row-form">
           <a class="btn small" href="https://business.facebook.com/billing_hub/accounts/" target="_blank" rel="noopener">Recharge / see balance</a>
           <button type="button" class="btn secondary small" id="usage-refresh">Refresh usage</button>
@@ -1335,9 +1326,6 @@
 
       <section class="card" aria-labelledby="unsub-title">
         <details class="card-fold"><summary><h2 id="unsub-title">Said STOP (unsubscribed) <span class="badge" id="unsub-count">0</span></h2></summary>
-        <p class="muted">Customers who tapped <strong>Stop</strong> or replied <strong>STOP</strong> (or turned off marketing messages in WhatsApp).
-          They are never sent the catalogue again &mdash; not by &ldquo;Send Catalogue Now&rdquo; and not by the automatic
-          reply. Only the customer can undo it, by sending <strong>START</strong> to your WhatsApp.</p>
         <table>
           <thead><tr><th>Name</th><th>Phone</th><th>Unsubscribed</th><th>How</th></tr></thead>
           <tbody id="unsub-body"></tbody>
@@ -1350,17 +1338,12 @@
       <div class="tab-panel" role="tabpanel" id="panel-credit" aria-labelledby="tab-credit" hidden>
       <section class="card" aria-labelledby="capp-title">
         <h2 id="capp-title">Credit applications <span class="badge" id="capp-count">0 waiting</span></h2>
-        <p class="muted">Customers who chose credit in the order form and uploaded self-attested Aadhaar, PAN and a
-          business document. Check the photos, then <strong>Approve</strong> (adds them to the next list) or
-          <strong>Reject</strong>. These are sensitive documents: delete the photos once you no longer need them.</p>
         <div class="status" id="capp-status" role="status"></div>
         <div id="capp-list"></div>
       </section>
 
       <section class="card" aria-labelledby="credit-title">
         <h2 id="credit-title">Credit-approved customers <span class="badge" id="credit-count">0</span></h2>
-        <p class="muted">&ldquo;On Credit&rdquo; in the order form only works for these mobile numbers. Enter how many
-          credit days each customer gets. The list stays private.</p>
         <table>
           <thead><tr><th>Customer</th><th>Mobile</th><th>Credit days</th><th></th></tr></thead>
           <tbody id="credit-rows"></tbody>
@@ -1377,8 +1360,6 @@
 
       <section class="card" aria-labelledby="pay-title">
         <h2 id="pay-title">Bank QR &amp; UPI</h2>
-        <p class="muted"><strong>Bank QR / UPI:</strong> shown as &ldquo;Pay Sharhan Broilers&rdquo; in the order form
-          and on the website. Leave a box empty to hide that line.</p>
         <div class="pay-grid">
           <div class="pay-qr-box">
             <img id="pay-qr-img" alt="Payment QR code" width="160" height="160" style="display:none;">
@@ -1410,15 +1391,6 @@
       <section class="card" aria-labelledby="cat-title">
         <h2 id="cat-title">Catalogue <span class="badge" id="cat-count">0 / 15</span> <span class="badge"
             id="wa-count">0 ticked for WhatsApp</span></h2>
-        <p class="muted">One list for both WhatsApp and the website&rsquo;s <strong>Fresh Stock</strong> section. Tick
-          <strong>Send on WhatsApp</strong> on 2&ndash;10 items to choose what &ldquo;Ticked items&rdquo; sends; their
-          photos, names and text go out exactly as saved here. <strong>Photos:</strong> tall (portrait) photos work best
-          &mdash; the whole photo is kept and white sides are added, like a shop catalogue. Each upload makes two
-          versions: a square one for the swipe carousel (WhatsApp always shows carousel cards wide/square) and a tall
-          9:16 one for the photo-by-photo catalogue customers get when they ask for it, and for the website&rsquo;s
-          full-screen product page. Items with a placeholder photo stay hidden on the website until a real photo is
-          uploaded.
-        </p>
         <div id="cat-list"></div>
         <div class="row-form">
           <input type="text" id="new-item-name" maxlength="60" placeholder="New item name (e.g. Chicken Lollipop)"
@@ -1435,9 +1407,6 @@
       <div class="tab-panel" role="tabpanel" id="panel-orders" aria-labelledby="tab-orders" hidden>
       <section class="card" aria-labelledby="formitems-title">
         <h2 id="formitems-title">Order form products <span class="badge" id="formitems-count">0</span></h2>
-        <p class="muted">The products in the website&rsquo;s order form, top to bottom. Tick <strong>Fresh</strong>
-          and/or <strong>Frozen</strong> for the tables each product appears in. Hindi and Marathi names are optional;
-          customers who pick that language see them next to the English name. Orders always arrive in English.</p>
         <div class="fi-wrap">
           <table class="fi-table">
             <thead><tr><th>Product (English)</th><th>हिंदी</th><th>मराठी</th><th>Fresh</th><th>Frozen</th><th></th></tr></thead>
@@ -1453,9 +1422,6 @@
 
       <section class="card" aria-labelledby="recip-title">
         <h2 id="recip-title">Order recipients</h2>
-        <p class="muted">Where the website&rsquo;s order form sends orders. <strong>Email:</strong> one email goes to
-          both addresses. <strong>WhatsApp:</strong> the order opens for the first number; the customer is then asked to
-          send the same order to the second number with one more tap. Leave a second box empty to use only one.</p>
         <div class="recip-grid">
           <label class="site-field"><span class="cat-label">WhatsApp number 1</span><input type="text" id="recip-wa1"
               inputmode="tel" placeholder="e.g. 9820132880"></label>
@@ -1474,9 +1440,6 @@
       <div class="tab-panel" role="tabpanel" id="panel-website" aria-labelledby="tab-website" hidden>
       <section class="card" aria-labelledby="site-title">
         <h2 id="site-title">Website content</h2>
-        <p class="muted">Photos and text on the homepage. Open a section, make changes, then <strong>Save website
-            changes</strong> &mdash; visitors see them on their next page load. Products in Fresh Stock come from the
-          catalogue above.</p>
         <div id="site-sections"></div>
         <div class="sticky-save">
           <button class="btn" id="save-site-btn" disabled>Save website changes</button>
@@ -1488,20 +1451,12 @@
       <div class="tab-panel" role="tabpanel" id="panel-whatsapp" aria-labelledby="tab-whatsapp" hidden>
       <section class="card" aria-labelledby="auto-title">
         <h2 id="auto-title">Catalogue on request</h2>
-        <p class="muted">When a customer sends <strong>&ldquo;Catalogue&rdquo;</strong>, &ldquo;Hi&rdquo;,
-          &ldquo;Menu&rdquo; or &ldquo;Price list&rdquo; to your business WhatsApp (+91 86558 15013), they automatically
-          get the ticked items as <strong>tall photos, one per item</strong>, each with its details and an order link
-          &mdash; at most once every 12 hours each. Because the customer messaged first, WhatsApp delivers it even when
-          a sent-out catalogue would be held back, and doesn&rsquo;t charge for it. They&rsquo;re also added to
-          Customers.</p>
         <label class="check" style="font-size:17px;margin:6px 0 14px;"><input type="checkbox" id="auto-reply-on">
           <strong>Auto-reply is on</strong></label>
         <div class="auto-share">
           <div id="auto-qr" class="auto-qr" role="img"
             aria-label="QR code that opens WhatsApp to ask for the catalogue"></div>
           <div class="auto-share-text">
-            <p class="muted" style="margin-top:0;">Share this link (or print the QR code). It opens WhatsApp with
-              &ldquo;Catalogue&rdquo; already typed &mdash; the customer just taps Send.</p>
             <input type="text" id="auto-link" readonly aria-label="Catalogue request link">
             <div class="row-form">
               <button class="btn secondary small" id="auto-copy">Copy link</button>
@@ -1516,31 +1471,17 @@
 
       <section class="card" aria-labelledby="tpl-title">
         <h2 id="tpl-title">WhatsApp approval</h2>
-        <p class="muted"><strong>Big-photo slider (no prices).</strong> One swipeable message: each card is a big square
-          photo, a small box with your website, and <em>Enroll Now</em> and <em>Stop</em> buttons.
-          Enroll Now opens the order form with that item already marked; Stop unsubscribes the customer. Above the
-          photos goes the message you write in the Send catalogue tab. (WhatsApp writes the box&rsquo;s title from the web address:
-          &ldquo;Pages&rdquo; now, most likely &ldquo;Sharhan&rdquo; once sharhan.co.in is connected.) Approved once per
-          number of items (2&ndash;10). Sizes marked &ldquo;older version&rdquo; still work; submit the update and each
-          switches over by itself once WhatsApp approves it.</p>
         <div id="tpl-photo" class="tpl"></div>
         <div class="row-form">
           <button class="btn" id="submit-photo-all-btn">Submit update for all sizes</button>
           <button class="btn secondary" id="submit-photo-test-btn">Submit for current ticked count</button>
         </div>
-        <p class="muted" style="margin-top:22px;"><strong>Photo + text slider.</strong> Wide photo with the item&rsquo;s
-          card text underneath (<em>your text</em>, then &ldquo;Tap Enroll Now to order, delivered fresh across
-          Mumbai.&rdquo;) and an <em>Enroll Now</em> button that opens the order form with that item marked. Used when
-          Card style is &ldquo;Photo + text below&rdquo;.</p>
         <div id="tpl-text" class="tpl"></div>
         <div class="row-form">
           <button class="btn secondary" id="submit-text-all-btn">Submit photo + text style (all sizes)</button>
         </div>
         <details class="site-sec" style="margin-top:14px;">
           <summary>Product cards with prices (not in use)</summary>
-          <p class="muted">Big square photo, name and price per kg, with a <em>View</em> button that opens
-            WhatsApp&rsquo;s own product page. WhatsApp requires a price on every product, so these are only used for
-            ticked items that have a price.</p>
           <div id="tpl-products" class="tpl"></div>
           <div class="row-form">
             <button class="btn secondary" id="submit-products-btn">Submit product-card format</button>
@@ -1551,15 +1492,10 @@
         </details>
         <details class="site-sec">
           <summary>Older formats (backup only)</summary>
-          <p class="muted"><strong>Photo + text slider.</strong> Used only if the big-photo slider isn&rsquo;t approved
-            for the number of ticked items.</p>
           <div id="tpl-pick"></div>
           <div class="row-form">
             <button class="btn secondary" id="submit-pick-btn">Submit photo + text formats</button>
           </div>
-          <p class="muted" style="margin-top:18px;"><strong>Old fixed full catalogue.</strong> No longer needed:
-            &ldquo;Full catalogue&rdquo; now sends every item as big-photo sliders (10 + 5). Its &ldquo;Shop now&rdquo;
-            links still point to the old Surge address.</p>
           <div id="tpl-live"></div>
           <div id="tpl-pending"></div>
           <div class="row-form">
@@ -1576,7 +1512,6 @@
       <div class="tab-panel" role="tabpanel" id="panel-inbox" aria-labelledby="tab-inbox" hidden>
       <section class="card" aria-labelledby="inbox-title">
         <h2 id="inbox-title">Inbox <span class="badge" id="inbox-count">0</span></h2>
-        <p class="muted">Replies from customers, newest first.</p>
         <div id="inbox-list"></div>
       </section>
       </div>
@@ -1584,8 +1519,6 @@
       <div class="tab-panel" role="tabpanel" id="panel-activity" aria-labelledby="tab-activity" hidden>
       <section class="card" aria-labelledby="activity-title">
         <h2 id="activity-title">Activity</h2>
-        <p class="muted">Who changed what: saves in every tab, catalogues sent, credit decisions, sign-ins and user
-          changes. Entries can't be edited or deleted.</p>
         <div class="act-chips" id="activity-ranges" role="group" aria-label="Dates">
           <button type="button" class="act-chip" data-range="today">Today</button>
           <button type="button" class="act-chip" data-range="yesterday">Yesterday</button>
@@ -1632,9 +1565,6 @@
       <div class="tab-panel" role="tabpanel" id="panel-users" aria-labelledby="tab-users" hidden>
       <section class="card" aria-labelledby="users-title" id="users-card" hidden>
         <h2 id="users-title">Users <span class="badge" id="users-count">0</span></h2>
-        <p class="muted">Everyone who can sign in to this admin panel with an ID and password. After 5 wrong
-          passwords in a row an ID is locked for 15 minutes &mdash; you can unlock it here. Switching a user off or
-          setting a new password signs them out straight away.</p>
         <div id="users-list"></div>
         <h3 class="pay-sub">Add a user</h3>
         <div class="pw-grid">
@@ -1653,7 +1583,6 @@
 
       <section class="card" aria-labelledby="mypw-title" id="mypw-card" hidden>
         <h2 id="mypw-title">My password</h2>
-        <p class="muted">Changing it signs you out on your other phones and computers.</p>
         <div class="pw-grid">
           <label class="login-field"><span class="cat-label">Current password</span>
             <input type="password" id="mypw-current" autocomplete="current-password"></label>
@@ -1669,9 +1598,6 @@
 
       <section class="card" aria-labelledby="mainadm-title" id="mainadm-card" hidden>
         <h2 id="mainadm-title">Main admin ID &amp; password</h2>
-        <p class="muted">You're signed in with the owner's email, so you can set the main admin's ID and a new
-          password here &mdash; for example after &ldquo;Forgot password?&rdquo;. The main admin can add, edit and
-          remove the other users.</p>
         <p class="muted" id="mainadm-now"></p>
         <div class="pw-grid">
           <label class="login-field"><span class="cat-label">Main admin ID</span>
@@ -1689,9 +1615,6 @@
 
       <section class="card" aria-labelledby="purge-title" id="purge-card" hidden>
         <details class="card-fold"><summary><h2 id="purge-title">Remove a number from all records</h2></summary>
-        <p class="muted">Permanently removes a mobile number from the customer list, Inbox, delivery records, credit and
-          Activity. Messages from that number stop showing in the Inbox and get no automatic reply. Their WhatsApp chat
-          with the business on their own phone isn't affected.</p>
         <div class="row-form">
           <label class="site-field" style="margin:0;"><span class="cat-label">Mobile number</span>
             <input type="tel" id="purge-number" maxlength="16" autocomplete="off" placeholder="10-digit number"></label>
@@ -2715,53 +2638,43 @@
     const SITE_SECTIONS = [
       {
         key: "slides", title: "Top banner slides", noun: "slide", list: true, min: 1, max: 6, required: true,
-        hint: "The rotating banner at the top. Computers show both photos with the words between them; phones show only the left photo.",
         fields: [{ k: "script", label: "Word in script", max: 30 }, { k: "sub", label: "Line under SHARHAN", max: 80 }],
         images: [{ k: "left", label: "Left photo" }, { k: "right", label: "Right photo" }]
       },
       {
         key: "about", title: "About us", list: false,
-        hint: "The About Us text near the top of the page.",
         fields: [{ k: "heading", label: "Heading", max: 120 }, { k: "p1", label: "First paragraph", area: true, max: 600 }, { k: "p2", label: "Second paragraph", area: true, max: 900 }]
       },
       {
         key: "certificates", title: "Certificates", noun: "certificate", list: true, min: 0, max: 12,
-        hint: "Shown under About Us; the section stays hidden until a certificate has a photo. Upload a clear photo or screenshot. The whole page shows, uncropped, and anyone can open it large, so cover anything that shouldn't be public.",
         fields: [{ k: "name", label: "Name", max: 60 }], images: [{ k: "image", label: "Photo" }]
       },
       {
-        key: "categories", title: "Category strip (hidden on the homepage; used for the menu's product photos)", noun: "category", list: true, min: 1, max: 12, required: true,
-        hint: "The row of photos under About Us. On phones, tapping a photo opens it large with the short detail below it. Leave the detail empty to use the catalogue item with the same name.",
+        key: "categories", title: "Category strip (hidden)", noun: "category", list: true, min: 1, max: 12, required: true,
         fields: [{ k: "name", label: "Name", max: 40 }, { k: "detail", label: "Short detail (optional)", area: true, max: 200 }], images: [{ k: "image", label: "Photo" }]
       },
       {
         key: "packs", title: "Packs", noun: "pack", list: true, min: 1, max: 12, required: true,
-        hint: "The Packs row under Fresh Stock. Tall (portrait) photos look best.",
         fields: [{ k: "name", label: "Name", max: 40 }], images: [{ k: "image", label: "Photo" }]
       },
       {
         key: "cuts", title: "A Cut For Every Kitchen", noun: "cut", list: true, min: 1, max: 8, required: true,
-        hint: "One large photo at a time, with arrows to the next cut. Tall (portrait) photos look best.",
         fields: [{ k: "label", label: "Cut name", max: 40 }], images: [{ k: "image", label: "Photo" }]
       },
       {
-        key: "bundle", title: "Frequently Ordered Together (hidden on the homepage)", noun: "product", list: true, min: 1, max: 8, required: true,
-        hint: "The product cards beside the large photo. Tall (portrait) photos look best.",
+        key: "bundle", title: "Frequently Ordered Together (hidden)", noun: "product", list: true, min: 1, max: 8, required: true,
         fields: [{ k: "fit", label: "Small label (e.g. Bone-In)", max: 20 }, { k: "name", label: "Name", max: 80 }], images: [{ k: "image", label: "Photo" }]
       },
       {
-        key: "extras", title: "Also From Our Floor (hidden on the homepage)", noun: "item", list: true, min: 1, max: 12, required: true,
-        hint: "The black-and-white row of square photos near the bottom. On phones, tapping a photo opens it large with the short detail below it. Leave the detail empty to use the catalogue item with the same name.",
+        key: "extras", title: "Also From Our Floor (hidden)", noun: "item", list: true, min: 1, max: 12, required: true,
         fields: [{ k: "name", label: "Name", max: 40 }, { k: "detail", label: "Short detail (optional)", area: true, max: 200 }], images: [{ k: "image", label: "Photo" }]
       },
       {
         key: "gallery", title: "Photo grid", noun: "photo", list: true, min: 1, max: 8, required: true,
-        hint: "The square photos at the very bottom, above the footer.",
         fields: [], images: [{ k: "image", label: "Photo" }]
       },
       {
         key: "visit", title: "Visit us", list: false,
-        hint: "The wide banner with the Locate Our Unit button. Wide (landscape) photos look best.",
         fields: [{ k: "text", label: "Text", area: true, max: 400 }], images: [{ k: "image", label: "Background photo" }]
       },
     ];
@@ -2854,7 +2767,7 @@
         }
 
         const summary = el("summary", { textContent: sec.title + (sec.list ? " (" + site[sec.key].length + ")" : "") });
-        const det = el("details", { className: "site-sec", open: open.has(sec.key) }, [summary, el("p", { className: "muted", textContent: sec.hint }), body]);
+        const det = el("details", { className: "site-sec", open: open.has(sec.key) }, [summary, body]);
         det.dataset.key = sec.key;
         root.appendChild(det);
       });
