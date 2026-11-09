@@ -21,7 +21,7 @@ Cloudflare Worker for WhatsApp and credit, Firestore for editable content.
   STOP/START), template submit/send, catalogue images in KV, `/credit-check`, `/credit-apply`,
   admin-only `/kyc/...`.
 - `functions/p/[slug].js` — Cloudflare Pages Function behind WhatsApp "Enroll Now" buttons: the item's own page
-  (photo, description, other products, Order Now). Order Now goes to `/?item=<id>&order=1`, which shows only the form.
+  (photo, description, other products, Enroll Now). Its Enroll Now button goes to `/?item=<id>&order=1`, which shows only the form.
 - `firestore.rules` — security rules.
 - `tools/build_public.py` — copies the public files into `dist/` (an allowlist).
 
@@ -57,6 +57,8 @@ Live: https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (s
   records" clears a number; `hidden_numbers` keeps only its hash, and the webhook then ignores it.
 - KYC photos (Aadhaar/PAN/cheque/selfie/signature) are sensitive: they are only served to signed-in admins.
   Only the last 4 Aadhaar digits are collected as text; the order form's saved copy must never hold KYC fields.
+- Homepage sections Categories, Cold Chain banner, Frequently Ordered Together, Portioned banner and Also From Our Floor
+  are hidden with `display:none`. Keep the Categories cards in the page: the menu's product names open their photos.
 - WhatsApp usage, Recharge and the payment alert in Admin → Send are hidden for now (`USAGE_ON` in admin.html).
 - eKYC (KYC form, selfie, signature, terms, admin PDF and share) is built but switched off until its bill is approved:
   to turn it on set `SB_EKYC` in index.html, `EKYC_TOOLS` in admin.html and `EKYC = "on"` in wrangler.toml.

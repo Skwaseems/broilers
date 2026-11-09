@@ -634,7 +634,7 @@
         </div>
       </div>
       <div style="padding:22px 20px; text-align:center; background:#fff;">
-        <a href="#stock" style="min-height:46px; display:inline-flex; align-items:center; background:#846e3e; color:#fff; border-radius:999px; padding:0 34px; font-family:'Jost',sans-serif; font-size:13px; font-weight:500; letter-spacing:.09em; text-transform:uppercase;">Order Now</a>
+        <a href="#stock" style="min-height:46px; display:inline-flex; align-items:center; background:#846e3e; color:#fff; border-radius:999px; padding:0 34px; font-family:'Jost',sans-serif; font-size:13px; font-weight:500; letter-spacing:.09em; text-transform:uppercase;">Enroll Now</a>
       </div>
       <button id="sb-hero-prev-m" sc-camel-on-click="{{ prevSlide }}" aria-label="Previous" style="display:none;">←</button>
       <button id="sb-hero-next-m" sc-camel-on-click="{{ nextSlide }}" aria-label="Next" style="display:none;">→</button>
@@ -649,7 +649,7 @@
           <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:clamp(24px,2.6vw,46px); color:#f3efe7; line-height:1;">{{ slide.script }}</div>
           <div style="margin-top:clamp(10px,1vw,18px); font-family:'Cormorant Garamond',serif; font-size:clamp(22px,3vw,54px); letter-spacing:.14em; color:#fff; line-height:1.05; padding-left:.14em;">SHARHAN</div>
           <div style="margin-top:clamp(8px,.8vw,14px); font-family:'Jost',sans-serif; font-size:clamp(9px,.85vw,15px); letter-spacing:.3em; text-transform:uppercase; color:#e7e2d8; padding-left:.3em;">{{ slide.sub }}</div>
-          <a href="#stock" style="margin-top:clamp(22px,2.4vw,44px); min-height:46px; display:inline-flex; align-items:center; background:#fff; color:#1c1c22; border-radius:999px; padding:0 clamp(28px,2.6vw,46px); font-family:'Jost',sans-serif; font-size:clamp(11px,.85vw,15px); font-weight:500; letter-spacing:.09em; text-transform:uppercase; transition:background .3s, color .3s;" style-hover="background:#846e3e; color:#fff;">Order Now</a>
+          <a href="#stock" style="margin-top:clamp(22px,2.4vw,44px); min-height:46px; display:inline-flex; align-items:center; background:#fff; color:#1c1c22; border-radius:999px; padding:0 clamp(28px,2.6vw,46px); font-family:'Jost',sans-serif; font-size:clamp(11px,.85vw,15px); font-weight:500; letter-spacing:.09em; text-transform:uppercase; transition:background .3s, color .3s;" style-hover="background:#846e3e; color:#fff;">Enroll Now</a>
         </div>
         <div style="position:relative; overflow:hidden; min-height:clamp(300px,40vw,775px); background:{{ slide.rightBg }};"></div>
       </div>
@@ -697,7 +697,8 @@
     </section>
   </sc-if>
 
-  <section id="categories" style="max-width:1800px; margin:0 auto; padding:clamp(30px,5.4vw,104px) 0 clamp(26px,5vw,96px);">
+  <!-- Hidden, not deleted: the menu's product names open photos from these cards. -->
+  <section id="categories" style="display:none; max-width:1800px; margin:0 auto; padding:clamp(30px,5.4vw,104px) 0 clamp(26px,5vw,96px);">
     <h2 style="margin:0 0 clamp(14px,2.2vw,42px); padding:0 clamp(14px,3vw,60px); text-align:center; font-family:'Cormorant Garamond',serif; font-weight:400; font-size:clamp(19px,1.9vw,34px); letter-spacing:.05em; text-transform:uppercase; color:#2f2f3a;">Categories</h2>
     <div style="display:flex; gap:clamp(10px,1.7vw,32px); overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:0 clamp(14px,3vw,60px) 6px;">
       <sc-for list="{{ categories }}" as="cat" hint-placeholder-count="7">
@@ -792,7 +793,7 @@
     </div>
   </section>
 
-  <section style="position:relative; width:100%; aspect-ratio:{{ bannerRatio }}; display:flex; align-items:flex-end; background:linear-gradient(90deg,rgba(16,16,18,.78) 0%,rgba(16,16,18,.35) 55%,rgba(16,16,18,.1) 100%), url(&quot;/assets/img/3c5e5378.webp&quot;) center/cover no-repeat;">
+  <section style="display:none; position:relative; width:100%; aspect-ratio:{{ bannerRatio }}; align-items:flex-end; background:linear-gradient(90deg,rgba(16,16,18,.78) 0%,rgba(16,16,18,.35) 55%,rgba(16,16,18,.1) 100%), url(&quot;/assets/img/3c5e5378.webp&quot;) center/cover no-repeat;">
     <div style="padding:0 clamp(14px,3vw,60px) clamp(22px,3.4vw,64px); max-width:min(100%,720px);">
       <div style="font-family:'Cormorant Garamond',serif; font-weight:600; font-size:clamp(18px,1.8vw,32px); letter-spacing:.03em; text-transform:uppercase; color:#fff;">Cold Chain, End To End</div>
       <p style="margin:clamp(8px,1vw,18px) 0 0; font-family:'Jost',sans-serif; font-size:clamp(12px,1.05vw,19px); line-height:1.45; color:#fff; text-wrap:pretty;">Dressed, chilled and packed within ninety minutes of processing.</p>
@@ -800,7 +801,7 @@
     </div>
   </section>
 
-  <section style="max-width:1800px; margin:0 auto; padding:clamp(30px,5.4vw,104px) clamp(14px,3vw,60px);">
+  <section style="display:none; max-width:1800px; margin:0 auto; padding:clamp(30px,5.4vw,104px) clamp(14px,3vw,60px);">
     <h2 style="margin:0; text-align:center; font-family:'Cormorant Garamond',serif; font-weight:400; font-size:clamp(19px,1.9vw,34px); letter-spacing:.05em; text-transform:uppercase; color:#2f2f3a;">Frequently Ordered Together</h2>
     <div style="margin-top:clamp(6px,.8vw,14px); text-align:center; font-family:'Jost',sans-serif; font-size:clamp(12px,.83vw,15px); color:#4c5a63;">Standing Kitchen Line-Up</div>
     <div style="position:relative; margin-top:clamp(16px,2.4vw,44px); background:#fbfafa; display:grid; grid-template-columns:{{ bundleCols }}; align-items:stretch;">
@@ -838,7 +839,7 @@
     </div>
   </section>
 
-  <section style="position:relative; width:100%; aspect-ratio:{{ bannerRatio }}; display:flex; align-items:flex-end; background:linear-gradient(90deg,rgba(255,255,255,.7) 0%,rgba(255,255,255,.3) 55%,rgba(255,255,255,.08) 100%), url(&quot;/assets/img/117f8b71.webp&quot;) center/cover no-repeat;">
+  <section style="display:none; position:relative; width:100%; aspect-ratio:{{ bannerRatio }}; align-items:flex-end; background:linear-gradient(90deg,rgba(255,255,255,.7) 0%,rgba(255,255,255,.3) 55%,rgba(255,255,255,.08) 100%), url(&quot;/assets/img/117f8b71.webp&quot;) center/cover no-repeat;">
     <div style="padding:0 clamp(14px,3vw,60px) clamp(22px,3.4vw,64px); max-width:min(100%,720px);">
       <div style="font-family:'Cormorant Garamond',serif; font-weight:600; font-size:clamp(18px,1.8vw,32px); letter-spacing:.03em; text-transform:uppercase; color:#1c1c22;">Portioned To Your Spec</div>
       <p style="margin:clamp(8px,1vw,18px) 0 0; font-family:'Jost',sans-serif; font-size:clamp(12px,1.05vw,19px); line-height:1.45; color:#2f2f3a; text-wrap:pretty;">Send us a gram weight and a piece count. We hold that spec every morning.</p>
@@ -846,7 +847,7 @@
     </div>
   </section>
 
-  <section style="max-width:1800px; margin:0 auto; padding:clamp(30px,5.4vw,104px) 0;">
+  <section style="display:none; max-width:1800px; margin:0 auto; padding:clamp(30px,5.4vw,104px) 0;">
     <h2 style="margin:0 0 clamp(14px,2.2vw,42px); padding:0 clamp(14px,3vw,60px); text-align:center; font-family:'Cormorant Garamond',serif; font-weight:400; font-size:clamp(19px,1.9vw,34px); letter-spacing:.05em; text-transform:uppercase; color:#2f2f3a;">Also From Our Floor</h2>
     <div style="display:flex; gap:clamp(10px,1.7vw,32px); overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:0 clamp(14px,3vw,60px) 6px;">
       <sc-for list="{{ extras }}" as="ex" hint-placeholder-count="7">
@@ -1484,7 +1485,7 @@ table.sb-table-booking{min-width:0;}
           <div class="sb-field"><label for="sb-delivery-time" data-i18n="deliveryTime">Time Of Delivery</label><select id="sb-delivery-time"><option value="" data-i18n="select">Select...</option><option value="Morning (6:00 AM - 12:00 Noon)" data-i18n="timeMorning">Morning (6:00 AM - 12:00 Noon)</option><option value="Afternoon (12:01 PM - 4:00 PM)" data-i18n="timeAfternoon">Afternoon (12:01 PM - 4:00 PM)</option><option value="Evening (4:00 PM onwards)" data-i18n="timeEvening">Evening (4:00 PM onwards)</option></select></div>
         </div>
 
-        <div class="sb-section-title" data-i18n="orderNowTitle">Order Now For Next Day Delivery</div>
+        <div class="sb-section-title" data-i18n="orderNowTitle">Enroll Now For Next Day Delivery</div>
         <div class="sb-checks">
           <label class="sb-check-item"><input type="checkbox" id="sb-booking-on" onchange="sbToggleBooking()"> <span data-i18n="bookingOn">Place an order for a specific day</span></label>
         </div>
@@ -1619,7 +1620,7 @@ table.sb-table-booking{min-width:0;}
       mapPlaceholder: 'Paste a Google Maps link, or tap Use My Location', useMyLocation: 'Use My Location', mapHint: 'Optional — helps our delivery team reach you.',
       checkOnMap: 'Check on map ↗', goodsReceiver: 'Goods Receiver', deliveryTime: 'Time Of Delivery',
       timeMorning: 'Morning (6:00 AM - 12:00 Noon)', timeAfternoon: 'Afternoon (12:01 PM - 4:00 PM)', timeEvening: 'Evening (4:00 PM onwards)',
-      orderNowTitle: 'Order Now For Next Day Delivery',
+      orderNowTitle: 'Enroll Now For Next Day Delivery',
       bookingOn: 'Place an order for a specific day', deliveryDate: 'Delivery Date', orderTotal: 'Order Total',
       packagingTitle: 'Commercials', kgPacking: 'Bigger Pack. Bigger Savings.', pack2: '2 kg', pack5: '5 kg (get ₹1 discount per kg)', pack10: '10 kg (get ₹2 discount per kg)', pack20: '20 kg (get ₹3 discount per kg)', rateSelection: 'Rate Selection', rateDaily: 'Daily Market Published Rate', rateWeekly: 'Weekly Fixed Rate', rateMonthly: 'Monthly Fixed Rate', rateAnnual: 'Annually Fixed Rate', paymentTerms: 'Payment Terms', payCredit: 'On Credit', paySame: 'Same Day',
       payTitle: 'Pay Sharhan Broilers', accMobile: 'Accounting Incharge Mobile No.', remarks: 'Remarks', preview: 'Message Preview', copyText: 'Copy Text',
@@ -1630,8 +1631,8 @@ table.sb-table-booking{min-width:0;}
       packHint: 'Quantities must be in multiples of {n} kg ({n}, {n2}, {n3}…).',
       packError: 'With your packing choice, quantities must be in multiples of {n} kg. Please correct the boxes marked in red.',
       cutoffMoved: 'That date is past the 3:00 PM cutoff, so the delivery date has been moved to {date}. Please check and send again.',
-      bookingEmpty: 'Please enter at least one quantity in the Order Now table, or untick "Place an order for a specific day".',
-      qtyEmpty: 'Please enter at least one quantity in the weekly requirement table or the Order Now table.',
+      bookingEmpty: 'Please enter at least one quantity in the Enroll Now table, or untick "Place an order for a specific day".',
+      qtyEmpty: 'Please enter at least one quantity in the weekly requirement table or the Enroll Now table.',
       locFinding: 'Finding your location…', locAdded: 'Location added (accurate to about {m} m). Make sure it’s the delivery address.',
       locBlocked: 'Location permission was blocked — allow it in the browser, or paste a Google Maps link instead.',
       locFailed: 'Couldn’t get your location — please try again or paste a Google Maps link.',
@@ -2931,7 +2932,7 @@ table.sb-table-booking{min-width:0;}
   // document, run after any existing React handler (e.g. the mobile nav's
   // closeNav) has already fired, that recognizes the target commercial CTAs
   // by their existing text/aria-label/title/section and opens the form.
-  var SB_TEXT_MATCHES = ['Get A Quote', 'Order Now', 'Get Quote →', 'Share Your Spec', 'View More →', 'Place A Weekly Order'];
+  var SB_TEXT_MATCHES = ['Get A Quote', 'Enroll Now', 'Get Quote →', 'Share Your Spec', 'View More →', 'Place A Weekly Order'];
   function sbMatchTarget(a){
     if (!a || a.tagName !== 'A') return false;
     var aria = a.getAttribute('aria-label') || '';
@@ -3483,7 +3484,7 @@ table.sb-table-booking{min-width:0;}
 <script>
 (function(){
   var MOBILE_MAX = 760; // same breakpoint as the homepage's isMobile
-  var TITLES = { categories: 'Categories', stock: "Today's Fresh Stock", extras: 'Also From Our Floor', certificates: 'Certificates' };
+  var TITLES = { categories: 'Products', stock: "Today's Fresh Stock", extras: 'Also From Our Floor', certificates: 'Certificates' };
   var groupKey = '';
   var root, title, count, img, prev, next, badges, nameEl, detail, packs, cta, closeBtn;
   var group = [], index = 0, current = null, pushed = false, lastFocus = null;
