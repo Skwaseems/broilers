@@ -2811,7 +2811,7 @@
         fields: [{ k: "name", label: "Name", max: 60 }], images: [{ k: "image", label: "Photo" }]
       },
       {
-        key: "categories", title: "Category strip", noun: "category", list: true, min: 1, max: 12, required: true,
+        key: "categories", title: "Category strip (hidden on the homepage; used for the menu's product photos)", noun: "category", list: true, min: 1, max: 12, required: true,
         hint: "The row of photos under About Us. On phones, tapping a photo opens it large with the short detail below it. Leave the detail empty to use the catalogue item with the same name.",
         fields: [{ k: "name", label: "Name", max: 40 }, { k: "detail", label: "Short detail (optional)", area: true, max: 200 }], images: [{ k: "image", label: "Photo" }]
       },
@@ -2826,12 +2826,12 @@
         fields: [{ k: "label", label: "Cut name", max: 40 }], images: [{ k: "image", label: "Photo" }]
       },
       {
-        key: "bundle", title: "Frequently Ordered Together", noun: "product", list: true, min: 1, max: 8, required: true,
+        key: "bundle", title: "Frequently Ordered Together (hidden on the homepage)", noun: "product", list: true, min: 1, max: 8, required: true,
         hint: "The product cards beside the large photo. Tall (portrait) photos look best.",
         fields: [{ k: "fit", label: "Small label (e.g. Bone-In)", max: 20 }, { k: "name", label: "Name", max: 80 }], images: [{ k: "image", label: "Photo" }]
       },
       {
-        key: "extras", title: "Also From Our Floor", noun: "item", list: true, min: 1, max: 12, required: true,
+        key: "extras", title: "Also From Our Floor (hidden on the homepage)", noun: "item", list: true, min: 1, max: 12, required: true,
         hint: "The black-and-white row of square photos near the bottom. On phones, tapping a photo opens it large with the short detail below it. Leave the detail empty to use the catalogue item with the same name.",
         fields: [{ k: "name", label: "Name", max: 40 }, { k: "detail", label: "Short detail (optional)", area: true, max: 200 }], images: [{ k: "image", label: "Photo" }]
       },
