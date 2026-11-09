@@ -4,6 +4,8 @@
 // underneath; the Home button is the way there. Also carries og: tags for link previews.
 // (Pages Function.)
 const FIRESTORE = "https://firestore.googleapis.com/v1/projects/sharhan-broilers/databases/(default)/documents/catalogue?pageSize=200";
+const ORDER_TO = "https://firestore.googleapis.com/v1/projects/sharhan-broilers/databases/(default)/documents/site_content/orders";
+const WHATSAPP_PATH = "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z";
 const FONTS = "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Jost:wght@400;500&display=swap";
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -35,7 +37,18 @@ for(var y=0;y<h;y++)for(var k=0;k<w;k++){var p=(y*w+k)*4;if(d[p]<238||d[p+1]<238
 if(top<0)return;var r=w/(end-top+1);i.style.aspectRatio=String(r);i.style.width="min(100%,calc(70vh*"+r+"))";i.style.width="min(100%,calc(70svh*"+r+"))";i.style.objectFit="cover";
 }catch(e){}}if(i.complete&&i.naturalWidth)t();else i.addEventListener("load",t);})();`;
 
-function page(site, item, others) {
+// The first number in Admin → Order form → Order recipients.
+async function enquiryNumber() {
+  try {
+    const res = await fetch(ORDER_TO, { cf: { cacheTtl: 300 } });
+    const list = (await res.json()).fields.whatsapp.arrayValue.values;
+    return String(list[0].stringValue).replace(/\D/g, "") || "919820132880";
+  } catch (e) {
+    return "919820132880";
+  }
+}
+
+function page(site, item, others, whatsapp) {
   const url = `/p/${item.id}`;
   const order = `/?item=${item.id}&order=1`;
   const name = esc(item.name);
@@ -75,6 +88,8 @@ h2{margin:0 0 12px;font-family:'Cormorant Garamond',serif;font-weight:600;font-s
 .card{display:block;font-size:13px;line-height:1.3;text-align:center}
 .card img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:#f6f5f3;border:1px solid #eceae7;border-radius:3px;margin-bottom:6px}
 .order{position:fixed;left:0;right:0;bottom:0;z-index:2;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #eceae7}
+.wa{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:3;display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;background:#25d366;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.wa svg{width:31px;height:31px;fill:currentColor}
 .order a{display:flex;align-items:center;justify-content:center;max-width:608px;min-height:50px;margin:0 auto;background:#846e3e;color:#fff;border-radius:3px;font-size:16px;font-weight:500;letter-spacing:.06em}
 </style></head><body>
 <header class="top"><a class="brand" href="/">Sharhan Broilers</a><a class="home" href="/">Home</a></header>
@@ -83,6 +98,7 @@ ${item.photo ? `<img id="photo" src="${esc(item.photo)}" alt="${name}" crossorig
 <div class="about"><h1>${name}</h1>${item.desc ? `<p>${esc(item.desc)}</p>` : ""}</div>
 ${cards ? `<section class="more"><h2>Other products</h2><div class="grid">${cards}</div></section>` : ""}
 </main>
+<a class="wa" href="https://wa.me/${whatsapp}?text=${encodeURIComponent("Hi Sharhan Broilers, I have an enquiry.")}" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${WHATSAPP_PATH}"/></svg></a>
 <div class="order"><a href="${esc(order)}">Enroll Now</a></div>
 <script>${TRIM_BANDS}</script>
 </body></html>`;
@@ -106,5 +122,5 @@ export async function onRequestGet({ params, request }) {
   const item = items.find((it) => it.id === slug);
   if (!item) return Response.redirect(site + "/", 302); // e.g. an old message's deleted item
   const others = items.filter((it) => it.id !== slug && it.listed && it.thumb).sort((a, b) => a.order - b.order);
-  return new Response(page(site, item, others), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=300" } });
+  return new Response(page(site, item, others, await enquiryNumber()), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=300" } });
 }
