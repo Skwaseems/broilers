@@ -61,7 +61,8 @@ Live: https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (s
   are hidden with `display:none`. Keep the Categories cards in the page: the menu's product names open their photos.
 - The order form has two steps: the weekly requirement, then, once that is sent (`weeklySent` in the saved form), only
   Enroll Now For Next Day Delivery. The customer's saved details and that flag are cleared together on sign-out.
-- Customer item rates: Admin → Order form → Customer rates writes `customer_rates/{mobile}`; the form's Enroll Now step
+- Customer item rates: Admin → Rates, only for the main admin, IDs `admin` and `hanif`, and the two Google emails listed in
+  `RATE_ADMINS` (admin.html) and `canSetRates()` (firestore.rules): change both. It writes `customer_rates/{mobile}`; the form's Enroll Now step
   gets one number's rates from the Worker's `/customer-rates`, so anyone who types a number sees that number's rates.
 - Sending the weekly requirement records the customer in `form_customers/{mobile}` (via the Worker's `/form-customer`) so
   they appear in Customer rates. It's kept apart from `whatsapp_customers`, the catalogue list, which needs their consent.
