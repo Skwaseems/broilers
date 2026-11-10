@@ -1,5 +1,5 @@
 // /p/<item> — the "Enroll Now" / "Enquire Now" link on WhatsApp catalogue cards.
-// The item's own page: full photo, short description, other products, and an Enroll Now
+// The item's own page: full photo, short description, other products, and a "Fill approx. Weekly needs"
 // button that opens only the order form (/?item=<item>&order=1). None of the homepage is
 // underneath; the Home button is the way there. Also carries og: tags for link previews.
 // (Pages Function.)
@@ -102,7 +102,7 @@ ${item.photo ? `<img id="photo" src="${esc(item.photo)}" alt="${name}" crossorig
 ${cards ? `<section class="more"><h2>Other products</h2><div class="grid">${cards}</div></section>` : ""}
 </main>
 <a class="wa" href="https://wa.me/${whatsapp}?text=${encodeURIComponent("Hi Sharhan Broilers, I have an enquiry.")}" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${WHATSAPP_PATH}"/></svg></a>
-<div class="order"><a href="${esc(order)}">Enroll Now</a></div>
+<div class="order"><a href="${esc(order)}">Fill approx. Weekly needs</a></div>
 <script>${TRIM_BANDS}</script>
 </body></html>`;
 }
