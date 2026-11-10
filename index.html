@@ -1289,6 +1289,7 @@ html.sb-form-only body>*:not(#sb-overlay){display:none!important;}
 /* The form has two steps: the weekly requirement, then (once that is sent) only Enroll Now. */
 #sb-form:not(.sb-stage-enroll) .sb-enroll-part{display:none!important;}
 .sb-rate-line{margin-top:2px;font-size:12px;font-weight:400;line-height:1.3;color:#6e5b32;}
+.sb-pack-line{margin-top:2px;font-size:12px;font-weight:400;line-height:1.3;color:#54535c;}
 #sb-form.sb-stage-enroll>:not(.sb-enroll-part):not(.sb-send-row):not(.sb-wa-second),#sb-form.sb-stage-enroll>.sb-enroll-checks{display:none!important;}
 html.sb-form-only .sb-overlay{display:flex;background:#fff;padding:0;}
 html.sb-form-only .sb-modal{max-width:none;min-height:100vh;margin:0;border-radius:0;box-shadow:none;overflow:visible;}
@@ -1631,7 +1632,7 @@ table.sb-table-booking{min-width:0;}
       mapPlaceholder: 'Paste a Google Maps link, or tap Use My Location', useMyLocation: 'Use My Location', mapHint: 'Optional — helps our delivery team reach you.',
       checkOnMap: 'Check on map ↗', goodsReceiver: 'Goods Receiver', deliveryTime: 'Time Of Delivery',
       timeMorning: 'Morning (6:00 AM - 12:00 Noon)', timeAfternoon: 'Afternoon (12:01 PM - 4:00 PM)', timeEvening: 'Evening (4:00 PM onwards)',
-      rateOnConfirm: 'Rate on confirmation', orderAmount: 'Amount', afterPackDiscount: 'after ₹{n} per kg packing discount', someOnConfirm: 'Some items: rate on confirmation',
+      rateOnConfirm: 'Rate on confirmation', orderAmount: 'Amount', afterPackDiscount: 'after ₹{n} per kg discount on full packs', someOnConfirm: 'Some items: rate on confirmation',
       modifyWeekly: 'Modify Weekly Requirement',
       orderNowTitle: 'Enroll Now For Next Day Delivery',
       bookingOn: 'Place an order for a specific day', deliveryDate: 'Delivery Date', orderTotal: 'Order Total',
@@ -1641,7 +1642,7 @@ table.sb-table-booking{min-width:0;}
       waSecondText: 'Sent it? Please also send the same order to our second WhatsApp number — one more tap.', alsoSendTo: 'Also Send To', openedFor: '✓ Opened For',
       item: 'Item', itemKg: 'Item (Kg)', dailyTotal: 'Daily Total', total: 'Total',
       dayMon: 'Mon', dayTue: 'Tue', dayWed: 'Wed', dayThu: 'Thu', dayFri: 'Fri', daySat: 'Sat', daySun: 'Sun',
-      packHint: 'Quantities must be in multiples of {n} kg ({n}, {n2}, {n3}…).',
+      packHint: 'Quantities must be in multiples of {n} kg ({n}, {n2}, {n3}…).', packInfo: 'Packed in {n} kg packs. Anything that does not fill a full pack is sent loose, with no pack discount.', packSplit: '{p} × {n} kg', looseKg: '{k} kg loose', packingLabel: 'Packing',
       packError: 'With your packing choice, quantities must be in multiples of {n} kg. Please correct the boxes marked in red.',
       cutoffMoved: 'That date is past the 3:00 PM cutoff, so the delivery date has been moved to {date}. Please check and send again.',
       bookingEmpty: 'Please enter at least one quantity.',
@@ -1713,7 +1714,7 @@ table.sb-table-booking{min-width:0;}
       mapPlaceholder: 'गूगल मैप्स लिंक पेस्ट करें, या "मेरी लोकेशन" दबाएँ', useMyLocation: 'मेरी लोकेशन', mapHint: 'वैकल्पिक — इससे हमारी डिलीवरी टीम को आप तक पहुँचने में मदद मिलती है।',
       checkOnMap: 'मैप पर देखें ↗', goodsReceiver: 'माल लेने वाला', deliveryTime: 'डिलीवरी का समय',
       timeMorning: 'सुबह (6:00 AM - 12:00 दोपहर)', timeAfternoon: 'दोपहर (12:01 PM - 4:00 PM)', timeEvening: 'शाम (4:00 PM के बाद)',
-      rateOnConfirm: 'कन्फ़र्मेशन पर रेट', orderAmount: 'राशि', afterPackDiscount: '₹{n} प्रति किलो पैकिंग छूट के बाद', someOnConfirm: 'कुछ आइटम: कन्फ़र्मेशन पर रेट',
+      rateOnConfirm: 'कन्फ़र्मेशन पर रेट', orderAmount: 'राशि', afterPackDiscount: 'पूरे पैक पर ₹{n} प्रति किलो छूट के बाद', someOnConfirm: 'कुछ आइटम: कन्फ़र्मेशन पर रेट',
       modifyWeekly: 'साप्ताहिक ज़रूरत बदलें',
       orderNowTitle: 'अगले दिन की डिलीवरी के लिए अभी ऑर्डर करें',
       bookingOn: 'किसी खास दिन के लिए ऑर्डर दें', deliveryDate: 'डिलीवरी की तारीख', orderTotal: 'ऑर्डर कुल',
@@ -1723,7 +1724,7 @@ table.sb-table-booking{min-width:0;}
       waSecondText: 'भेज दिया? कृपया यही ऑर्डर हमारे दूसरे WhatsApp नंबर पर भी भेजें — बस एक और टैप।', alsoSendTo: 'यहाँ भी भेजें:', openedFor: '✓ खोला गया:',
       item: 'आइटम', itemKg: 'आइटम (किलो)', dailyTotal: 'दैनिक कुल', total: 'कुल',
       dayMon: 'सोम', dayTue: 'मंगल', dayWed: 'बुध', dayThu: 'गुरु', dayFri: 'शुक्र', daySat: 'शनि', daySun: 'रवि',
-      packHint: 'मात्रा {n} किलो के गुणक में होनी चाहिए ({n}, {n2}, {n3}…)।',
+      packHint: 'मात्रा {n} किलो के गुणक में होनी चाहिए ({n}, {n2}, {n3}…)।', packInfo: '{n} किलो के पैक में पैकिंग होगी। जो मात्रा पूरा पैक नहीं भरती, वो खुली भेजी जाएगी और उस पर पैक की छूट नहीं मिलेगी।', packSplit: '{p} × {n} किलो', looseKg: '{k} किलो खुला', packingLabel: 'पैकिंग',
       packError: 'आपकी पैकिंग के अनुसार मात्रा {n} किलो के गुणक में होनी चाहिए। कृपया लाल रंग वाले खाने ठीक करें।',
       cutoffMoved: 'वह तारीख दोपहर 3:00 बजे की समय-सीमा के बाद की है, इसलिए डिलीवरी की तारीख {date} कर दी गई है। कृपया जाँच कर फिर से भेजें।',
       bookingEmpty: 'कृपया कम से कम एक मात्रा भरें।',
@@ -1795,7 +1796,7 @@ table.sb-table-booking{min-width:0;}
       mapPlaceholder: 'गूगल मॅप्स लिंक पेस्ट करा, किंवा "माझे लोकेशन" दाबा', useMyLocation: 'माझे लोकेशन', mapHint: 'पर्यायी — यामुळे आमच्या डिलिव्हरी टीमला तुमच्यापर्यंत पोहोचायला मदत होते.',
       checkOnMap: 'मॅपवर पहा ↗', goodsReceiver: 'माल घेणारी व्यक्ती', deliveryTime: 'डिलिव्हरीची वेळ',
       timeMorning: 'सकाळ (6:00 AM - 12:00 दुपार)', timeAfternoon: 'दुपार (12:01 PM - 4:00 PM)', timeEvening: 'संध्याकाळ (4:00 PM नंतर)',
-      rateOnConfirm: 'पुष्टीनंतर दर', orderAmount: 'रक्कम', afterPackDiscount: '₹{n} प्रति किलो पॅकिंग सूट नंतर', someOnConfirm: 'काही आयटम: पुष्टीनंतर दर',
+      rateOnConfirm: 'पुष्टीनंतर दर', orderAmount: 'रक्कम', afterPackDiscount: 'पूर्ण पॅकवर ₹{n} प्रति किलो सूट नंतर', someOnConfirm: 'काही आयटम: पुष्टीनंतर दर',
       modifyWeekly: 'साप्ताहिक गरज बदला',
       orderNowTitle: 'दुसऱ्या दिवशीच्या डिलिव्हरीसाठी आत्ता ऑर्डर करा',
       bookingOn: 'ठराविक दिवसासाठी ऑर्डर द्या', deliveryDate: 'डिलिव्हरीची तारीख', orderTotal: 'ऑर्डर एकूण',
@@ -1805,7 +1806,7 @@ table.sb-table-booking{min-width:0;}
       waSecondText: 'पाठवले? कृपया हीच ऑर्डर आमच्या दुसऱ्या WhatsApp नंबरवरही पाठवा — फक्त अजून एक टॅप.', alsoSendTo: 'येथेही पाठवा:', openedFor: '✓ उघडले:',
       item: 'आयटम', itemKg: 'आयटम (किलो)', dailyTotal: 'दैनिक एकूण', total: 'एकूण',
       dayMon: 'सोम', dayTue: 'मंगळ', dayWed: 'बुध', dayThu: 'गुरु', dayFri: 'शुक्र', daySat: 'शनि', daySun: 'रवि',
-      packHint: 'प्रमाण {n} किलोच्या पटीत असावे ({n}, {n2}, {n3}…).',
+      packHint: 'प्रमाण {n} किलोच्या पटीत असावे ({n}, {n2}, {n3}…).', packInfo: '{n} किलोच्या पॅकमध्ये पॅकिंग होईल. जे प्रमाण पूर्ण पॅक भरत नाही ते सुटे पाठवले जाईल आणि त्यावर पॅकची सूट मिळणार नाही.', packSplit: '{p} × {n} किलो', looseKg: '{k} किलो सुटे', packingLabel: 'पॅकिंग',
       packError: 'तुमच्या पॅकिंगनुसार प्रमाण {n} किलोच्या पटीत असावे. कृपया लाल रंगातील रकाने दुरुस्त करा.',
       cutoffMoved: 'ती तारीख दुपारी 3:00 च्या मुदतीनंतरची आहे, म्हणून डिलिव्हरीची तारीख {date} केली आहे. कृपया तपासून पुन्हा पाठवा.',
       bookingEmpty: 'कृपया किमान एक प्रमाण भरा.',
@@ -1968,7 +1969,7 @@ table.sb-table-booking{min-width:0;}
           return SB_PKG_ITEMS[pkg].indexOf(item) === -1 ? '<td class="sb-na" aria-label="Not available">&mdash;</td>'
             : '<td>' + sbQtyInput('data-bk="' + pkg + '" data-item="' + sbEsc(item) + '"', 'Booking ' + pkg + ' ' + item) + '</td>';
         };
-        b += '<tr><td class="sb-item-col">' + sbEsc(sbItemLabel(item)) + '<div class="sb-rate-line" data-rate-item="' + sbEsc(item) + '"></div></td>' + cell('fresh') + cell('frozen') + '</tr>';
+        b += '<tr><td class="sb-item-col">' + sbEsc(sbItemLabel(item)) + '<div class="sb-rate-line" data-rate-item="' + sbEsc(item) + '"></div><div class="sb-pack-line" data-pack-item="' + sbEsc(item) + '" style="display:none;"></div></td>' + cell('fresh') + cell('frozen') + '</tr>';
       });
       b += '<tr class="sb-total-row"><td class="sb-item-col">' + sbT('total') + '</td><td class="sb-bk-total" data-bk="fresh">0</td><td class="sb-bk-total" data-bk="frozen">0</td></tr></tbody>';
       bt.innerHTML = b;
@@ -2181,17 +2182,51 @@ table.sb-table-booking{min-width:0;}
     return v > 0 ? v : 0;
   }
   function sbRupees(n){ return '₹' + (Math.round(n * 100) / 100).toLocaleString('en-IN'); }
-  // What the typed quantities come to. The pack's discount per kg comes off each rate.
+  // Full packs and the loose rest, e.g. 23 kg in 10 kg packs = 2 packs + 3 kg loose.
+  function sbPackSplit(q, step){
+    if (!step || !(q > 0)) return { packs: 0, loose: q > 0 ? q : 0 };
+    var packs = Math.floor(q / step + 1e-9);
+    return { packs: packs, loose: Math.round((q - packs * step) * 1000) / 1000 };
+  }
+  // "2 × 10 kg + 3 kg loose": in the customer's language, or English for the order message.
+  function sbPackText(q, step, english){
+    var p = sbPackSplit(q, step), parts = [];
+    if (p.packs) parts.push(english ? p.packs + ' × ' + step + 'kg' : sbT('packSplit').replace('{p}', p.packs).replace('{n}', step));
+    if (p.loose) parts.push(english ? p.loose + 'kg loose' : sbT('looseKg').replace('{k}', p.loose));
+    return parts.join(' + ');
+  }
+  // For the order message: " (2 × 10kg + 3kg loose)", " (loose)" when no full pack, "" when it fills packs exactly.
+  function sbPackNote(q, step){
+    var p = sbPackSplit(q, step);
+    return !step || !p.loose ? '' : p.packs ? ' (' + sbPackText(q, step, true) + ')' : ' (loose)';
+  }
+  // What the typed quantities come to. The pack's discount per kg comes off only the kg in full packs.
   function sbBookingAmount(){
-    var off = { 5: 1, 10: 2, 20: 3 }[sbBookingPackStep()] || 0, amount = 0, unpriced = false;
+    var step = sbBookingPackStep(), off = { 5: 1, 10: 2, 20: 3 }[step] || 0, amount = 0, unpriced = false;
     sbBookingRows().forEach(function(r){
       ['fresh', 'frozen'].forEach(function(pkg){
         if (!r[pkg]) return;
         var rate = sbRate(r.item, pkg);
-        if (rate) amount += Math.max(rate - off, 0) * r[pkg]; else unpriced = true;
+        if (!rate) { unpriced = true; return; }
+        var full = off ? sbPackSplit(r[pkg], step).packs * step : 0;
+        amount += Math.max(rate - off, 0) * full + rate * (r[pkg] - full);
       });
     });
-    return { amount: amount, unpriced: unpriced, off: off };
+    return { amount: Math.round(amount * 100) / 100, unpriced: unpriced, off: off };
+  }
+  // Under each item in the next-day order: how it will be packed.
+  function sbShowPacking(){
+    var step = sbBookingPackStep();
+    document.querySelectorAll('[data-pack-item]').forEach(function(el){
+      var item = el.getAttribute('data-pack-item'), parts = [];
+      if (step) ['fresh', 'frozen'].forEach(function(pkg){
+        var box = document.querySelector('input[data-bk="' + pkg + '"][data-item="' + item + '"]');
+        var q = box && box.value ? parseFloat(box.value) : 0;
+        if (q > 0) parts.push(sbT(pkg) + ' ' + sbPackText(q, step));
+      });
+      el.textContent = parts.length ? sbT('packingLabel') + ': ' + parts.join(' · ') : '';
+      el.style.display = parts.length ? '' : 'none';
+    });
   }
   function sbShowRates(){
     document.querySelectorAll('[data-rate-item]').forEach(function(el){
@@ -2438,6 +2473,7 @@ table.sb-table-booking{min-width:0;}
     if (cf) cf.textContent = tf;
     if (cz) cz.textContent = tz;
     sbShowRates();
+    sbShowPacking();
     var t = document.getElementById('sb-booking-total');
     if (t) t.textContent = tf + tz;
   }
@@ -2456,12 +2492,12 @@ table.sb-table-booking{min-width:0;}
   // "5kg (₹1 per kg discount)", as listed in the dropdowns; the message stays in English.
   function sbPackLabel(kg){
     var off = { 5: 1, 10: 2, 20: 3 }[kg];
-    return kg + 'kg' + (off ? ' (₹' + off + ' per kg discount)' : '');
+    return kg + 'kg' + (off ? ' (₹' + off + ' per kg discount on full packs)' : '');
   }
   function sbShowPackHint(id, step){
     var hint = document.getElementById(id);
     if (!hint) return;
-    hint.textContent = step ? sbT('packHint').replace(/\{n\}/g, step).replace('{n2}', step * 2).replace('{n3}', step * 3) : '';
+    hint.textContent = !step ? '' : SB_PACK_MULTIPLES ? sbT('packHint').replace(/\{n\}/g, step).replace('{n2}', step * 2).replace('{n3}', step * 3) : sbT('packInfo').replace(/\{n\}/g, step);
     hint.style.display = step ? 'block' : 'none';
   }
   function sbQtyVisible(el){
@@ -2483,8 +2519,8 @@ table.sb-table-booking{min-width:0;}
       el.classList.toggle('sb-qty-bad', wrong);
       if (wrong) bad++;
     });
-    sbShowPackHint('sb-pack-hint', SB_PACK_MULTIPLES ? weekly : 0);
-    sbShowPackHint('sb-booking-pack-hint', SB_PACK_MULTIPLES ? booking : 0);
+    sbShowPackHint('sb-pack-hint', weekly);
+    sbShowPackHint('sb-booking-pack-hint', booking);
     return bad;
   }
   window.sbPackBadCount = sbApplyPackStep;
@@ -2511,7 +2547,7 @@ table.sb-table-booking{min-width:0;}
         var v = el && el.value ? parseFloat(el.value) : 0;
         if (isNaN(v) || v <= 0) return;
         dayTotal += v;
-        itemLines.push('   • ' + item + ': ' + v + 'kg');
+        itemLines.push('   • ' + item + ': ' + v + 'kg' + sbPackNote(v, sbPackStep()));
       });
       if (!itemLines.length) return;
       weekTotal += dayTotal;
@@ -2598,14 +2634,14 @@ table.sb-table-booking{min-width:0;}
       booking.rows.forEach(function(r){
         var parts = [];
         var at = function(pkg){ var rate = sbRate(r.item, pkg); return rate ? ' @ ' + sbRupees(rate) + '/kg' : ' (rate on confirmation)'; };
-        if (r.fresh) parts.push('Fresh ' + r.fresh + 'kg' + at('fresh'));
-        if (r.frozen) parts.push('Frozen ' + r.frozen + 'kg' + at('frozen'));
+        if (r.fresh) parts.push('Fresh ' + r.fresh + 'kg' + sbPackNote(r.fresh, bookingPackKg) + at('fresh'));
+        if (r.frozen) parts.push('Frozen ' + r.frozen + 'kg' + sbPackNote(r.frozen, bookingPackKg) + at('frozen'));
         bf += r.fresh; bz += r.frozen;
         lines.push('   • ' + r.item + ': ' + parts.join(', '));
       });
       lines.push('*ORDER TOTAL: ' + (bf + bz) + 'kg*' + (bf && bz ? ' (Fresh ' + bf + 'kg, Frozen ' + bz + 'kg)' : ''));
       var due = sbBookingAmount();
-      if (due.amount) lines.push('*ORDER AMOUNT: ' + sbRupees(due.amount) + '*' + (due.off ? ' (after ₹' + due.off + ' per kg packing discount)' : '') + (due.unpriced ? ' + items at rate on confirmation' : ''));
+      if (due.amount) lines.push('*ORDER AMOUNT: ' + sbRupees(due.amount) + '*' + (due.off ? ' (after ₹' + due.off + ' per kg discount on full packs)' : '') + (due.unpriced ? ' + items at rate on confirmation' : ''));
       lines.push('*Packing for this order:* ' + (bookingPackKg ? sbPackLabel(bookingPackKg) : 'Not specified'));
       lines.push('');
     }
