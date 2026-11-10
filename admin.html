@@ -757,6 +757,28 @@
       color: #8a231f;
     }
 
+    .balance-now {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 4px 12px;
+      margin: 0 0 12px;
+    }
+
+    .balance-now strong {
+      font-size: 28px;
+    }
+
+    #balance-amount {
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      font-family: 'Jost', sans-serif;
+      font-size: 16px;
+      color: var(--ink);
+      background: #fff;
+    }
+
     .usage-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -1486,6 +1508,22 @@
         <h2 id="sendnow-title"><span class="step">3</span> Send</h2>
         <button class="btn" id="send-btn">Send Catalogue Now</button>
         <div class="status" id="send-status" role="status"></div>
+      </section>
+
+      <section class="card" aria-labelledby="balance-title">
+        <h2 id="balance-title">WhatsApp balance</h2>
+        <div class="balance-now"><strong id="balance-left">–</strong><span class="muted" id="balance-when"></span></div>
+        <div class="row-form">
+          <a class="btn small" href="https://business.facebook.com/latest/billing_hub/accounts/details/?payment_account_id=2096768997605920&amp;business_id=1298570663343048&amp;asset_id=27938981485780059" target="_blank" rel="noopener">Recharge</a>
+          <button type="button" class="btn secondary small" id="balance-edit">Update balance</button>
+        </div>
+        <div id="balance-form" hidden>
+          <div class="row-form">
+            <input type="number" id="balance-amount" min="0" step="0.01" inputmode="decimal" placeholder="Balance in Meta (₹)" aria-label="Balance shown in Meta billing, in rupees">
+            <button type="button" class="btn secondary small" id="balance-save">Save</button>
+          </div>
+        </div>
+        <div class="status" id="balance-status" role="status"></div>
       </section>
 
       <section class="card" aria-labelledby="usage-title" hidden>
@@ -3519,6 +3557,48 @@
       }
     });
 
+    // ---------- WhatsApp balance (approximate: Meta has no API for it) ----------
+    let balanceAt = 0;
+    function showBalance(b) {
+      balanceAt = Date.now();
+      $("balance-left").textContent = b.known ? "≈ ₹" + b.left.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "Not set";
+      $("balance-when").textContent = b.known ? "Updated " + new Date(b.at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "";
+      if (!b.known) $("balance-form").hidden = false;
+    }
+    async function loadBalance() {
+      balanceAt = Date.now();
+      try {
+        showBalance(await api("/balance"));
+        setStatus("balance-status", "", "");
+      } catch (e) {
+        setStatus("balance-status", "Couldn't load the balance: " + e.message, "err");
+      }
+    }
+    $("balance-edit").addEventListener("click", () => {
+      const form = $("balance-form");
+      form.hidden = !form.hidden;
+      if (!form.hidden) $("balance-amount").focus();
+    });
+    $("balance-save").addEventListener("click", async () => {
+      const text = $("balance-amount").value.trim();
+      const amount = Number(text);
+      if (!text || !Number.isFinite(amount) || amount < 0) return setStatus("balance-status", "Enter the balance in rupees.", "err");
+      const btn = $("balance-save");
+      btn.disabled = true;
+      setStatus("balance-status", "Saving…", "");
+      try {
+        showBalance(await api("/balance-set", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount }) }));
+        $("balance-amount").value = "";
+        $("balance-form").hidden = true;
+        setStatus("balance-status", "Saved.", "ok");
+      } catch (e) {
+        setStatus("balance-status", "Couldn't save: " + e.message, "err");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+    document.addEventListener("sb-tab", (e) => { if (e.detail === "send" && auth.currentUser && Date.now() - balanceAt > 60000) loadBalance(); });
+
     // ---------- WhatsApp usage & balance ----------
     const USAGE_ON = false; // hidden for now: true needs "hidden" removed from the usage card too
     let usageAt = 0;
@@ -3698,6 +3778,7 @@
       });
 
       loadUsage();
+      loadBalance();
       if (canSetRates()) loadRateList();
       statusUnsub = db.collection("whatsapp_status_log").orderBy("timestamp", "desc").limit(300).onSnapshot((snap) => {
         latestStatus = summarizeStatuses(snap.docs.map((doc) => doc.data()));

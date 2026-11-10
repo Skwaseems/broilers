@@ -67,7 +67,9 @@ Live: https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (s
 - Sending the weekly requirement records the customer in `form_customers/{mobile}` (via the Worker's `/form-customer`) so
   they appear in Customer rates. It's kept apart from `whatsapp_customers`, the catalogue list, which needs their consent.
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
-- WhatsApp usage, Recharge and the payment alert in Admin → Send are hidden for now (`USAGE_ON` in admin.html).
+- Admin → Send shows an approximate WhatsApp balance and a Recharge link. Meta has no API for the balance: an admin types Meta's figure
+  (`settings/whatsapp_balance`) and the Worker's `/balance` subtracts Meta's charges since then plus 18% GST. It needs retyping after each recharge.
+- WhatsApp usage (today / this month) and the payment alert in Admin → Send are hidden for now (`USAGE_ON` in admin.html).
 - eKYC (KYC form, selfie, signature, terms, admin PDF and share) is built but switched off until its bill is approved:
   to turn it on set `SB_EKYC` in index.html, `EKYC_TOOLS` in admin.html and `EKYC = "on"` in wrangler.toml.
 - The eKYC declaration and terms are in both index.html and the Worker (`KYC_DECLARATION`, `KYC_TERMS`): change both.
