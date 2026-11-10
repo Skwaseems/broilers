@@ -33,6 +33,11 @@ service cloud.firestore {
       return request.auth.token.get('sb_user', '') != '' ? request.auth.token.sb_user : request.auth.token.get('email', '');
     }
 
+    // Who may see and set customer rates (RATE_ADMINS in admin.html shows or hides the tab).
+    function canSetRates() {
+      return isManager() || (isAdmin() && actor() in ['admin', 'hanif', 'waseemshaikh597@gmail.com', 'bagbanhanif@gmail.com']);
+    }
+
     // The main admin ID, or the owner's Google email.
     function isManager() {
       return isAdmin() && (request.auth.token.get('sb_role', '') == 'main'
@@ -93,12 +98,12 @@ service cloud.firestore {
     // Worker; admins read them and record approve / reject.
     // Customers who sent the order form - written by the Worker, read by admins.
     match /form_customers/{mobile} {
-      allow read: if isAdmin();
+      allow read: if canSetRates();
       allow write: if false;
     }
     // Item rates per customer: admins only. The order form gets one number's rates from the Worker.
     match /customer_rates/{mobile} {
-      allow read, write: if isAdmin();
+      allow read, write: if canSetRates();
     }
     match /credit_applications/{mobile} {
       allow read, update: if isAdmin();

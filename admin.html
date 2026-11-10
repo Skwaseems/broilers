@@ -1413,6 +1413,7 @@
       <div class="tab-more" id="tab-more">
         <button type="button" role="tab" id="tab-whatsapp" aria-controls="panel-whatsapp" data-tab="whatsapp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5Z"/></svg><span class="tab-label">WhatsApp</span></button>
         <button type="button" role="tab" id="tab-orders" aria-controls="panel-orders" data-tab="orders"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg><span class="tab-label">Order form</span></button>
+        <button type="button" role="tab" id="tab-rates" aria-controls="panel-rates" data-tab="rates" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg><span class="tab-label">Rates</span></button>
         <button type="button" role="tab" id="tab-website" aria-controls="panel-website" data-tab="website"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><span class="tab-label">Website</span></button>
         <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" data-tab="activity" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span class="tab-label">Activity</span></button>
         <button type="button" role="tab" id="tab-users" aria-controls="panel-users" data-tab="users" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span class="tab-label">Users</span></button>
@@ -1596,21 +1597,6 @@
         <div class="status" id="fi-status" role="status"></div>
       </section>
 
-      <section class="card" aria-labelledby="rates-title">
-        <h2 id="rates-title">Customer rates</h2>
-        <input type="search" class="cust-search" id="rates-search" placeholder="Search name or number" aria-label="Search customers by name or number" autocomplete="off">
-        <div class="rates-matches" id="rates-matches"></div>
-        <div id="rates-editor" hidden>
-          <p class="rates-who" id="rates-who"></p>
-          <table class="rates-table">
-            <thead><tr><th>Item</th><th>Fresh ₹/kg</th><th>Frozen ₹/kg</th></tr></thead>
-            <tbody id="rates-rows"></tbody>
-          </table>
-          <div class="row-form"><button class="btn" id="rates-save" type="button">Save rates</button></div>
-        </div>
-        <div class="status" id="rates-status" role="status"></div>
-      </section>
-
       <section class="card" aria-labelledby="recip-title">
         <h2 id="recip-title">Order recipients</h2>
         <div class="recip-grid">
@@ -1625,6 +1611,23 @@
         </div>
         <div class="row-form"><button class="btn" id="recip-save">Save recipients</button></div>
         <div class="status" id="recip-status" role="status"></div>
+      </section>
+      </div>
+
+      <div class="tab-panel" role="tabpanel" id="panel-rates" aria-labelledby="tab-rates" hidden>
+      <section class="card" aria-labelledby="rates-title">
+        <h2 id="rates-title">Customer rates</h2>
+        <input type="search" class="cust-search" id="rates-search" placeholder="Search name or number" aria-label="Search customers by name or number" autocomplete="off">
+        <div class="rates-matches" id="rates-matches"></div>
+        <div id="rates-editor" hidden>
+          <p class="rates-who" id="rates-who"></p>
+          <table class="rates-table">
+            <thead><tr><th>Item</th><th>Fresh ₹/kg</th><th>Frozen ₹/kg</th></tr></thead>
+            <tbody id="rates-rows"></tbody>
+          </table>
+          <div class="row-form"><button class="btn" id="rates-save" type="button">Save rates</button></div>
+        </div>
+        <div class="status" id="rates-status" role="status"></div>
       </section>
       </div>
 
@@ -2305,6 +2308,7 @@
       $("tab-users").hidden = !staff && !me.manager;
       $("tab-users").querySelector(".tab-label").textContent = me.manager ? "Users" : "My password";
       $("tab-activity").hidden = !me.manager;
+      $("tab-rates").hidden = !canSetRates();
       $("mypw-btn").hidden = !staff;
       $("mypw-card").hidden = !staff;
       $("mainadm-card").hidden = !me.owner;
@@ -2313,6 +2317,7 @@
       if (me.manager) loadUsers();
       if (location.hash === "#users") showTab($("tab-users").hidden ? "send" : "users");
       if (location.hash === "#activity") showTab(me.manager ? "activity" : "send");
+      if (location.hash === "#rates") showTab(canSetRates() ? "rates" : "send");
       if (RECOVERY_LINK && me.owner) { showTab("users"); setStatus("mainadm-status", "Signed in with the recovery link. Set a new main admin password below.", "ok"); $("mainadm-pw").focus(); }
     }
 
@@ -3396,6 +3401,9 @@
     });
 
     // ---------- Customer rates: customer_rates/{10-digit mobile} = { name, rates: { item: { fresh, frozen } } } ----------
+    // Who may see and set rates. The same list is in firestore.rules (canSetRates), which enforces it.
+    const RATE_ADMINS = ["admin", "hanif", "waseemshaikh597@gmail.com", "bagbanhanif@gmail.com"];
+    function canSetRates() { return !!me.manager || RATE_ADMINS.includes(String(me.user || "").toLowerCase()); }
     let rateCustomers = {}; // mobile -> saved doc, for "has rates" in the search
     let formCustomers = []; // people who sent the order form (form_customers), newest first
     let rateMobile = "", rateName = "";
@@ -3460,7 +3468,7 @@
       setStatus("rates-status", "", "");
     }
     $("rates-search").addEventListener("input", renderRateMatches);
-    document.addEventListener("sb-tab", (e) => { if (e.detail === "orders" && auth.currentUser) loadRateList(); });
+    document.addEventListener("sb-tab", (e) => { if (e.detail === "rates" && auth.currentUser && canSetRates()) loadRateList(); });
     $("rates-save").addEventListener("click", async () => {
       const rates = {};
       let count = 0;
@@ -3690,7 +3698,7 @@
       });
 
       loadUsage();
-      loadRateList();
+      if (canSetRates()) loadRateList();
       statusUnsub = db.collection("whatsapp_status_log").orderBy("timestamp", "desc").limit(300).onSnapshot((snap) => {
         latestStatus = summarizeStatuses(snap.docs.map((doc) => doc.data()));
         $("usage-alert").hidden = !USAGE_ON || !paymentBlocked(snap.docs.map((doc) => doc.data()));
