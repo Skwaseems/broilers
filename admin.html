@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <!-- SEO:START -->
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="/favicon.ico" sizes="any">
@@ -73,7 +73,7 @@
       width: 100%;
       max-width: 940px;
       margin: 0 auto;
-      padding: 20px 16px calc(160px + env(safe-area-inset-bottom));
+      padding: 20px 16px calc(96px + env(safe-area-inset-bottom));
     }
 
     @media (min-width: 720px) {
@@ -82,7 +82,7 @@
       }
     }
 
-    /* Menu: app-style icons floating along the bottom of the screen */
+    /* Menu: an app-style row of icons along the bottom. On phones, four icons and More. */
     #app {
       grid-template-columns: minmax(0, 1fr);
       align-content: start;
@@ -90,20 +90,16 @@
 
     .tabs {
       position: fixed;
-      left: 8px;
-      right: 8px;
-      bottom: calc(8px + env(safe-area-inset-bottom));
+      left: 0;
+      right: 0;
+      bottom: 0;
       z-index: 30;
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 2px;
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 6px;
+      padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
       background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      box-shadow: 0 6px 24px rgba(20, 18, 14, .18);
+      border-top: 1px solid var(--line);
+      box-shadow: 0 -2px 12px rgba(20, 18, 14, .08);
     }
 
     .tabs button {
@@ -113,6 +109,7 @@
       align-items: center;
       justify-content: center;
       gap: 3px;
+      min-width: 0;
       min-height: 56px;
       padding: 4px 2px;
       border: 0;
@@ -120,18 +117,15 @@
       background: none;
       color: var(--muted);
       font-family: 'Jost', sans-serif;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.1;
       cursor: pointer;
-    }
-
-    .tabs button:hover {
-      color: var(--ink);
+      -webkit-tap-highlight-color: transparent;
     }
 
     .tabs button svg {
-      width: 23px;
-      height: 23px;
+      width: 24px;
+      height: 24px;
       fill: none;
       stroke: currentColor;
       stroke-width: 1.8;
@@ -139,23 +133,96 @@
       stroke-linejoin: round;
     }
 
-    .tabs button[aria-selected="true"] {
-      background: var(--ink);
-      color: #fff;
+    .tab-label {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tabs button[aria-selected="true"],
+    .tabs .tab-more-btn.active {
+      color: var(--gold);
+      font-weight: 600;
     }
 
     .tabs .tab-badge {
       position: absolute;
-      top: 2px;
+      top: 1px;
       left: calc(50% + 6px);
       margin: 0;
     }
 
+    .tab-more {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: calc(100% + 8px);
+      display: none;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px;
+      padding: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 6px 24px rgba(20, 18, 14, .22);
+    }
+
+    .tab-more.open {
+      display: grid;
+    }
+
+    .tab-more button {
+      min-height: 68px;
+    }
+
+    @media (max-width: 719px) {
+      body.typing .tabs {
+        display: none;
+      }
+    }
+
     @media (min-width: 720px) {
       .tabs {
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
         grid-template-columns: none;
         grid-auto-flow: column;
         grid-auto-columns: minmax(0, 1fr);
+        gap: 2px;
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 6px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: 0 6px 24px rgba(20, 18, 14, .18);
+      }
+
+      .tabs button {
+        font-size: 14px;
+      }
+
+      .tabs button:hover {
+        color: var(--ink);
+      }
+
+      .tabs button[aria-selected="true"] {
+        background: var(--ink);
+        color: #fff;
+        font-weight: 400;
+      }
+
+      .tab-more-btn {
+        display: none !important;
+      }
+
+      .tab-more {
+        display: contents;
+      }
+
+      .tab-more button {
+        min-height: 56px;
       }
     }
 
@@ -1235,13 +1302,16 @@
     <nav class="tabs" id="admin-nav" role="tablist" aria-label="Admin sections">
       <button type="button" role="tab" id="tab-send" aria-controls="panel-send" data-tab="send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg><span class="tab-label">Send</span></button>
       <button type="button" role="tab" id="tab-inbox" aria-controls="panel-inbox" data-tab="inbox"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-7a2 2 0 0 0-1.8-1H7.3a2 2 0 0 0-1.8 1Z"/></svg><span class="tab-label">Inbox</span></button>
-      <button type="button" role="tab" id="tab-whatsapp" aria-controls="panel-whatsapp" data-tab="whatsapp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5Z"/></svg><span class="tab-label">WhatsApp</span></button>
       <button type="button" role="tab" id="tab-credit" aria-controls="panel-credit" data-tab="credit"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span class="tab-label">Credit</span><span class="tab-badge" id="tab-badge-credit" hidden></span></button>
-      <button type="button" role="tab" id="tab-orders" aria-controls="panel-orders" data-tab="orders"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg><span class="tab-label">Order form</span></button>
       <button type="button" role="tab" id="tab-products" aria-controls="panel-products" data-tab="products"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 8-9-5-9 5v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><span class="tab-label">Products</span></button>
-      <button type="button" role="tab" id="tab-website" aria-controls="panel-website" data-tab="website"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><span class="tab-label">Website</span></button>
-      <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" data-tab="activity" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span class="tab-label">Activity</span></button>
-      <button type="button" role="tab" id="tab-users" aria-controls="panel-users" data-tab="users" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span class="tab-label">Users</span></button>
+      <button type="button" class="tab-more-btn" id="tab-more-btn" aria-expanded="false" aria-controls="tab-more"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="tab-label">More</span></button>
+      <div class="tab-more" id="tab-more">
+        <button type="button" role="tab" id="tab-whatsapp" aria-controls="panel-whatsapp" data-tab="whatsapp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5Z"/></svg><span class="tab-label">WhatsApp</span></button>
+        <button type="button" role="tab" id="tab-orders" aria-controls="panel-orders" data-tab="orders"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg><span class="tab-label">Order form</span></button>
+        <button type="button" role="tab" id="tab-website" aria-controls="panel-website" data-tab="website"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><span class="tab-label">Website</span></button>
+        <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" data-tab="activity" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span class="tab-label">Activity</span></button>
+        <button type="button" role="tab" id="tab-users" aria-controls="panel-users" data-tab="users" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span class="tab-label">Users</span></button>
+      </div>
     </nav>
     <div class="wrap">
 
@@ -1689,6 +1759,8 @@
         b.tabIndex = on ? 0 : -1;
         if (on && focus) b.focus();
       });
+      setMoreOpen(false);
+      $("tab-more-btn").classList.toggle("active", !!$("tab-more").querySelector('[aria-selected="true"]'));
       document.querySelectorAll(".tab-panel").forEach((p) => { p.hidden = p.id !== "panel-" + name; });
       if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
       window.scrollTo(0, 0);
@@ -1698,6 +1770,17 @@
       const b = e.target.closest("[data-tab]");
       if (b) showTab(b.dataset.tab);
     });
+    function setMoreOpen(open) {
+      $("tab-more").classList.toggle("open", open);
+      $("tab-more-btn").setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    $("tab-more-btn").addEventListener("click", () => setMoreOpen(!$("tab-more").classList.contains("open")));
+    document.addEventListener("click", (e) => { if (!e.target.closest("#admin-nav")) setMoreOpen(false); });
+    // On phones the keyboard would push the menu up over the box being typed in.
+    const opensKeyboard = (t) => t.matches && t.closest("#app") && t.matches('textarea, input:not([type="checkbox"], [type="radio"], [type="file"], [type="button"], [type="submit"])');
+    document.addEventListener("focusin", (e) => { if (opensKeyboard(e.target)) document.body.classList.add("typing"); });
+    document.addEventListener("focusout", (e) => { if (opensKeyboard(e.target)) document.body.classList.remove("typing"); });
+    document.addEventListener("pointerdown", (e) => { if (!opensKeyboard(e.target)) document.body.classList.remove("typing"); }); // a box removed while in use sends no focusout
     document.querySelector(".tabs").addEventListener("keydown", (e) => {
       if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
       const i = TAB_NAMES.indexOf(document.activeElement.dataset.tab);
