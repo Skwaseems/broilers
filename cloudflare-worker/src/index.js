@@ -76,6 +76,30 @@ async function whatsappUsage(env, now = Date.now()) {
   return { today: total(points.filter((p) => p.start >= today)), month: total(points) };
 }
 
+// ---- WhatsApp balance (Admin -> Send). Meta has no API for it, so an admin types the figure from
+// Billing (settings/whatsapp_balance) and this subtracts what Meta has charged since, plus 18% GST.
+// Meta deducts a day's charges the next day, so the typed figure doesn't include that day's sends yet:
+// counting starts at the beginning of the day (Indian time) it was typed.
+const WHATSAPP_GST = 1.18;
+async function whatsappCostSince(env, since, nowS) {
+  const fields = `pricing_analytics.start(${since}).end(${nowS}).granularity(DAILY).metric_types(COST,VOLUME).dimensions(PRICING_CATEGORY,PRICING_TYPE)`;
+  const data = await graph(env, `${env.META_WABA_ID}?fields=${encodeURIComponent(fields)}`);
+  const blocks = (data.pricing_analytics && data.pricing_analytics.data) || [];
+  return blocks.flatMap((b) => b.data_points || []).filter((p) => p.start >= since).reduce((sum, p) => sum + (p.cost || 0), 0);
+}
+async function whatsappBalance(env, now = Date.now()) {
+  const saved = await getDocument(env, "settings", "whatsapp_balance");
+  if (!saved || typeof saved.amount !== "number") return { known: false };
+  const spent = (await whatsappCostSince(env, saved.since, Math.floor(now / 1000))) * WHATSAPP_GST;
+  return { known: true, at: saved.at, left: Math.max(0, Math.round((saved.amount - spent) * 100) / 100) };
+}
+async function setWhatsappBalance(env, amount, now = Date.now()) {
+  const nowS = Math.floor(now / 1000);
+  const since = Math.floor((nowS + IST_SECONDS) / 86400) * 86400 - IST_SECONDS;
+  await setDocument(env, "settings", "whatsapp_balance", { amount, since, at: new Date(now).toISOString() });
+  return whatsappBalance(env, now);
+}
+
 // ---- Removing a number from every record (Admin → Users, main admin only) ----
 // hidden_numbers holds only a hash of each removed number and has no client access (no rule in
 // firestore.rules). The webhook then ignores that number, so it doesn't come back into the Inbox,
@@ -1378,7 +1402,7 @@ export default {
     try {
       user = await requireAuthorizedUser(request, env);
     } catch (e) {
-      if (["/inbox", "/usage", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
+      if (["/inbox", "/usage", "/balance", "/balance-set", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
         return json({ error: e.message }, 401);
       }
       return new Response("Not found", { status: 404 });
@@ -1416,6 +1440,24 @@ export default {
     if (path === "/usage" && request.method === "GET") {
       try {
         return json(await whatsappUsage(env));
+      } catch (e) {
+        return json({ error: e.message }, 502);
+      }
+    }
+
+    // Admin: the approximate WhatsApp balance, and correcting it from Meta's figure.
+    if (path === "/balance" && request.method === "GET") {
+      try {
+        return json(await whatsappBalance(env));
+      } catch (e) {
+        return json({ error: e.message }, 502);
+      }
+    }
+    if (path === "/balance-set" && request.method === "POST") {
+      const { amount } = await request.json().catch(() => ({}));
+      if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0 || amount > 10000000) return json({ error: "Enter the balance in rupees." }, 400);
+      try {
+        return json(await setWhatsappBalance(env, Math.round(amount * 100) / 100));
       } catch (e) {
         return json({ error: e.message }, 502);
       }
