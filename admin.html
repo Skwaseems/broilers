@@ -3397,13 +3397,17 @@
 
     // ---------- Customer rates: customer_rates/{10-digit mobile} = { name, rates: { item: { fresh, frozen } } } ----------
     let rateCustomers = {}; // mobile -> saved doc, for "has rates" in the search
+    let formCustomers = []; // people who sent the order form (form_customers), newest first
     let rateMobile = "", rateName = "";
     const tenDigits = (v) => String(v || "").replace(/\D/g, "").slice(-10);
     async function loadRateList() {
       try {
-        const snap = await db.collection("customer_rates").get();
+        const [snap, sent] = await Promise.all([db.collection("customer_rates").get(), db.collection("form_customers").get()]);
         rateCustomers = {};
         snap.forEach((d) => { rateCustomers[d.id] = d.data(); });
+        formCustomers = [];
+        sent.forEach((d) => formCustomers.push(d.data()));
+        formCustomers.sort((a, b) => String(b.lastAt || "").localeCompare(String(a.lastAt || "")));
         renderRateMatches();
       } catch (e) { setStatus("rates-status", "Couldn't load the rates: " + e.message, "err"); }
     }
@@ -3412,16 +3416,18 @@
       box.innerHTML = "";
       const raw = $("rates-search").value.trim().toLowerCase();
       const words = raw.split(/\s+/).filter(Boolean);
-      const known = customers.filter((c) => !c.unsubscribed && tenDigits(c.phone).length === 10);
+      const fromForm = formCustomers.map((c) => ({ name: c.name, phone: c.mobile, fromForm: true }));
+      const seen = new Set(fromForm.map((c) => c.phone));
+      const known = fromForm.concat(customers.filter((c) => !c.unsubscribed && tenDigits(c.phone).length === 10 && !seen.has(tenDigits(c.phone))));
       const list = words.length
         ? known.filter((c) => words.every((w) => (String(c.name || "") + " " + String(c.phone || "")).toLowerCase().includes(w)))
-        : known.filter((c) => rateCustomers[tenDigits(c.phone)]);
+        : known.filter((c) => c.fromForm || rateCustomers[tenDigits(c.phone)]);
       const button = (label, mobile, name) => {
         const b = el("button", { type: "button", className: "btn secondary small", textContent: label });
         b.addEventListener("click", () => openRates(mobile, name));
         box.appendChild(b);
       };
-      list.slice(0, 12).forEach((c) => button((c.name || "(no name)") + " · " + tenDigits(c.phone) + (rateCustomers[tenDigits(c.phone)] ? " ✓" : ""), tenDigits(c.phone), c.name || ""));
+      list.slice(0, 20).forEach((c) => button((c.name || "(no name)") + " · " + tenDigits(c.phone) + (rateCustomers[tenDigits(c.phone)] ? " ✓" : ""), tenDigits(c.phone), c.name || ""));
       const digits = raw.replace(/\D/g, "");
       const typed = digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : digits;
       if (typed.length === 10 && /^[0-9+\s-]+$/.test(raw) && !list.some((c) => tenDigits(c.phone) === typed)) button("Use " + typed, typed, "");
@@ -3454,6 +3460,7 @@
       setStatus("rates-status", "", "");
     }
     $("rates-search").addEventListener("input", renderRateMatches);
+    document.addEventListener("sb-tab", (e) => { if (e.detail === "orders" && auth.currentUser) loadRateList(); });
     $("rates-save").addEventListener("click", async () => {
       const rates = {};
       let count = 0;
@@ -3479,7 +3486,7 @@
     });
 
     // ---------- Remove a number from all records (the number itself never goes in the activity log) ----------
-    const PURGE_LABELS = { whatsapp_customers: "customer list", whatsapp_inbox: "Inbox", whatsapp_status_log: "delivery records", whatsapp_send_log: "send records", whatsapp_pending: "waiting messages", whatsapp_autoreply: "auto-reply records", credit_applications: "credit application", customer_rates: "customer rates", credit_list: "credit list", activity_log: "Activity entries" };
+    const PURGE_LABELS = { whatsapp_customers: "customer list", whatsapp_inbox: "Inbox", whatsapp_status_log: "delivery records", whatsapp_send_log: "send records", whatsapp_pending: "waiting messages", whatsapp_autoreply: "auto-reply records", credit_applications: "credit application", customer_rates: "customer rates", form_customers: "order form customers", credit_list: "credit list", activity_log: "Activity entries" };
     $("purge-btn").addEventListener("click", async () => {
       const mobile = $("purge-number").value;
       const post = (confirm) => api("/purge-number", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mobile, confirm }) });
@@ -3679,6 +3686,7 @@
       customersUnsub = db.collection("whatsapp_customers").orderBy("name").onSnapshot((snap) => {
         customers = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         renderCustomers();
+        renderRateMatches();
       });
 
       loadUsage();

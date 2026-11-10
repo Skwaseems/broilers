@@ -80,7 +80,7 @@ async function whatsappUsage(env, now = Date.now()) {
 // hidden_numbers holds only a hash of each removed number and has no client access (no rule in
 // firestore.rules). The webhook then ignores that number, so it doesn't come back into the Inbox,
 // the delivery records or the customer list. Numbers never go in this public repo.
-const PURGE_FIELDS = { whatsapp_customers: "phone", whatsapp_inbox: "from", whatsapp_status_log: "recipient", whatsapp_send_log: "to", whatsapp_pending: "to", whatsapp_autoreply: "id" };
+const PURGE_FIELDS = { whatsapp_customers: "phone", whatsapp_inbox: "from", whatsapp_status_log: "recipient", whatsapp_send_log: "to", whatsapp_pending: "to", whatsapp_autoreply: "id", form_customers: "mobile" };
 const lastTen = (v) => String(v || "").replace(/\D/g, "").slice(-10);
 async function numberKey(phone) {
   const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(lastTen(phone)));
@@ -137,6 +137,22 @@ async function purgeNumber(env, mobile, confirm) {
   for (const slot of KYC_SLOTS) await env.CATALOGUE_IMAGES.delete(kycKey(mobile, slot));
   hiddenCache = { at: 0, ids: new Set() };
   return { found, total, removed: true };
+}
+
+// ---- Customers who sent the order form, for Admin → Customer rates. Separate from
+// whatsapp_customers: sending the form isn't agreeing to receive the catalogue. ----
+const FORM_CUSTOMERS_MAX = 3000; // stops a flood of fake numbers filling the free database
+async function noteFormCustomer(env, request) {
+  const body = await request.json().catch(() => ({}));
+  const mobile = String(body.mobile || "").replace(/\D/g, "").slice(-10);
+  const name = String(body.name || "").replace(/[\u0000-\u001f<>]/g, " ").trim().slice(0, 100);
+  if (!/^[6-9][0-9]{9}$/.test(mobile) || !name) return json({ error: "details" }, 400);
+  if (await isHiddenNumber(env, mobile)) return json({ ok: true });
+  const prev = await getDocument(env, "form_customers", mobile).catch(() => null);
+  if (!prev && (await listDocuments(env, "form_customers")).length >= FORM_CUSTOMERS_MAX) return json({ error: "busy" }, 429);
+  const at = new Date().toISOString();
+  await setDocument(env, "form_customers", mobile, { mobile, name, firstAt: (prev && prev.firstAt) || at, lastAt: at });
+  return json({ ok: true });
 }
 
 // ---- Credit approval (Admin → Payments & credit, stored in settings/credit) ----
@@ -1332,6 +1348,11 @@ export default {
       const mobile = String(body.mobile || "").replace(/\D/g, "").slice(-10);
       if (mobile.length !== 10) return json({ approved: false });
       return json(await creditStatus(env, mobile));
+    }
+
+    // Public: the order form notes who sent their weekly requirement.
+    if (path === "/form-customer" && request.method === "POST") {
+      return noteFormCustomer(env, request);
     }
 
     // Public: the rates set for one mobile number, shown in the order form's Enroll Now step.

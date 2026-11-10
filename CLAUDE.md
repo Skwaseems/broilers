@@ -63,6 +63,8 @@ Live: https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (s
   Enroll Now For Next Day Delivery. The customer's saved details and that flag are cleared together on sign-out.
 - Customer item rates: Admin → Order form → Customer rates writes `customer_rates/{mobile}`; the form's Enroll Now step
   gets one number's rates from the Worker's `/customer-rates`, so anyone who types a number sees that number's rates.
+- Sending the weekly requirement records the customer in `form_customers/{mobile}` (via the Worker's `/form-customer`) so
+  they appear in Customer rates. It's kept apart from `whatsapp_customers`, the catalogue list, which needs their consent.
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - WhatsApp usage, Recharge and the payment alert in Admin → Send are hidden for now (`USAGE_ON` in admin.html).
 - eKYC (KYC form, selfie, signature, terms, admin PDF and share) is built but switched off until its bill is approved:
