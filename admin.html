@@ -1287,6 +1287,13 @@
       font-size: 15px;
     }
 
+    .cust-search {
+      width: 100%;
+      min-height: 46px;
+      margin: 10px 0 0;
+      font-size: 17px;
+    }
+
     .cust-tools {
       display: flex;
       align-items: center;
@@ -1415,6 +1422,7 @@
 
       <section class="card" aria-labelledby="cust-title">
         <h2 id="cust-title"><span class="step">2</span> Choose who gets it</h2>
+        <input type="search" class="cust-search" id="cust-search" placeholder="Search name or number" aria-label="Search customers by name or number" autocomplete="off">
         <div class="cust-tools">
           <span class="badge" id="cust-count">0 of 0 ticked</span>
           <button class="btn secondary small" id="cust-all">Tick all</button>
@@ -3468,13 +3476,25 @@
         .catch((e) => setStatus("send-status", "Couldn't update " + (c.name || c.phone) + ": " + e.message, "err"));
     }
 
+    // Search box in step 2: every word typed must be in the name or the number.
+    function customersShown() {
+      const words = $("cust-search").value.toLowerCase().split(/\s+/).filter(Boolean);
+      return customers.filter((c) => {
+        const text = (String(c.name || "") + " " + String(c.phone || "")).toLowerCase();
+        return !c.unsubscribed && words.every((w) => text.includes(w));
+      });
+    }
+
     function renderCustomers() {
       const body = $("customers-body");
       body.innerHTML = "";
       const active = customers.filter((c) => !c.unsubscribed);
       $("cust-count").textContent = tickedCustomers().length + " of " + active.length + " ticked";
       renderUnsubscribed();
-      active.forEach((c) => {
+      const shown = customersShown();
+      $("cust-all").textContent = $("cust-search").value.trim() ? "Tick these" : "Tick all";
+      if (!shown.length && active.length) body.appendChild(el("tr", {}, [el("td", { colSpan: 5, className: "muted", textContent: "No customer found.", style: "grid-column:1/-1;grid-row:auto;" })]));
+      shown.forEach((c) => {
         const del = el("button", { className: "btn secondary small", textContent: "Remove" });
         del.setAttribute("aria-label", "Remove " + (c.name || c.phone));
         del.addEventListener("click", () => {
@@ -4148,12 +4168,14 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
       });
     }
 
+    // Ticking follows the search, so nobody out of sight gets added; unticking always clears everyone.
     async function setAllCustomers(on) {
       const batch = db.batch();
-      const change = customers.filter((c) => !c.unsubscribed && isTicked(c) !== on);
+      const change = (on ? customersShown() : customers.filter((c) => !c.unsubscribed)).filter((c) => isTicked(c) !== on);
       change.forEach((c) => batch.update(db.collection("whatsapp_customers").doc(c.id), { send: on }));
       try { await batch.commit(); if (change.length) logChange("Send catalogue", (on ? "Ticked all" : "Unticked all") + " (" + change.length + " customers)", change.map((c) => (c.name || "") + " · " + c.phone)); } catch (e) { setStatus("send-status", "Couldn't update customers: " + e.message, "err"); }
     }
+    $("cust-search").addEventListener("input", renderCustomers);
     $("cust-all").addEventListener("click", () => setAllCustomers(true));
     $("cust-none").addEventListener("click", () => setAllCustomers(false));
 
