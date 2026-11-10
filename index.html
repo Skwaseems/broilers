@@ -2215,7 +2215,7 @@ table.sb-table-booking{min-width:0;}
 
   function sbAfterSend(){
     if (!sbEnrollStage()) {
-      fetch(SB_WORKER + '/form-customer', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile: sbMobile10(), name: sbVal('sb-company') }) }).catch(function(){});
+      fetch(SB_WORKER + '/form-customer', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile: sbMobile10(), name: sbVal('sb-company'), rate: sbVal('sb-rate') }) }).catch(function(){});
       sbWeeklySent = true;
       sbApplyStage();
       document.getElementById('sb-overlay').scrollTop = 0;

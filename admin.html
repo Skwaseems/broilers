@@ -1726,7 +1726,8 @@
           <p class="rates-who" id="rates-who"></p>
           <div class="rates-period">
             <label><span class="cat-label">Rate type</span>
-              <select id="rates-type"><option value="">Select</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label>
+              <select id="rates-type"><option value="">Select</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="annual">Annually</option></select>
+              <span class="muted" id="rates-chose"></span></label>
             <label><span class="cat-label">From</span><input type="date" id="rates-from"></label>
             <label><span class="cat-label">To</span><input type="date" id="rates-to"></label>
           </div>
@@ -3567,7 +3568,12 @@
       rateMobile = mobile;
       rateName = name || saved.name || "";
       $("rates-who").textContent = (rateName ? rateName + " · " : "") + mobile;
-      $("rates-type").value = saved.rateType || "";
+      // The customer's own Rate Selection from the order form, unless an admin saved a type after it.
+      const fromForm = formCustomers.find((c) => c.mobile === mobile) || {};
+      const chosen = fromForm.rateType || "";
+      const useChosen = chosen && (!saved.rateType || String(fromForm.lastAt || "") > String(saved.updatedAt || ""));
+      $("rates-type").value = useChosen ? chosen : saved.rateType || "";
+      $("rates-chose").textContent = chosen ? "Customer chose: " + rateTypeLabel(chosen) : "";
       $("rates-from").value = saved.from || "";
       $("rates-to").value = saved.to || "";
       const body = $("rates-rows");
@@ -3614,12 +3620,13 @@
       if (from && to < from) { $("rates-to").focus(); setStatus("rates-status", "The To date is before the From date.", "err"); return null; }
       return { rates, remarks, count, rateType, from, to };
     }
+    const rateTypeLabel = (v) => ([...$("rates-type").options].find((o) => o.value === v) || { text: v }).text;
     const rateDate = (d) => { const [y, m, day] = d.split("-").map(Number); return new Date(y, m - 1, day).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); };
     // The WhatsApp message. English, like the order message.
     function rateMessage(data) {
       const lines = ["*Sharhan Broilers - Rates*"];
       if (rateName) lines.push("For: " + rateName);
-      if (data.rateType) lines.push("Rate type: " + data.rateType[0].toUpperCase() + data.rateType.slice(1));
+      if (data.rateType) lines.push("Rate type: " + rateTypeLabel(data.rateType));
       if (data.from) lines.push("Valid: " + rateDate(data.from) + " to " + rateDate(data.to));
       formItems.filter((it) => it.name && (data.rates[it.name] || data.remarks[it.name])).forEach((it) => {
         const r = data.rates[it.name] || {};
