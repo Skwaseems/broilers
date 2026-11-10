@@ -984,7 +984,7 @@ function sliderMessage(env, meta, items, style, intro) {
 async function sendSettings(env) {
   const s = (await getDocument(env, "settings", "whatsapp").catch(() => null)) || {};
   // intro2: above the second slider (11th photo onwards); may be empty, see fullPhotoMessages.
-  return { style: s.cardStyle === "text" ? "text" : "photo", intro: cleanIntro(s.intro), intro2: String(s.intro2 || "").trim() ? cleanIntro(s.intro2) : "" };
+  return { style: "photo", intro: cleanIntro(s.intro), intro2: String(s.intro2 || "").trim() ? cleanIntro(s.intro2) : "" };
 }
 
 // The ticked items as one carousel, using the approved pick-any template of that size.
@@ -1249,7 +1249,7 @@ async function autoReply(env, m, origin) {
     // product cards (Zodiac-style) once approved, otherwise the photo-card slider.
     let template = null;
     try {
-      template = sliderMessage(env, meta, items, settings.cardStyle === "text" ? "text" : "photo", cleanIntro(settings.intro));
+      template = sliderMessage(env, meta, items, "photo", cleanIntro(settings.intro));
     } catch (e) {
       template = null; // not set up for this many items yet - fall back to photos below
     }
