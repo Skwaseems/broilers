@@ -714,11 +714,6 @@
 
   <section id="stock" style="max-width:1800px; margin:0 auto; padding:0 0 clamp(30px,5.4vw,104px);">
     <h2 style="margin:0 0 clamp(12px,1.7vw,32px); padding:0 clamp(14px,3vw,60px); text-align:center; font-family:'Cormorant Garamond',serif; font-weight:400; font-size:clamp(19px,1.9vw,34px); letter-spacing:.05em; text-transform:uppercase; color:#2f2f3a;">Today's Fresh Stock</h2>
-    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-bottom:clamp(16px,2.4vw,46px); padding:0 clamp(14px,3vw,60px);">
-      <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="3">
-        <button sc-camel-on-click="{{ tab.go }}" style="min-width:clamp(92px,7vw,130px); min-height:44px; padding:0 clamp(14px,1.4vw,26px); border:1px solid {{ tab.border }}; background:#fff; color:{{ tab.color }}; font-family:'Cormorant Garamond',serif; font-size:clamp(12px,.9vw,16px); letter-spacing:.16em; text-transform:uppercase; cursor:pointer; white-space:nowrap; transition:border-color .3s, color .3s;" style-hover="border-color:#a58b52; color:#846e3e;">{{ tab.label }}</button>
-      </sc-for>
-    </div>
     <div style="position:relative;">
       <div style="display:flex; gap:clamp(10px,1vw,18px); overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:0 clamp(14px,3vw,60px) 6px; align-items:flex-start;">
         <sc-for list="{{ products }}" as="p" hint-placeholder-count="5">
@@ -1094,10 +1089,7 @@ class Component extends DCLogic {
       const it = matchItem(x.name);
       return { ...x, src: x.src || srcOf(x.img), detail: x.detail || (it && it.spec) || '', row: x.row || (it && it.name) || '', packsText: (x.packs || (it && it.packs) || []).join('|') };
     };
-    const tabDefs = [{ label: 'Sharhan', group: '' }, { label: 'Daily', group: 'daily' }, { label: 'Bulk', group: 'bulk' }];
-    const active = tabDefs[this.state.tab].group;
-    const filtered = active ? allProducts.filter(p => p.groups.indexOf(active) !== -1) : allProducts;
-    const pool = filtered.length ? filtered : allProducts;
+    const pool = allProducts;
     const rotate = (arr, n) => arr.length ? arr.slice(n % arr.length).concat(arr.slice(0, n % arr.length)) : arr;
 
     const bundleAll = pick(C.bundle, (x) => ({ fit: x.fit || '', name: x.name || '', img: url(x.image) }), [
@@ -1155,12 +1147,6 @@ class Component extends DCLogic {
       })),
       prevSlide: () => this.setState(st => ({ slide: (st.slide + slides.length - 1) % slides.length })),
       nextSlide: () => this.setState(st => ({ slide: (st.slide + 1) % slides.length })),
-      tabs: tabDefs.map((t, i) => ({
-        label: t.label,
-        go: () => this.setState({ tab: i, prodPage: 0 }),
-        color: i === this.state.tab ? '#846e3e' : '#2f2f3a',
-        border: i === this.state.tab ? '#a58b52' : '#e0ded9'
-      })),
       products: (isMobile ? pool : rotate(pool, this.state.prodPage).slice(0, 5)).map((x) => viewable({ ...x, detail: x.spec })),
       prevProduct: () => this.setState(st => ({ prodPage: (st.prodPage + pool.length - 1) % pool.length })),
       nextProduct: () => this.setState(st => ({ prodPage: (st.prodPage + 1) % pool.length })),
@@ -1300,6 +1286,9 @@ td.sb-na{color:#b5b3ad;}
 @media (max-width:640px){.sb-modal-body{padding:16px 14px 22px;}}
 /* ?order=1 (Order Now on a product page): only the form, nothing of the site behind it. */
 html.sb-form-only body>*:not(#sb-overlay){display:none!important;}
+/* The form has two steps: the weekly requirement, then (once that is sent) only Enroll Now. */
+#sb-form:not(.sb-stage-enroll) .sb-enroll-part{display:none!important;}
+#sb-form.sb-stage-enroll>:not(.sb-enroll-part):not(.sb-send-row):not(.sb-wa-second),#sb-form.sb-stage-enroll>.sb-enroll-checks{display:none!important;}
 html.sb-form-only .sb-overlay{display:flex;background:#fff;padding:0;}
 html.sb-form-only .sb-modal{max-width:none;min-height:100vh;margin:0;border-radius:0;box-shadow:none;overflow:visible;}
 html.sb-form-only .sb-modal-body{max-width:920px;margin:0 auto;}
@@ -1504,11 +1493,12 @@ table.sb-table-booking{min-width:0;}
           <div class="sb-field"><label for="sb-delivery-time" data-i18n="deliveryTime">Time Of Delivery</label><select id="sb-delivery-time"><option value="" data-i18n="select">Select...</option><option value="Morning (6:00 AM - 12:00 Noon)" data-i18n="timeMorning">Morning (6:00 AM - 12:00 Noon)</option><option value="Afternoon (12:01 PM - 4:00 PM)" data-i18n="timeAfternoon">Afternoon (12:01 PM - 4:00 PM)</option><option value="Evening (4:00 PM onwards)" data-i18n="timeEvening">Evening (4:00 PM onwards)</option></select></div>
         </div>
 
-        <div class="sb-section-title" data-i18n="orderNowTitle">Enroll Now For Next Day Delivery</div>
-        <div class="sb-checks">
+        <div class="sb-section-title sb-enroll-part" data-i18n="orderNowTitle">Enroll Now For Next Day Delivery</div>
+        <button type="button" class="sb-ca-open sb-enroll-part" id="sb-modify-weekly" onclick="sbModifyWeekly()" data-i18n="modifyWeekly">Modify Weekly Requirement</button>
+        <div class="sb-checks sb-enroll-part sb-enroll-checks">
           <label class="sb-check-item"><input type="checkbox" id="sb-booking-on" onchange="sbToggleBooking()"> <span data-i18n="bookingOn">Place an order for a specific day</span></label>
         </div>
-        <div class="sb-pkg-block" id="sb-booking-wrap">
+        <div class="sb-pkg-block sb-enroll-part" id="sb-booking-wrap">
           <div class="sb-row">
             <div class="sb-field"><label for="sb-booking-date"><span data-i18n="deliveryDate">Delivery Date</span> *</label><input type="date" id="sb-booking-date"></div>
             <div class="sb-field"><label for="sb-booking-pack"><span data-i18n="kgPacking">Bigger Pack. Bigger Savings.</span> *</label>
@@ -1639,6 +1629,7 @@ table.sb-table-booking{min-width:0;}
       mapPlaceholder: 'Paste a Google Maps link, or tap Use My Location', useMyLocation: 'Use My Location', mapHint: 'Optional — helps our delivery team reach you.',
       checkOnMap: 'Check on map ↗', goodsReceiver: 'Goods Receiver', deliveryTime: 'Time Of Delivery',
       timeMorning: 'Morning (6:00 AM - 12:00 Noon)', timeAfternoon: 'Afternoon (12:01 PM - 4:00 PM)', timeEvening: 'Evening (4:00 PM onwards)',
+      modifyWeekly: 'Modify Weekly Requirement',
       orderNowTitle: 'Enroll Now For Next Day Delivery',
       bookingOn: 'Place an order for a specific day', deliveryDate: 'Delivery Date', orderTotal: 'Order Total',
       packagingTitle: 'Commercials', kgPacking: 'Bigger Pack. Bigger Savings.', pack2: '2 kg', pack5: '5 kg (get ₹1 discount per kg)', pack10: '10 kg (get ₹2 discount per kg)', pack20: '20 kg (get ₹3 discount per kg)', rateSelection: 'Rate Selection', rateDaily: 'Daily Market Published Rate', rateWeekly: 'Weekly Fixed Rate', rateMonthly: 'Monthly Fixed Rate', rateAnnual: 'Annually Fixed Rate', paymentTerms: 'Payment Terms', payCredit: 'On Credit', paySame: 'Same Day',
@@ -1650,8 +1641,8 @@ table.sb-table-booking{min-width:0;}
       packHint: 'Quantities must be in multiples of {n} kg ({n}, {n2}, {n3}…).',
       packError: 'With your packing choice, quantities must be in multiples of {n} kg. Please correct the boxes marked in red.',
       cutoffMoved: 'That date is past the 3:00 PM cutoff, so the delivery date has been moved to {date}. Please check and send again.',
-      bookingEmpty: 'Please enter at least one quantity in the Enroll Now table, or untick "Place an order for a specific day".',
-      qtyEmpty: 'Please enter at least one quantity in the weekly requirement table or the Enroll Now table.',
+      bookingEmpty: 'Please enter at least one quantity.',
+      qtyEmpty: 'Please enter at least one quantity in the weekly requirement table.',
       locFinding: 'Finding your location…', locAdded: 'Location added (accurate to about {m} m). Make sure it’s the delivery address.',
       locBlocked: 'Location permission was blocked — allow it in the browser, or paste a Google Maps link instead.',
       locFailed: 'Couldn’t get your location — please try again or paste a Google Maps link.',
@@ -1719,6 +1710,7 @@ table.sb-table-booking{min-width:0;}
       mapPlaceholder: 'गूगल मैप्स लिंक पेस्ट करें, या "मेरी लोकेशन" दबाएँ', useMyLocation: 'मेरी लोकेशन', mapHint: 'वैकल्पिक — इससे हमारी डिलीवरी टीम को आप तक पहुँचने में मदद मिलती है।',
       checkOnMap: 'मैप पर देखें ↗', goodsReceiver: 'माल लेने वाला', deliveryTime: 'डिलीवरी का समय',
       timeMorning: 'सुबह (6:00 AM - 12:00 दोपहर)', timeAfternoon: 'दोपहर (12:01 PM - 4:00 PM)', timeEvening: 'शाम (4:00 PM के बाद)',
+      modifyWeekly: 'साप्ताहिक ज़रूरत बदलें',
       orderNowTitle: 'अगले दिन की डिलीवरी के लिए अभी ऑर्डर करें',
       bookingOn: 'किसी खास दिन के लिए ऑर्डर दें', deliveryDate: 'डिलीवरी की तारीख', orderTotal: 'ऑर्डर कुल',
       packagingTitle: 'भुगतान', kgPacking: 'बड़ा पैक। बड़ी बचत।', pack2: '2 किलो', pack5: '5 किलो (₹1 प्रति किलो की छूट पाएँ)', pack10: '10 किलो (₹2 प्रति किलो की छूट पाएँ)', pack20: '20 किलो (₹3 प्रति किलो की छूट पाएँ)', rateSelection: 'रेट का चयन', rateDaily: 'रोज़ाना बाज़ार में प्रकाशित रेट', rateWeekly: 'साप्ताहिक तय रेट', rateMonthly: 'मासिक तय रेट', rateAnnual: 'वार्षिक तय रेट', paymentTerms: 'भुगतान की शर्तें', payCredit: 'उधार पर', paySame: 'उसी दिन',
@@ -1730,8 +1722,8 @@ table.sb-table-booking{min-width:0;}
       packHint: 'मात्रा {n} किलो के गुणक में होनी चाहिए ({n}, {n2}, {n3}…)।',
       packError: 'आपकी पैकिंग के अनुसार मात्रा {n} किलो के गुणक में होनी चाहिए। कृपया लाल रंग वाले खाने ठीक करें।',
       cutoffMoved: 'वह तारीख दोपहर 3:00 बजे की समय-सीमा के बाद की है, इसलिए डिलीवरी की तारीख {date} कर दी गई है। कृपया जाँच कर फिर से भेजें।',
-      bookingEmpty: 'कृपया ऑर्डर टेबल में कम से कम एक मात्रा भरें, या "किसी खास दिन के लिए ऑर्डर दें" का निशान हटाएँ।',
-      qtyEmpty: 'कृपया साप्ताहिक ज़रूरत या ऑर्डर टेबल में कम से कम एक मात्रा भरें।',
+      bookingEmpty: 'कृपया कम से कम एक मात्रा भरें।',
+      qtyEmpty: 'कृपया साप्ताहिक ज़रूरत की टेबल में कम से कम एक मात्रा भरें।',
       locFinding: 'आपकी लोकेशन ढूँढी जा रही है…', locAdded: 'लोकेशन जोड़ दी गई (लगभग {m} मीटर तक सही)। जाँच लें कि यही डिलीवरी का पता है।',
       locBlocked: 'लोकेशन की अनुमति नहीं मिली — ब्राउज़र में अनुमति दें, या गूगल मैप्स लिंक पेस्ट करें।',
       locFailed: 'लोकेशन नहीं मिल सकी — फिर से कोशिश करें या गूगल मैप्स लिंक पेस्ट करें।',
@@ -1799,6 +1791,7 @@ table.sb-table-booking{min-width:0;}
       mapPlaceholder: 'गूगल मॅप्स लिंक पेस्ट करा, किंवा "माझे लोकेशन" दाबा', useMyLocation: 'माझे लोकेशन', mapHint: 'पर्यायी — यामुळे आमच्या डिलिव्हरी टीमला तुमच्यापर्यंत पोहोचायला मदत होते.',
       checkOnMap: 'मॅपवर पहा ↗', goodsReceiver: 'माल घेणारी व्यक्ती', deliveryTime: 'डिलिव्हरीची वेळ',
       timeMorning: 'सकाळ (6:00 AM - 12:00 दुपार)', timeAfternoon: 'दुपार (12:01 PM - 4:00 PM)', timeEvening: 'संध्याकाळ (4:00 PM नंतर)',
+      modifyWeekly: 'साप्ताहिक गरज बदला',
       orderNowTitle: 'दुसऱ्या दिवशीच्या डिलिव्हरीसाठी आत्ता ऑर्डर करा',
       bookingOn: 'ठराविक दिवसासाठी ऑर्डर द्या', deliveryDate: 'डिलिव्हरीची तारीख', orderTotal: 'ऑर्डर एकूण',
       packagingTitle: 'पेमेंट', kgPacking: 'मोठा पॅक. मोठी बचत.', pack2: '2 किलो', pack5: '5 किलो (प्रति किलो ₹1 सूट मिळवा)', pack10: '10 किलो (प्रति किलो ₹2 सूट मिळवा)', pack20: '20 किलो (प्रति किलो ₹3 सूट मिळवा)', rateSelection: 'दर निवड', rateDaily: 'दैनिक बाजारात प्रसिद्ध दर', rateWeekly: 'साप्ताहिक निश्चित दर', rateMonthly: 'मासिक निश्चित दर', rateAnnual: 'वार्षिक निश्चित दर', paymentTerms: 'पेमेंटच्या अटी', payCredit: 'उधारीवर', paySame: 'त्याच दिवशी',
@@ -1810,8 +1803,8 @@ table.sb-table-booking{min-width:0;}
       packHint: 'प्रमाण {n} किलोच्या पटीत असावे ({n}, {n2}, {n3}…).',
       packError: 'तुमच्या पॅकिंगनुसार प्रमाण {n} किलोच्या पटीत असावे. कृपया लाल रंगातील रकाने दुरुस्त करा.',
       cutoffMoved: 'ती तारीख दुपारी 3:00 च्या मुदतीनंतरची आहे, म्हणून डिलिव्हरीची तारीख {date} केली आहे. कृपया तपासून पुन्हा पाठवा.',
-      bookingEmpty: 'कृपया ऑर्डर टेबलमध्ये किमान एक प्रमाण भरा, किंवा "ठराविक दिवसासाठी ऑर्डर द्या" ची खूण काढा.',
-      qtyEmpty: 'कृपया साप्ताहिक गरज किंवा ऑर्डर टेबलमध्ये किमान एक प्रमाण भरा.',
+      bookingEmpty: 'कृपया किमान एक प्रमाण भरा.',
+      qtyEmpty: 'कृपया साप्ताहिक गरजेच्या टेबलमध्ये किमान एक प्रमाण भरा.',
       locFinding: 'तुमचे लोकेशन शोधत आहोत…', locAdded: 'लोकेशन जोडले (सुमारे {m} मीटरपर्यंत अचूक). हाच डिलिव्हरीचा पत्ता आहे याची खात्री करा.',
       locBlocked: 'लोकेशनची परवानगी नाकारली — ब्राउझरमध्ये परवानगी द्या, किंवा गूगल मॅप्स लिंक पेस्ट करा.',
       locFailed: 'लोकेशन मिळाले नाही — पुन्हा प्रयत्न करा किंवा गूगल मॅप्स लिंक पेस्ट करा.',
@@ -2111,6 +2104,8 @@ table.sb-table-booking{min-width:0;}
       if (form) form.reset();
       try { localStorage.removeItem(SB_LOCAL_KEY); } catch (e) {}
       sbCloudLoadedFor = null;
+      sbWeeklySent = false;
+      sbApplyStage();
       document.getElementById('sb-fresh-wrap').style.display = 'none';
       document.getElementById('sb-frozen-wrap').style.display = 'none';
       document.getElementById('sb-booking-wrap').style.display = 'none';
@@ -2142,8 +2137,35 @@ table.sb-table-booking{min-width:0;}
       });
     });
   }
+  var sbWeeklySent = false;
+  function sbEnrollStage(){ return document.getElementById('sb-form').classList.contains('sb-stage-enroll'); }
+  // Step 2 needs the customer's saved details: without them (e.g. after signing out) it's step 1.
+  function sbApplyStage(){
+    var enroll = sbWeeklySent && !!sbVal('sb-company') && sbMobile10().length === 10;
+    document.getElementById('sb-form').classList.toggle('sb-stage-enroll', enroll);
+    var on = document.getElementById('sb-booking-on');
+    if (on.checked !== enroll) { on.checked = enroll; sbToggleBooking(); }
+  }
+  // Back to step 1 with everything still filled in; sending it again returns to step 2.
+  window.sbModifyWeekly = function(){
+    sbWeeklySent = false;
+    sbApplyStage();
+    document.getElementById('sb-wa-second').style.display = 'none';
+    document.getElementById('sb-overlay').scrollTop = 0;
+    sbSaveUserData();
+  };
+  function sbAfterSend(){
+    if (!sbEnrollStage()) {
+      sbWeeklySent = true;
+      sbApplyStage();
+      document.getElementById('sb-overlay').scrollTop = 0;
+    }
+    sbSaveUserData();
+  }
+
   function sbCollectFormData(){
     return {
+      weeklySent: sbWeeklySent,
       company: sbVal('sb-company'),
       owner: sbVal('sb-owner'),
       businessType: sbVal('sb-business-type'),
@@ -2188,6 +2210,8 @@ table.sb-table-booking{min-width:0;}
       sbFillTable('fresh', d.fresh);
       sbFillTable('frozen', d.frozen);
       sbTogglePkg();
+      sbWeeklySent = sbWeeklySent || !!d.weeklySent;
+      sbApplyStage();
       // Came from "Enroll Now" on a WhatsApp card: mark that item again over the saved data.
       if (window.__sbpPending && window.sbpPrefill) window.sbpPrefill(window.__sbpPending);
   }
@@ -2451,6 +2475,7 @@ table.sb-table-booking{min-width:0;}
     var payment = sbVal('sb-payment');
     var notes = sbVal('sb-notes');
     var packKg = sbPackStep(), bookingPackKg = sbBookingPackStep();
+    var enroll = sbEnrollStage();
 
     var lines = [];
     lines.push('🐔 *SHARHAN BROILERS · B2B (BUSINESS TO BUSINESS) COMMERCIAL REQUISITION*');
@@ -2458,7 +2483,7 @@ table.sb-table-booking{min-width:0;}
 
     // Same order as the form: weekly requirement, client profile, next-day order.
     var hasTable = false;
-    if (document.getElementById('sb-pkg-fresh').checked) {
+    if (!enroll && document.getElementById('sb-pkg-fresh').checked) {
       var freshText = sbDayBreakdown('fresh', 'FRESH');
       if (freshText) {
         hasTable = true;
@@ -2473,7 +2498,7 @@ table.sb-table-booking{min-width:0;}
         lines.push('');
       }
     }
-    if (document.getElementById('sb-pkg-frozen').checked) {
+    if (!enroll && document.getElementById('sb-pkg-frozen').checked) {
       var frozenText = sbDayBreakdown('frozen', 'FROZEN');
       if (frozenText) {
         hasTable = true;
@@ -2520,7 +2545,7 @@ table.sb-table-booking{min-width:0;}
     }
     lines.push(DIV);
     lines.push('📦 *PACKAGING & LOGISTICS*');
-    if (packKg || !booking.rows.length) lines.push('• *' + (booking.rows.length ? 'Weekly Packing Preference' : 'Packing Preference') + ':* ' + (packKg ? sbPackLabel(packKg) : 'Not specified'));
+    if (!enroll && (packKg || !booking.rows.length)) lines.push('• *' + (booking.rows.length ? 'Weekly Packing Preference' : 'Packing Preference') + ':* ' + (packKg ? sbPackLabel(packKg) : 'Not specified'));
     lines.push('• *Payment Terms:* ' + (payment || 'Not specified') + (sbCreditChosen() && sbCredit.state === 'yes' && sbCredit.mobile === sbMobile10() ? (sbCredit.days ? ' (credit days: ' + sbCredit.days + ', approved customer)' : ' (approved customer)') : ''));
     lines.push('');
     lines.push(DIV);
@@ -2550,8 +2575,11 @@ table.sb-table-booking{min-width:0;}
       if (first) first.focus();
       return null;
     }
-    if (!form.reportValidity()) return null;
-    if (sbCreditBlocked()) {
+    var enroll = sbEnrollStage();
+    if (enroll) {
+      if (!document.getElementById('sb-booking-date').reportValidity() || !document.getElementById('sb-booking-pack').reportValidity()) return null;
+    } else if (!form.reportValidity()) return null;
+    if (!enroll && sbCreditBlocked()) {
       var cn = document.getElementById('sb-credit-note');
       if (cn) cn.scrollIntoView({ block: 'center' });
       return null;
@@ -2596,10 +2624,10 @@ table.sb-table-booking{min-width:0;}
   window.sbSendWhatsApp = function(){
     var msg = sbValidate();
     if (!msg) return;
-    sbSaveUserData();
     var to = sbOrderTo().whatsapp;
     sbLastWaMsg = msg;
     window.open('https://wa.me/' + to[0] + '?text=' + encodeURIComponent(msg), '_blank');
+    sbAfterSend();
     var box = document.getElementById('sb-wa-second');
     if (box && to[1]) {
       document.getElementById('sb-wa-second-num').textContent = sbPrettyPhone(to[1]);
@@ -2919,13 +2947,13 @@ table.sb-table-booking{min-width:0;}
   window.sbSendEmail = function(){
     var msg = sbValidate();
     if (!msg) return;
-    sbSaveUserData();
     var company = sbVal('sb-company') || 'Client';
     var subject = 'B2B Requisition - ' + company;
     // One email to every recipient (comma-separated "To").
     var to = sbOrderTo().emails.join(','); // already validated plain addresses
     window.location.href = 'mailto:' + to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(msg);
     if (window.sbDownloadOrderFiles) window.sbDownloadOrderFiles();
+    sbAfterSend();
   };
   window.sbCopyPreview = function(){
     var el = document.getElementById('sb-preview');
@@ -3196,12 +3224,13 @@ table.sb-table-booking{min-width:0;}
   window.sbpPrefill = sbpPrefill;
   function sbpPrefill(p){
     if (!p || !p.row) return;
+    var enroll = document.getElementById('sb-form').classList.contains('sb-stage-enroll');
     var fresh = document.getElementById('sb-pkg-fresh');
-    if (fresh && !fresh.checked) {
+    if (!enroll && fresh && !fresh.checked) {
       fresh.checked = true;
       if (window.sbTogglePkg) window.sbTogglePkg();
     }
-    var wrap = document.getElementById('sb-fresh-wrap');
+    var wrap = document.getElementById(enroll ? 'sb-booking-wrap' : 'sb-fresh-wrap');
     if (!wrap) return;
     wrap.querySelectorAll('tr.sbp-row-hi').forEach(function(tr){ tr.classList.remove('sbp-row-hi'); });
     wrap.querySelectorAll('td.sb-item-col').forEach(function(td){

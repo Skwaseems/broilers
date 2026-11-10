@@ -59,6 +59,8 @@ Live: https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (s
   Only the last 4 Aadhaar digits are collected as text; the order form's saved copy must never hold KYC fields.
 - Homepage sections Categories, Cold Chain banner, Frequently Ordered Together, Portioned banner and Also From Our Floor
   are hidden with `display:none`. Keep the Categories cards in the page: the menu's product names open their photos.
+- The order form has two steps: the weekly requirement, then, once that is sent (`weeklySent` in the saved form), only
+  Enroll Now For Next Day Delivery. The customer's saved details and that flag are cleared together on sign-out.
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - WhatsApp usage, Recharge and the payment alert in Admin → Send are hidden for now (`USAGE_ON` in admin.html).
 - eKYC (KYC form, selfie, signature, terms, admin PDF and share) is built but switched off until its bill is approved:
