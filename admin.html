@@ -1287,6 +1287,35 @@
       font-size: 15px;
     }
 
+    .rates-matches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0;
+    }
+
+    .rates-who {
+      margin: 12px 0 4px;
+      font-weight: 500;
+    }
+
+    .card table.rates-table {
+      display: table;
+      overflow: visible;
+    }
+
+    .card table.rates-table td,
+    .card table.rates-table th {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .rates-table input {
+      width: 78px;
+      max-width: 100%;
+      min-height: 40px;
+    }
+
     .cust-search {
       width: 100%;
       min-height: 46px;
@@ -1565,6 +1594,21 @@
           <button class="btn" id="fi-save" type="button">Save products</button>
         </div>
         <div class="status" id="fi-status" role="status"></div>
+      </section>
+
+      <section class="card" aria-labelledby="rates-title">
+        <h2 id="rates-title">Customer rates</h2>
+        <input type="search" class="cust-search" id="rates-search" placeholder="Search name or number" aria-label="Search customers by name or number" autocomplete="off">
+        <div class="rates-matches" id="rates-matches"></div>
+        <div id="rates-editor" hidden>
+          <p class="rates-who" id="rates-who"></p>
+          <table class="rates-table">
+            <thead><tr><th>Item</th><th>Fresh ₹/kg</th><th>Frozen ₹/kg</th></tr></thead>
+            <tbody id="rates-rows"></tbody>
+          </table>
+          <div class="row-form"><button class="btn" id="rates-save" type="button">Save rates</button></div>
+        </div>
+        <div class="status" id="rates-status" role="status"></div>
       </section>
 
       <section class="card" aria-labelledby="recip-title">
@@ -3351,8 +3395,91 @@
       }
     });
 
+    // ---------- Customer rates: customer_rates/{10-digit mobile} = { name, rates: { item: { fresh, frozen } } } ----------
+    let rateCustomers = {}; // mobile -> saved doc, for "has rates" in the search
+    let rateMobile = "", rateName = "";
+    const tenDigits = (v) => String(v || "").replace(/\D/g, "").slice(-10);
+    async function loadRateList() {
+      try {
+        const snap = await db.collection("customer_rates").get();
+        rateCustomers = {};
+        snap.forEach((d) => { rateCustomers[d.id] = d.data(); });
+        renderRateMatches();
+      } catch (e) { setStatus("rates-status", "Couldn't load the rates: " + e.message, "err"); }
+    }
+    function renderRateMatches() {
+      const box = $("rates-matches");
+      box.innerHTML = "";
+      const raw = $("rates-search").value.trim().toLowerCase();
+      const words = raw.split(/\s+/).filter(Boolean);
+      const known = customers.filter((c) => !c.unsubscribed && tenDigits(c.phone).length === 10);
+      const list = words.length
+        ? known.filter((c) => words.every((w) => (String(c.name || "") + " " + String(c.phone || "")).toLowerCase().includes(w)))
+        : known.filter((c) => rateCustomers[tenDigits(c.phone)]);
+      const button = (label, mobile, name) => {
+        const b = el("button", { type: "button", className: "btn secondary small", textContent: label });
+        b.addEventListener("click", () => openRates(mobile, name));
+        box.appendChild(b);
+      };
+      list.slice(0, 12).forEach((c) => button((c.name || "(no name)") + " · " + tenDigits(c.phone) + (rateCustomers[tenDigits(c.phone)] ? " ✓" : ""), tenDigits(c.phone), c.name || ""));
+      const digits = raw.replace(/\D/g, "");
+      const typed = digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : digits;
+      if (typed.length === 10 && /^[0-9+\s-]+$/.test(raw) && !list.some((c) => tenDigits(c.phone) === typed)) button("Use " + typed, typed, "");
+    }
+    async function openRates(mobile, name) {
+      setStatus("rates-status", "Loading…", "");
+      let saved;
+      try {
+        const doc = await db.collection("customer_rates").doc(mobile).get();
+        saved = doc.exists ? doc.data() : {};
+      } catch (e) { return setStatus("rates-status", "Couldn't load the rates: " + e.message, "err"); }
+      rateMobile = mobile;
+      rateName = name || saved.name || "";
+      $("rates-who").textContent = (rateName ? rateName + " · " : "") + mobile;
+      const body = $("rates-rows");
+      body.innerHTML = "";
+      formItems.filter((it) => it.name).forEach((it) => {
+        const had = (saved.rates && saved.rates[it.name]) || {};
+        const box = (pkg, offered) => {
+          if (!offered) return el("td", { textContent: "—" });
+          const input = el("input", { type: "text", inputMode: "decimal", maxLength: 8, value: had[pkg] || "" });
+          input.dataset.item = it.name;
+          input.dataset.pkg = pkg;
+          input.setAttribute("aria-label", it.name + " " + pkg + " rate per kg");
+          return el("td", {}, [input]);
+        };
+        body.appendChild(el("tr", {}, [el("td", { textContent: it.name }), box("fresh", it.fresh), box("frozen", it.frozen)]));
+      });
+      $("rates-editor").hidden = false;
+      setStatus("rates-status", "", "");
+    }
+    $("rates-search").addEventListener("input", renderRateMatches);
+    $("rates-save").addEventListener("click", async () => {
+      const rates = {};
+      let count = 0;
+      for (const input of $("rates-rows").querySelectorAll("input")) {
+        const text = input.value.trim();
+        if (!text) continue;
+        const value = Number(text);
+        if (!(value > 0) || value > 99999) { input.focus(); return setStatus("rates-status", "Enter the " + input.dataset.pkg + " rate for " + input.dataset.item + " as a number, e.g. 180.", "err"); }
+        (rates[input.dataset.item] = rates[input.dataset.item] || {})[input.dataset.pkg] = value;
+        count++;
+      }
+      const btn = $("rates-save");
+      btn.disabled = true;
+      try {
+        const ref = db.collection("customer_rates").doc(rateMobile);
+        if (count) await ref.set({ name: rateName, rates, updatedAt: new Date().toISOString() });
+        else await ref.delete();
+        logChange("Customer rates", "Saved rates: " + (rateName || "") + " · " + rateMobile, [count + " rate(s)"]);
+        setStatus("rates-status", "Saved. Customers see new rates the next time they open Enroll Now.", "ok");
+        loadRateList();
+      } catch (e) { setStatus("rates-status", "Couldn't save: " + e.message, "err"); }
+      btn.disabled = false;
+    });
+
     // ---------- Remove a number from all records (the number itself never goes in the activity log) ----------
-    const PURGE_LABELS = { whatsapp_customers: "customer list", whatsapp_inbox: "Inbox", whatsapp_status_log: "delivery records", whatsapp_send_log: "send records", whatsapp_pending: "waiting messages", whatsapp_autoreply: "auto-reply records", credit_applications: "credit application", credit_list: "credit list", activity_log: "Activity entries" };
+    const PURGE_LABELS = { whatsapp_customers: "customer list", whatsapp_inbox: "Inbox", whatsapp_status_log: "delivery records", whatsapp_send_log: "send records", whatsapp_pending: "waiting messages", whatsapp_autoreply: "auto-reply records", credit_applications: "credit application", customer_rates: "customer rates", credit_list: "credit list", activity_log: "Activity entries" };
     $("purge-btn").addEventListener("click", async () => {
       const mobile = $("purge-number").value;
       const post = (confirm) => api("/purge-number", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mobile, confirm }) });
@@ -3555,6 +3682,7 @@
       });
 
       loadUsage();
+      loadRateList();
       statusUnsub = db.collection("whatsapp_status_log").orderBy("timestamp", "desc").limit(300).onSnapshot((snap) => {
         latestStatus = summarizeStatuses(snap.docs.map((doc) => doc.data()));
         $("usage-alert").hidden = !USAGE_ON || !paymentBlocked(snap.docs.map((doc) => doc.data()));

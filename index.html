@@ -1288,6 +1288,7 @@ td.sb-na{color:#b5b3ad;}
 html.sb-form-only body>*:not(#sb-overlay){display:none!important;}
 /* The form has two steps: the weekly requirement, then (once that is sent) only Enroll Now. */
 #sb-form:not(.sb-stage-enroll) .sb-enroll-part{display:none!important;}
+.sb-rate-line{margin-top:2px;font-size:12px;font-weight:400;line-height:1.3;color:#6e5b32;}
 #sb-form.sb-stage-enroll>:not(.sb-enroll-part):not(.sb-send-row):not(.sb-wa-second),#sb-form.sb-stage-enroll>.sb-enroll-checks{display:none!important;}
 html.sb-form-only .sb-overlay{display:flex;background:#fff;padding:0;}
 html.sb-form-only .sb-modal{max-width:none;min-height:100vh;margin:0;border-radius:0;box-shadow:none;overflow:visible;}
@@ -1514,6 +1515,7 @@ table.sb-table-booking{min-width:0;}
           </div>
           <div class="sb-table-wrap"><table class="sb-table sb-table-booking" data-booking="1"></table></div>
           <div class="sb-week-total"><span data-i18n="orderTotal">Order Total</span>: <strong><span id="sb-booking-total">0</span>kg</strong></div>
+          <div class="sb-week-total" id="sb-booking-amount" style="display:none;"><span data-i18n="orderAmount">Amount</span>: <strong id="sb-booking-rs"></strong><div class="sb-note" id="sb-booking-rs-note"></div></div>
         </div>
 
         <div class="sb-section-title" data-i18n="packagingTitle">Commercials</div>
@@ -1629,6 +1631,7 @@ table.sb-table-booking{min-width:0;}
       mapPlaceholder: 'Paste a Google Maps link, or tap Use My Location', useMyLocation: 'Use My Location', mapHint: 'Optional — helps our delivery team reach you.',
       checkOnMap: 'Check on map ↗', goodsReceiver: 'Goods Receiver', deliveryTime: 'Time Of Delivery',
       timeMorning: 'Morning (6:00 AM - 12:00 Noon)', timeAfternoon: 'Afternoon (12:01 PM - 4:00 PM)', timeEvening: 'Evening (4:00 PM onwards)',
+      rateOnConfirm: 'Rate on confirmation', orderAmount: 'Amount', afterPackDiscount: 'after ₹{n} per kg packing discount', someOnConfirm: 'Some items: rate on confirmation',
       modifyWeekly: 'Modify Weekly Requirement',
       orderNowTitle: 'Enroll Now For Next Day Delivery',
       bookingOn: 'Place an order for a specific day', deliveryDate: 'Delivery Date', orderTotal: 'Order Total',
@@ -1710,6 +1713,7 @@ table.sb-table-booking{min-width:0;}
       mapPlaceholder: 'गूगल मैप्स लिंक पेस्ट करें, या "मेरी लोकेशन" दबाएँ', useMyLocation: 'मेरी लोकेशन', mapHint: 'वैकल्पिक — इससे हमारी डिलीवरी टीम को आप तक पहुँचने में मदद मिलती है।',
       checkOnMap: 'मैप पर देखें ↗', goodsReceiver: 'माल लेने वाला', deliveryTime: 'डिलीवरी का समय',
       timeMorning: 'सुबह (6:00 AM - 12:00 दोपहर)', timeAfternoon: 'दोपहर (12:01 PM - 4:00 PM)', timeEvening: 'शाम (4:00 PM के बाद)',
+      rateOnConfirm: 'कन्फ़र्मेशन पर रेट', orderAmount: 'राशि', afterPackDiscount: '₹{n} प्रति किलो पैकिंग छूट के बाद', someOnConfirm: 'कुछ आइटम: कन्फ़र्मेशन पर रेट',
       modifyWeekly: 'साप्ताहिक ज़रूरत बदलें',
       orderNowTitle: 'अगले दिन की डिलीवरी के लिए अभी ऑर्डर करें',
       bookingOn: 'किसी खास दिन के लिए ऑर्डर दें', deliveryDate: 'डिलीवरी की तारीख', orderTotal: 'ऑर्डर कुल',
@@ -1791,6 +1795,7 @@ table.sb-table-booking{min-width:0;}
       mapPlaceholder: 'गूगल मॅप्स लिंक पेस्ट करा, किंवा "माझे लोकेशन" दाबा', useMyLocation: 'माझे लोकेशन', mapHint: 'पर्यायी — यामुळे आमच्या डिलिव्हरी टीमला तुमच्यापर्यंत पोहोचायला मदत होते.',
       checkOnMap: 'मॅपवर पहा ↗', goodsReceiver: 'माल घेणारी व्यक्ती', deliveryTime: 'डिलिव्हरीची वेळ',
       timeMorning: 'सकाळ (6:00 AM - 12:00 दुपार)', timeAfternoon: 'दुपार (12:01 PM - 4:00 PM)', timeEvening: 'संध्याकाळ (4:00 PM नंतर)',
+      rateOnConfirm: 'पुष्टीनंतर दर', orderAmount: 'रक्कम', afterPackDiscount: '₹{n} प्रति किलो पॅकिंग सूट नंतर', someOnConfirm: 'काही आयटम: पुष्टीनंतर दर',
       modifyWeekly: 'साप्ताहिक गरज बदला',
       orderNowTitle: 'दुसऱ्या दिवशीच्या डिलिव्हरीसाठी आत्ता ऑर्डर करा',
       bookingOn: 'ठराविक दिवसासाठी ऑर्डर द्या', deliveryDate: 'डिलिव्हरीची तारीख', orderTotal: 'ऑर्डर एकूण',
@@ -1963,7 +1968,7 @@ table.sb-table-booking{min-width:0;}
           return SB_PKG_ITEMS[pkg].indexOf(item) === -1 ? '<td class="sb-na" aria-label="Not available">&mdash;</td>'
             : '<td>' + sbQtyInput('data-bk="' + pkg + '" data-item="' + sbEsc(item) + '"', 'Booking ' + pkg + ' ' + item) + '</td>';
         };
-        b += '<tr><td class="sb-item-col">' + sbEsc(sbItemLabel(item)) + '</td>' + cell('fresh') + cell('frozen') + '</tr>';
+        b += '<tr><td class="sb-item-col">' + sbEsc(sbItemLabel(item)) + '<div class="sb-rate-line" data-rate-item="' + sbEsc(item) + '"></div></td>' + cell('fresh') + cell('frozen') + '</tr>';
       });
       b += '<tr class="sb-total-row"><td class="sb-item-col">' + sbT('total') + '</td><td class="sb-bk-total" data-bk="fresh">0</td><td class="sb-bk-total" data-bk="frozen">0</td></tr></tbody>';
       bt.innerHTML = b;
@@ -1984,6 +1989,7 @@ table.sb-table-booking{min-width:0;}
       var k = (el.getAttribute('data-pkg') || 'bk-' + el.getAttribute('data-bk')) + '|' + el.getAttribute('data-item') + '|' + (el.getAttribute('data-day') || '');
       if (keep[k]) el.value = keep[k];
     });
+    sbShowRates();
     if (window.__sbpPending && window.sbpPrefill) window.sbpPrefill(window.__sbpPending);
     sbRecalc();
   }
@@ -2145,6 +2151,7 @@ table.sb-table-booking{min-width:0;}
     document.getElementById('sb-form').classList.toggle('sb-stage-enroll', enroll);
     var on = document.getElementById('sb-booking-on');
     if (on.checked !== enroll) { on.checked = enroll; sbToggleBooking(); }
+    sbLoadRates();
   }
   // Back to step 1 with everything still filled in; sending it again returns to step 2.
   window.sbModifyWeekly = function(){
@@ -2154,6 +2161,58 @@ table.sb-table-booking{min-width:0;}
     document.getElementById('sb-overlay').scrollTop = 0;
     sbSaveUserData();
   };
+  // ---- Rates: set per customer in Admin → Order form; looked up by mobile for Enroll Now ----
+  var sbRates = {}, sbRatesFor = '';
+  function sbLoadRates(){
+    var m = sbEnrollStage() ? sbMobile10() : '';
+    if (m === sbRatesFor) { sbShowRates(); return; }
+    sbRatesFor = m;
+    sbRates = {};
+    sbShowRates();
+    if (m.length !== 10) return;
+    fetch(SB_WORKER + '/customer-rates', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile: m }) })
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if (sbRatesFor === m) sbRates = (d && d.rates) || {}; })
+      .catch(function(){ if (sbRatesFor === m) sbRatesFor = ''; })
+      .then(function(){ sbShowRates(); sbUpdatePreview(); });
+  }
+  function sbRate(item, pkg){
+    var v = sbRates[item] ? Number(sbRates[item][pkg]) : 0;
+    return v > 0 ? v : 0;
+  }
+  function sbRupees(n){ return '₹' + (Math.round(n * 100) / 100).toLocaleString('en-IN'); }
+  // What the typed quantities come to. The pack's discount per kg comes off each rate.
+  function sbBookingAmount(){
+    var off = { 5: 1, 10: 2, 20: 3 }[sbBookingPackStep()] || 0, amount = 0, unpriced = false;
+    sbBookingRows().forEach(function(r){
+      ['fresh', 'frozen'].forEach(function(pkg){
+        if (!r[pkg]) return;
+        var rate = sbRate(r.item, pkg);
+        if (rate) amount += Math.max(rate - off, 0) * r[pkg]; else unpriced = true;
+      });
+    });
+    return { amount: amount, unpriced: unpriced, off: off };
+  }
+  function sbShowRates(){
+    document.querySelectorAll('[data-rate-item]').forEach(function(el){
+      var item = el.getAttribute('data-rate-item'), parts = [];
+      ['fresh', 'frozen'].forEach(function(pkg){
+        var rate = sbRate(item, pkg);
+        if (rate) parts.push(sbT(pkg) + ' ' + sbRupees(rate) + '/kg');
+      });
+      el.textContent = parts.length ? parts.join(' · ') : sbT('rateOnConfirm');
+    });
+    var box = document.getElementById('sb-booking-amount');
+    if (!box) return;
+    var a = sbBookingAmount();
+    box.style.display = a.amount ? '' : 'none';
+    document.getElementById('sb-booking-rs').textContent = sbRupees(a.amount);
+    var notes = [];
+    if (a.off) notes.push(sbT('afterPackDiscount').replace('{n}', a.off));
+    if (a.unpriced) notes.push(sbT('someOnConfirm'));
+    document.getElementById('sb-booking-rs-note').textContent = notes.join(' · ');
+  }
+
   function sbAfterSend(){
     if (!sbEnrollStage()) {
       sbWeeklySent = true;
@@ -2377,6 +2436,7 @@ table.sb-table-booking{min-width:0;}
     var cz = document.querySelector('.sb-bk-total[data-bk="frozen"]');
     if (cf) cf.textContent = tf;
     if (cz) cz.textContent = tz;
+    sbShowRates();
     var t = document.getElementById('sb-booking-total');
     if (t) t.textContent = tf + tz;
   }
@@ -2534,12 +2594,15 @@ table.sb-table-booking{min-width:0;}
       lines.push('🗓️ *ORDER FOR NEXT DAY DELIVERY — ' + (booking.label || 'DATE NOT SET').toUpperCase() + '*');
       booking.rows.forEach(function(r){
         var parts = [];
-        if (r.fresh) parts.push('Fresh ' + r.fresh + 'kg');
-        if (r.frozen) parts.push('Frozen ' + r.frozen + 'kg');
+        var at = function(pkg){ var rate = sbRate(r.item, pkg); return rate ? ' @ ' + sbRupees(rate) + '/kg' : ' (rate on confirmation)'; };
+        if (r.fresh) parts.push('Fresh ' + r.fresh + 'kg' + at('fresh'));
+        if (r.frozen) parts.push('Frozen ' + r.frozen + 'kg' + at('frozen'));
         bf += r.fresh; bz += r.frozen;
         lines.push('   • ' + r.item + ': ' + parts.join(', '));
       });
       lines.push('*ORDER TOTAL: ' + (bf + bz) + 'kg*' + (bf && bz ? ' (Fresh ' + bf + 'kg, Frozen ' + bz + 'kg)' : ''));
+      var due = sbBookingAmount();
+      if (due.amount) lines.push('*ORDER AMOUNT: ' + sbRupees(due.amount) + '*' + (due.off ? ' (after ₹' + due.off + ' per kg packing discount)' : '') + (due.unpriced ? ' + items at rate on confirmation' : ''));
       lines.push('*Packing for this order:* ' + (bookingPackKg ? sbPackLabel(bookingPackKg) : 'Not specified'));
       lines.push('');
     }
@@ -2551,7 +2614,7 @@ table.sb-table-booking{min-width:0;}
     lines.push(DIV);
     lines.push('💼 *COMMERCIAL & ACCOUNTS*');
     if (accMobile) lines.push('• *Accounts Incharge:* ' + accMobile);
-    lines.push('• *Rate:* ' + (sbVal('sb-rate') || 'Not specified') + ' — Pending Confirmation');
+    if (!enroll || !sbBookingAmount().amount) lines.push('• *Rate:* ' + (sbVal('sb-rate') || 'Not specified') + ' — Pending Confirmation');
     if (notes) {
       lines.push('');
       lines.push(DIV);

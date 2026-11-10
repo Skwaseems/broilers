@@ -91,6 +91,10 @@ service cloud.firestore {
     }
     // Credit applications (customer details + which KYC photos were sent) - created by the
     // Worker; admins read them and record approve / reject.
+    // Item rates per customer: admins only. The order form gets one number's rates from the Worker.
+    match /customer_rates/{mobile} {
+      allow read, write: if isAdmin();
+    }
     match /credit_applications/{mobile} {
       allow read, update: if isAdmin();
       allow create, delete: if false;
