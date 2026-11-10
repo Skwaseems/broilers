@@ -76,6 +76,9 @@ body{margin:0;background:#fff;color:#1c1c22;font-family:'Jost',sans-serif;paddin
 a{color:inherit;text-decoration:none}
 .top{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid #eceae7}
 .brand{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:19px;letter-spacing:.06em}
+.top-actions{display:flex;gap:8px}
+.refresh{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;border:1px solid #846e3e;border-radius:3px;background:none;color:#6e5b32;cursor:pointer}
+.refresh svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .home{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border:1px solid #846e3e;border-radius:3px;color:#6e5b32;font-size:14px;font-weight:500}
 main{max-width:640px;margin:0 auto}
 #photo{display:block;width:100%;height:auto;margin:0 auto;background:#fff;object-fit:contain}
@@ -92,7 +95,7 @@ h2{margin:0 0 12px;font-family:'Cormorant Garamond',serif;font-weight:600;font-s
 .wa svg{width:31px;height:31px;fill:currentColor}
 .order a{display:flex;align-items:center;justify-content:center;max-width:608px;min-height:50px;margin:0 auto;background:#846e3e;color:#fff;border-radius:3px;font-size:16px;font-weight:500;letter-spacing:.06em}
 </style></head><body>
-<header class="top"><a class="brand" href="/">Sharhan Broilers</a><a class="home" href="/">Home</a></header>
+<header class="top"><a class="brand" href="/">Sharhan Broilers</a><span class="top-actions"><button type="button" class="refresh" aria-label="Refresh page" title="Refresh" onclick="location.reload()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg></button><a class="home" href="/">Home</a></span></header>
 <main>
 ${item.photo ? `<img id="photo" src="${esc(item.photo)}" alt="${name}" crossorigin="anonymous">` : ""}
 <div class="about"><h1>${name}</h1>${item.desc ? `<p>${esc(item.desc)}</p>` : ""}</div>
