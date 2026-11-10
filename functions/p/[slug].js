@@ -1,5 +1,5 @@
 // /p/<item> — the "Enroll Now" / "Enquire Now" link on WhatsApp catalogue cards.
-// The item's own page: full photo, short description, other products, and a "Fill approx. Weekly needs"
+// The item's own page: full photo, short description, other products, and a "Fill your approx. qty. weekly requirement"
 // button that opens only the order form (/?item=<item>&order=1). None of the homepage is
 // underneath; the Home button is the way there. Also carries og: tags for link previews.
 // (Pages Function.)
@@ -93,7 +93,7 @@ h2{margin:0 0 12px;font-family:'Cormorant Garamond',serif;font-weight:600;font-s
 .order{position:fixed;left:0;right:0;bottom:0;z-index:2;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #eceae7}
 .wa{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:3;display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;background:#25d366;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.3)}
 .wa svg{width:31px;height:31px;fill:currentColor}
-.order a{display:flex;align-items:center;justify-content:center;max-width:608px;min-height:50px;margin:0 auto;background:#846e3e;color:#fff;border-radius:3px;font-size:16px;font-weight:500;letter-spacing:.06em}
+.order a{display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 12px;max-width:608px;min-height:50px;margin:0 auto;background:#846e3e;color:#fff;border-radius:3px;font-size:16px;font-weight:500;letter-spacing:.06em}
 </style></head><body>
 <header class="top"><a class="brand" href="/">Sharhan Broilers</a><span class="top-actions"><button type="button" class="refresh" aria-label="Refresh page" title="Refresh" onclick="location.reload()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg></button><a class="home" href="/">Home</a></span></header>
 <main>
@@ -102,7 +102,7 @@ ${item.photo ? `<img id="photo" src="${esc(item.photo)}" alt="${name}" crossorig
 ${cards ? `<section class="more"><h2>Other products</h2><div class="grid">${cards}</div></section>` : ""}
 </main>
 <a class="wa" href="https://wa.me/${whatsapp}?text=${encodeURIComponent("Hi Sharhan Broilers, I have an enquiry.")}" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${WHATSAPP_PATH}"/></svg></a>
-<div class="order"><a href="${esc(order)}">Fill approx. Weekly needs</a></div>
+<div class="order"><a href="${esc(order)}">Fill your approx. qty. weekly requirement</a></div>
 <script>${TRIM_BANDS}</script>
 </body></html>`;
 }
