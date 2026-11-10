@@ -77,6 +77,10 @@
     }
 
     @media (min-width: 720px) {
+      body .sticky-save {
+        bottom: 80px;
+      }
+
       .wrap {
         padding-bottom: 110px;
       }
@@ -86,6 +90,7 @@
     #app {
       grid-template-columns: minmax(0, 1fr);
       align-content: start;
+      overflow-x: clip;
     }
 
     .tabs {
@@ -324,6 +329,11 @@
       vertical-align: 4px;
     }
 
+    /* position: a screen-reader label inside a table must not escape it, or the whole page turns wider than the phone */
+    .card table {
+      position: relative;
+    }
+
     @media (max-width:600px) {
       .card table {
         display: block;
@@ -334,6 +344,63 @@
       .card table td,
       .card table th {
         white-space: nowrap;
+      }
+
+      /* Customers: each one a small card, nothing to scroll sideways */
+      .card table.cust-table {
+        display: block;
+        overflow: visible;
+      }
+
+      .cust-table thead {
+        display: none;
+      }
+
+      .cust-table tbody {
+        display: block;
+      }
+
+      .cust-table tr {
+        display: grid;
+        grid-template-columns: 30px minmax(0, 1fr) auto;
+        column-gap: 8px;
+        row-gap: 2px;
+        align-items: start;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .card table.cust-table td {
+        display: block;
+        padding: 0;
+        border: 0;
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      .cust-table td:nth-child(1) {
+        grid-column: 1;
+        grid-row: 1 / span 3;
+      }
+
+      .cust-table td:nth-child(2) {
+        grid-column: 2;
+        font-weight: 500;
+      }
+
+      .cust-table td:nth-child(3) {
+        grid-column: 2;
+        color: var(--muted);
+      }
+
+      .cust-table td:nth-child(4) {
+        grid-column: 2 / -1;
+        margin-top: 2px;
+      }
+
+      .cust-table td:nth-child(5) {
+        grid-column: 3;
+        grid-row: 1 / span 2;
       }
     }
 
@@ -883,7 +950,7 @@
 
     .sticky-save {
       position: sticky;
-      bottom: 0;
+      bottom: calc(66px + env(safe-area-inset-bottom)); /* above the phone menu */
       background: #fff;
       border-top: 1px solid var(--line);
       padding: 12px 0 2px;
@@ -1353,7 +1420,7 @@
           <button class="btn secondary small" id="cust-all">Tick all</button>
           <button class="btn secondary small" id="cust-none">Untick all</button>
         </div>
-        <table>
+        <table class="cust-table">
           <thead>
             <tr>
               <th><span class="visually-hidden">Send</span></th>
