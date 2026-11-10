@@ -21,7 +21,7 @@ Cloudflare Worker for WhatsApp and credit, Firestore for editable content.
   STOP/START), template submit/send, catalogue images in KV, `/credit-check`, `/credit-apply`,
   admin-only `/kyc/...`.
 - `functions/p/[slug].js` — Cloudflare Pages Function behind WhatsApp "Enroll Now" buttons: the item's own page
-  (photo, description, other products, Enroll Now). Its Enroll Now button goes to `/?item=<id>&order=1`, which shows only the form.
+  (photo, description, other products, "Fill approx. Weekly needs"). That button goes to `/?item=<id>&order=1`, which shows only the form.
 - `firestore.rules` — security rules.
 - `tools/build_public.py` — copies the public files into `dist/` (an allowlist).
 
@@ -64,6 +64,8 @@ Live: https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (s
 - Customer item rates: Admin → Rates, only for the main admin, IDs `admin` and `hanif`, and the two Google emails listed in
   `RATE_ADMINS` (admin.html) and `canSetRates()` (firestore.rules): change both. It writes `customer_rates/{mobile}`; the form's Enroll Now step
   gets one number's rates from the Worker's `/customer-rates`, so anyone who types a number sees that number's rates.
+- Each customer's rates can also have a remark per item, a rate type (daily/weekly/monthly) and From/To dates, stored in the same
+  `customer_rates` doc and never sent to the public form. "Send on WhatsApp" opens the admin's own WhatsApp (wa.me) with the rates and saves them.
 - Sending the weekly requirement records the customer in `form_customers/{mobile}` (via the Worker's `/form-customer`) so
   they appear in Customer rates. It's kept apart from `whatsapp_customers`, the catalogue list, which needs their consent.
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.

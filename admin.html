@@ -1329,13 +1329,85 @@
     .card table.rates-table td,
     .card table.rates-table th {
       white-space: normal;
-      overflow-wrap: anywhere;
+      overflow-wrap: break-word;
     }
 
     .rates-table input {
       width: 78px;
       max-width: 100%;
       min-height: 40px;
+    }
+
+    .card table.rates-table tr.rate-item td {
+      border-bottom: 0;
+      padding-bottom: 2px;
+    }
+
+    .card table.rates-table tr.rate-remark td {
+      padding-top: 2px;
+    }
+
+    .rates-table input.rate-remark-box {
+      width: 100%;
+    }
+
+    .rates-period {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 8px 0 12px;
+    }
+
+    .rates-period label:first-child {
+      grid-column: 1 / -1;
+    }
+
+    @media (min-width: 720px) {
+      .rates-period {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .rates-period label:first-child {
+        grid-column: auto;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .rates-period {
+        grid-template-columns: 1fr;
+      }
+
+      .card table.rates-table td,
+      .card table.rates-table th {
+        padding-left: 3px;
+        padding-right: 3px;
+      }
+
+      .rates-table input:not(.rate-remark-box) {
+        width: 62px;
+        padding: 6px;
+      }
+    }
+
+    .rates-period label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .rates-period input,
+    .rates-period select {
+      width: 100%;
+      min-width: 0;
+      min-height: 42px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      font-family: 'Jost', sans-serif;
+      font-size: 16px;
+      color: var(--ink);
+      background: #fff;
     }
 
     .cust-search {
@@ -1659,11 +1731,17 @@
         <div class="rates-matches" id="rates-matches"></div>
         <div id="rates-editor" hidden>
           <p class="rates-who" id="rates-who"></p>
+          <div class="rates-period">
+            <label><span class="cat-label">Rate type</span>
+              <select id="rates-type"><option value="">Select</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label>
+            <label><span class="cat-label">From</span><input type="date" id="rates-from"></label>
+            <label><span class="cat-label">To</span><input type="date" id="rates-to"></label>
+          </div>
           <table class="rates-table">
             <thead><tr><th>Item</th><th>Fresh ₹/kg</th><th>Frozen ₹/kg</th></tr></thead>
             <tbody id="rates-rows"></tbody>
           </table>
-          <div class="row-form"><button class="btn" id="rates-save" type="button">Save rates</button></div>
+          <div class="row-form"><button class="btn" id="rates-save" type="button">Save rates</button><button class="btn secondary" id="rates-send" type="button">Send on WhatsApp</button></div>
         </div>
         <div class="status" id="rates-status" role="status"></div>
       </section>
@@ -3438,7 +3516,8 @@
       }
     });
 
-    // ---------- Customer rates: customer_rates/{10-digit mobile} = { name, rates: { item: { fresh, frozen } } } ----------
+    // ---------- Customer rates: customer_rates/{10-digit mobile} = { name, rates: { item: { fresh, frozen } },
+    // remarks: { item: text }, rateType, from, to }. Only `rates` ever reaches the public form (Worker /customer-rates). ----------
     // Who may see and set rates. The same list is in firestore.rules (canSetRates), which enforces it.
     const RATE_ADMINS = ["admin", "hanif", "waseemshaikh597@gmail.com", "bagbanhanif@gmail.com"];
     function canSetRates() { return !!me.manager || RATE_ADMINS.includes(String(me.user || "").toLowerCase()); }
@@ -3488,6 +3567,9 @@
       rateMobile = mobile;
       rateName = name || saved.name || "";
       $("rates-who").textContent = (rateName ? rateName + " · " : "") + mobile;
+      $("rates-type").value = saved.rateType || "";
+      $("rates-from").value = saved.from || "";
+      $("rates-to").value = saved.to || "";
       const body = $("rates-rows");
       body.innerHTML = "";
       formItems.filter((it) => it.name).forEach((it) => {
@@ -3500,35 +3582,79 @@
           input.setAttribute("aria-label", it.name + " " + pkg + " rate per kg");
           return el("td", {}, [input]);
         };
-        body.appendChild(el("tr", {}, [el("td", { textContent: it.name }), box("fresh", it.fresh), box("frozen", it.frozen)]));
+        body.appendChild(el("tr", { className: "rate-item" }, [el("td", { textContent: it.name }), box("fresh", it.fresh), box("frozen", it.frozen)]));
+        const remark = el("input", { type: "text", className: "rate-remark-box", maxLength: 120, placeholder: "Remarks", value: (saved.remarks && saved.remarks[it.name]) || "" });
+        remark.dataset.remark = it.name;
+        remark.setAttribute("aria-label", it.name + " remarks");
+        body.appendChild(el("tr", { className: "rate-remark" }, [el("td", { colSpan: 3 }, [remark])]));
       });
       $("rates-editor").hidden = false;
       setStatus("rates-status", "", "");
     }
     $("rates-search").addEventListener("input", renderRateMatches);
     document.addEventListener("sb-tab", (e) => { if (e.detail === "rates" && auth.currentUser && canSetRates()) loadRateList(); });
-    $("rates-save").addEventListener("click", async () => {
-      const rates = {};
+    // What's on the screen, checked. Null (with the reason shown) if something is wrong.
+    function collectRates() {
+      const rates = {}, remarks = {};
       let count = 0;
-      for (const input of $("rates-rows").querySelectorAll("input")) {
+      for (const input of $("rates-rows").querySelectorAll("input[data-remark]")) {
+        const text = input.value.trim();
+        if (text) remarks[input.dataset.remark] = text;
+      }
+      for (const input of $("rates-rows").querySelectorAll("input[data-pkg]")) {
         const text = input.value.trim();
         if (!text) continue;
         const value = Number(text);
-        if (!(value > 0) || value > 99999) { input.focus(); return setStatus("rates-status", "Enter the " + input.dataset.pkg + " rate for " + input.dataset.item + " as a number, e.g. 180.", "err"); }
+        if (!(value > 0) || value > 99999) { input.focus(); setStatus("rates-status", "Enter the " + input.dataset.pkg + " rate for " + input.dataset.item + " as a number, e.g. 180.", "err"); return null; }
         (rates[input.dataset.item] = rates[input.dataset.item] || {})[input.dataset.pkg] = value;
         count++;
       }
-      const btn = $("rates-save");
-      btn.disabled = true;
+      const rateType = $("rates-type").value, from = $("rates-from").value, to = $("rates-to").value;
+      if (!!from !== !!to) { $(from ? "rates-to" : "rates-from").focus(); setStatus("rates-status", "Enter both the From and To dates.", "err"); return null; }
+      if (from && to < from) { $("rates-to").focus(); setStatus("rates-status", "The To date is before the From date.", "err"); return null; }
+      return { rates, remarks, count, rateType, from, to };
+    }
+    const rateDate = (d) => { const [y, m, day] = d.split("-").map(Number); return new Date(y, m - 1, day).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); };
+    // The WhatsApp message. English, like the order message.
+    function rateMessage(data) {
+      const lines = ["*Sharhan Broilers - Rates*"];
+      if (rateName) lines.push("For: " + rateName);
+      if (data.rateType) lines.push("Rate type: " + data.rateType[0].toUpperCase() + data.rateType.slice(1));
+      if (data.from) lines.push("Valid: " + rateDate(data.from) + " to " + rateDate(data.to));
+      formItems.filter((it) => it.name && (data.rates[it.name] || data.remarks[it.name])).forEach((it) => {
+        const r = data.rates[it.name] || {};
+        const prices = [r.fresh && "Fresh ₹" + r.fresh + "/kg", r.frozen && "Frozen ₹" + r.frozen + "/kg"].filter(Boolean).join(", ");
+        lines.push("", "*" + it.name + "*");
+        if (prices) lines.push(prices);
+        if (data.remarks[it.name]) lines.push("Remarks: " + data.remarks[it.name]);
+      });
+      return lines.join("\n");
+    }
+    async function saveRates(data, savedText) {
+      const buttons = [$("rates-save"), $("rates-send")];
+      buttons.forEach((b) => { b.disabled = true; });
       try {
         const ref = db.collection("customer_rates").doc(rateMobile);
-        if (count) await ref.set({ name: rateName, rates, updatedAt: new Date().toISOString() });
+        if (data.count || Object.keys(data.remarks).length) await ref.set({ name: rateName, rates: data.rates, remarks: data.remarks, rateType: data.rateType, from: data.from, to: data.to, updatedAt: new Date().toISOString() });
         else await ref.delete();
-        logChange("Customer rates", "Saved rates: " + (rateName || "") + " · " + rateMobile, [count + " rate(s)"]);
-        setStatus("rates-status", "Saved. Customers see new rates the next time they open Enroll Now.", "ok");
+        logChange("Customer rates", "Saved rates: " + (rateName || "") + " · " + rateMobile, [data.count + " rate(s)"]);
+        setStatus("rates-status", savedText, "ok");
         loadRateList();
       } catch (e) { setStatus("rates-status", "Couldn't save: " + e.message, "err"); }
-      btn.disabled = false;
+      buttons.forEach((b) => { b.disabled = false; });
+    }
+    $("rates-save").addEventListener("click", () => {
+      const data = collectRates();
+      if (data) saveRates(data, "Saved. Customers see new rates the next time they open Enroll Now.");
+    });
+    // Opens the admin's own WhatsApp with the message ready (free, no Meta template). Saved too, so
+    // the form shows what the customer was sent. window.open must come before any await or phones block it.
+    $("rates-send").addEventListener("click", () => {
+      const data = collectRates();
+      if (!data) return;
+      if (!data.count) return setStatus("rates-status", "Enter at least one rate to send.", "err");
+      window.open("https://wa.me/91" + rateMobile + "?text=" + encodeURIComponent(rateMessage(data)), "_blank", "noopener");
+      saveRates(data, "Saved. WhatsApp has opened with the rates: tap Send there.");
     });
 
     // ---------- Remove a number from all records (the number itself never goes in the activity log) ----------
