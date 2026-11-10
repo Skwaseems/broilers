@@ -2443,6 +2443,8 @@ table.sb-table-booking{min-width:0;}
   }
 
   // Packing rule: quantities go in multiples of the chosen pack; none chosen → any.
+  // Switched off for now (owner, 10 Nov 2026): any quantity is accepted. true turns the check back on.
+  var SB_PACK_MULTIPLES = false;
   // The weekly tables and the specific-day order each have their own choice.
   // Applies to the visible tables; wrong boxes are highlighted.
   function sbPackStep(){
@@ -2474,15 +2476,15 @@ table.sb-table-booking{min-width:0;}
     document.getElementById('sb-pack-star').style.display = weeklyNeeded ? '' : 'none';
     document.querySelectorAll('#sb-form input.sb-qty').forEach(function(el){
       var step = el.closest('table.sb-table-booking') ? booking : weekly;
-      var on = step && sbQtyVisible(el);
+      var on = SB_PACK_MULTIPLES && step && sbQtyVisible(el);
       el.step = on ? String(step) : 'any';
       var v = parseFloat(el.value);
       var wrong = !!(on && el.value !== '' && v > 0 && Math.abs(v / step - Math.round(v / step)) > 1e-9);
       el.classList.toggle('sb-qty-bad', wrong);
       if (wrong) bad++;
     });
-    sbShowPackHint('sb-pack-hint', weekly);
-    sbShowPackHint('sb-booking-pack-hint', booking);
+    sbShowPackHint('sb-pack-hint', SB_PACK_MULTIPLES ? weekly : 0);
+    sbShowPackHint('sb-booking-pack-hint', SB_PACK_MULTIPLES ? booking : 0);
     return bad;
   }
   window.sbPackBadCount = sbApplyPackStep;
