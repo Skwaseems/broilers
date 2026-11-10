@@ -3475,13 +3475,13 @@
       const btn = $("send-btn");
       btn.disabled = true;
       let offset = 0, sent = 0, failed = 0, total = 0;
-      const failures = [];
+      const failures = [], accepted = [];
       try {
         do {
           setStatus("send-status", total ? "Sending… " + (sent + failed) + " of " + total : "Sending…", "");
           const data = await api("/send-catalogue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ offset, mode }) });
           total = data.total;
-          data.results.forEach((r) => (r.ok ? sent++ : (failed++, failures.push(r.to + ": " + r.error))));
+          data.results.forEach((r) => (r.ok ? (sent++, accepted.push(tenDigits(r.to))) : (failed++, failures.push(r.to + ": " + r.error))));
           offset = data.nextOffset;
         } while (offset !== null && offset !== undefined);
         logChange("Send catalogue", "Sent " + what + " to " + who, ["Accepted by WhatsApp: " + sent + (failed ? ", failed: " + failed : "")]);
@@ -3493,8 +3493,28 @@
         setStatus("send-status", "Error: " + e.message + (sent ? " (sent to " + sent + " before stopping)" : ""), "err");
       } finally {
         btn.disabled = false;
+        untickSent(targets, accepted);
       }
     });
+
+    // After a send, whoever WhatsApp accepted is unticked, so the next send can't go to them again by
+    // mistake. Anyone who failed stays ticked, to try again.
+    async function untickSent(targets, accepted) {
+      const done = new Set(accepted);
+      const change = targets.filter((c) => done.has(tenDigits(c.phone)) && isTicked(c));
+      if (!change.length) return;
+      try {
+        for (let i = 0; i < change.length; i += 400) {
+          const batch = db.batch();
+          change.slice(i, i + 400).forEach((c) => batch.update(db.collection("whatsapp_customers").doc(c.id), { send: false }));
+          await batch.commit();
+        }
+        logChange("Send catalogue", "Unticked after sending (" + change.length + " customers)", change.map((c) => (c.name || "") + " · " + c.phone));
+        $("send-status").textContent += " Ticks cleared for those it was sent to.";
+      } catch (e) {
+        $("send-status").textContent += " (Couldn't clear their ticks: " + e.message + ")";
+      }
+    }
 
     // ---------- Customer rates: customer_rates/{10-digit mobile} = { name, rates: { item: { fresh, frozen } },
     // remarks: { item: text }, rateType, from, to }. Only `rates` ever reaches the public form (Worker /customer-rates). ----------

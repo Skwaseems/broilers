@@ -21,7 +21,7 @@ Cloudflare Worker for WhatsApp and credit, Firestore for editable content.
   STOP/START), template submit/send, catalogue images in KV, `/credit-check`, `/credit-apply`,
   admin-only `/kyc/...`.
 - `functions/p/[slug].js` — Cloudflare Pages Function behind WhatsApp "Enroll Now" buttons: the item's own page
-  (photo, description, other products, "Fill approx. Weekly needs"). That button goes to `/?item=<id>&order=1`, which shows only the form.
+  (photo, description, other products, "Fill your approx. qty. weekly requirement"). That button goes to `/?item=<id>&order=1`, which shows only the form.
 - `firestore.rules` — security rules.
 - `tools/build_public.py` — copies the public files into `dist/` (an allowlist).
 
@@ -68,6 +68,7 @@ Live: https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (s
   `customer_rates` doc and never sent to the public form. "Send on WhatsApp" opens the admin's own WhatsApp (wa.me) with the rates and saves them.
 - Sending the weekly requirement records the customer in `form_customers/{mobile}` (via the Worker's `/form-customer`) so
   they appear in Customer rates. It's kept apart from `whatsapp_customers`, the catalogue list, which needs their consent.
+- After Send Catalogue Now, the customers WhatsApp accepted are unticked (`send: false`); failed ones stay ticked.
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - Admin → Send shows an approximate WhatsApp balance and a Recharge link. Meta has no API for the balance: an admin types Meta's figure
   (`settings/whatsapp_balance`) and the Worker's `/balance` subtracts Meta's charges since then plus 18% GST. It needs retyping after each recharge.
