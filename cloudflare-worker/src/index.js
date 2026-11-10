@@ -166,6 +166,8 @@ async function purgeNumber(env, mobile, confirm) {
 // ---- Customers who sent the order form, for Admin → Customer rates. Separate from
 // whatsapp_customers: sending the form isn't agreeing to receive the catalogue. ----
 const FORM_CUSTOMERS_MAX = 3000; // stops a flood of fake numbers filling the free database
+// The form's Rate Selection values (English option values) -> Admin -> Rates -> Rate type.
+const FORM_RATE_TYPES = { "Daily Market Published Rate": "daily", "Weekly Fixed Rate": "weekly", "Monthly Fixed Rate": "monthly", "Annually Fixed Rate": "annual" };
 async function noteFormCustomer(env, request) {
   const body = await request.json().catch(() => ({}));
   const mobile = String(body.mobile || "").replace(/\D/g, "").slice(-10);
@@ -175,7 +177,8 @@ async function noteFormCustomer(env, request) {
   const prev = await getDocument(env, "form_customers", mobile).catch(() => null);
   if (!prev && (await listDocuments(env, "form_customers")).length >= FORM_CUSTOMERS_MAX) return json({ error: "busy" }, 429);
   const at = new Date().toISOString();
-  await setDocument(env, "form_customers", mobile, { mobile, name, firstAt: (prev && prev.firstAt) || at, lastAt: at });
+  const rateType = FORM_RATE_TYPES[String(body.rate || "")] || (prev && prev.rateType) || "";
+  await setDocument(env, "form_customers", mobile, { mobile, name, rateType, firstAt: (prev && prev.firstAt) || at, lastAt: at });
   return json({ ok: true });
 }
 
