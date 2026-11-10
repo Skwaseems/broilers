@@ -107,6 +107,10 @@ async function purgeNumber(env, mobile, confirm) {
   found.credit_applications = application ? 1 : 0;
   if (application) writes.push({ delete: ["credit_applications", mobile] });
 
+  const rates = await getDocument(env, "customer_rates", mobile).catch(() => null);
+  found.customer_rates = rates ? 1 : 0;
+  if (rates) writes.push({ delete: ["customer_rates", mobile] });
+
   const credit = await getDocument(env, "settings", "credit").catch(() => null);
   const customers = credit && Array.isArray(credit.customers) ? credit.customers : [];
   const kept = customers.filter((c) => lastTen(c && c.mobile) !== mobile);
@@ -1328,6 +1332,16 @@ export default {
       const mobile = String(body.mobile || "").replace(/\D/g, "").slice(-10);
       if (mobile.length !== 10) return json({ approved: false });
       return json(await creditStatus(env, mobile));
+    }
+
+    // Public: the rates set for one mobile number, shown in the order form's Enroll Now step.
+    // customer_rates itself has no public access; only the typed number's rates come back.
+    if (path === "/customer-rates" && request.method === "POST") {
+      const body = await request.json().catch(() => ({}));
+      const mobile = String(body.mobile || "").replace(/\D/g, "").slice(-10);
+      if (mobile.length !== 10) return json({ rates: {} });
+      const doc = await getDocument(env, "customer_rates", mobile).catch(() => null);
+      return json({ rates: (doc && doc.rates) || {} });
     }
 
     // Public: credit application with KYC photos (multipart form from the order form).
