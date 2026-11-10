@@ -1526,13 +1526,6 @@
           <label class="check"><input type="radio" name="send-mode" value="full"> <span><strong>Full catalogue</strong>
               &mdash; <span id="live-summary">loading&hellip;</span></span></label>
         </div>
-        <p class="muted" style="margin:4px 0 6px;"><strong>Card style</strong> (also used for automatic replies)</p>
-        <div class="send-modes" role="radiogroup" aria-label="Card style" style="margin-top:0;">
-          <label class="check"><input type="radio" name="card-style" value="photo" checked> <span><strong>Big
-                photo</strong> &mdash; large square photo</span></label>
-          <label class="check"><input type="radio" name="card-style" value="text"> <span><strong>Photo + text
-                below</strong> &mdash; shorter photo with your card text underneath</span></label>
-        </div>
         <label class="site-field" style="margin:4px 0 12px;"><span class="cat-label">Message above the photos <span
               id="intro-count">0 / 500</span></span>
           <textarea id="intro-text" maxlength="500" rows="2"></textarea></label>
@@ -2679,7 +2672,7 @@
         const fields = el("div", { className: "cat-fields" }, [
           head,
           el("div", {}, badges),
-          el("div", { className: "cat-label" }, [el("span", { textContent: "Card text (under the photo in WhatsApp's “Photo + text” style, and in the website's photo view)" }), counter]),
+          el("div", { className: "cat-label" }, [el("span", { textContent: "Card text (shown in the website's photo view)" }), counter]),
           spec,
           el("div", { className: "cat-label" }, [el("span", { textContent: "Pack sizes (shown on the website)" })]),
           packs,
@@ -3295,19 +3288,6 @@
         setStatus("send-status", "Couldn't save the message: " + e.message, "err");
       }
     });
-
-    // Card style switch (settings/whatsapp.cardStyle), read by the Worker for every send.
-    document.querySelectorAll('input[name="card-style"]').forEach((r) => r.addEventListener("change", async () => {
-      const style = r.value;
-      try {
-        await trackedSet(db.collection("settings").doc("whatsapp"), { cardStyle: style }, { merge: true }, "Send catalogue", "Card style");
-        setStatus("send-status", style === "text"
-          ? "Card style: photo + text below." + (textTemplateOf(items.filter((it) => it.onWhatsApp).length) ? "" : " (Until WhatsApp approves it, the big-photo style is sent.)")
-          : "Card style: big photo.", "ok");
-      } catch (e) {
-        setStatus("send-status", "Couldn't change the card style: " + e.message, "err");
-      }
-    }));
 
     $("submit-photo-test-btn").addEventListener("click", () => {
       const n = items.filter((it) => it.onWhatsApp).length;
@@ -4497,12 +4477,9 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
       db.collection("settings").doc("whatsapp").get()
         .then((d) => {
           $("auto-reply-on").checked = !(d.exists && d.data().autoReply === false);
-          const style = d.exists && d.data().cardStyle === "text" ? "text" : "photo";
           $("intro-text").value = (d.exists && d.data().intro) || INTRO_DEFAULT;
           $("intro2-text").value = (d.exists && d.data().intro2) || "";
           showIntro();
-          const radio = document.querySelector('input[name="card-style"][value="' + style + '"]');
-          if (radio) radio.checked = true;
         })
         .catch(() => { $("auto-reply-on").checked = true; });
       autoUnsub = db.collection("whatsapp_autoreply").orderBy("lastSentAt", "desc").limit(8).onSnapshot((snap) => {
