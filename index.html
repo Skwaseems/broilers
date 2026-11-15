@@ -895,26 +895,17 @@
       <div style="max-width:1100px; margin:0 auto; padding:0 clamp(14px,3vw,60px); font-family:'Jost',sans-serif; color:#1c1c22; text-align:center;">
         <h2 id="pay-title" style="margin:0 0 6px; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:clamp(20px,1.9vw,32px); letter-spacing:.06em; text-transform:uppercase;">{{ hPay }}</h2>
         <p style="margin:0 0 clamp(14px,2vw,28px); font-size:clamp(12px,.9vw,15px); line-height:1.6; color:#54535c;">{{ hPayText }}</p>
-        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:clamp(14px,2vw,32px); text-align:left;">
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:clamp(12px,1.6vw,24px);">
           <sc-for list="{{ payBanks }}" as="pb" hint-placeholder-count="2">
-            <div style="flex:1 1 300px; max-width:500px; min-width:0; padding:clamp(14px,1.6vw,24px); background:#fff; border:1px solid #e6e4e0; border-radius:8px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:clamp(14px,1.6vw,26px);">
-              <sc-if value="{{ pb.hasName }}" hint-placeholder-val="{{ true }}">
-                <div style="flex:1 1 100%; text-align:center; font-size:14px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#846e3e;">{{ pb.name }}</div>
+            <button type="button" data-sb-bank="{{ pb.idx }}" aria-haspopup="dialog" aria-label="{{ pb.label }}" style="flex:1 1 130px; max-width:230px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; min-width:0; min-height:clamp(120px,10vw,150px); padding:clamp(14px,1.4vw,22px) 12px; background:#fff; border:1px solid #e6e4e0; border-radius:8px; cursor:pointer; font-family:'Jost',sans-serif; color:#1c1c22; transition:border-color .2s, box-shadow .2s;" style-hover="border-color:#846e3e; box-shadow:0 4px 16px rgba(132,110,62,.18);">
+              <sc-if value="{{ pb.hasLogo }}" hint-placeholder-val="{{ false }}">
+                <img src="{{ pb.logo }}" alt="" loading="lazy" style="display:block; max-width:100%; height:clamp(40px,4vw,56px); object-fit:contain;">
               </sc-if>
-              <sc-if value="{{ pb.hasQr }}" hint-placeholder-val="{{ true }}">
-                <img src="{{ pb.qr }}" alt="{{ pb.alt }}" width="200" height="200" loading="lazy" style="width:clamp(170px,15vw,210px); height:auto; aspect-ratio:1/1; object-fit:contain; background:#fff; border:1px solid #e6e4e0; border-radius:8px; padding:6px;">
+              <sc-if value="{{ pb.noLogo }}" hint-placeholder-val="{{ true }}">
+                <span style="font-family:'Cormorant Garamond',serif; font-size:clamp(20px,1.7vw,26px); font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:#846e3e; line-height:1.15; overflow-wrap:anywhere;">{{ pb.name }}</span>
               </sc-if>
-              <div style="flex:1 1 180px; min-width:0;">
-                <dl style="display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:0; font-size:clamp(13px,.95vw,15px);">
-                  <sc-for list="{{ pb.rows }}" as="pr" hint-placeholder-count="3">
-                    <dt style="color:#54535c;">{{ pr.label }}</dt><dd style="margin:0; font-weight:500; word-break:break-all;">{{ pr.value }}</dd>
-                  </sc-for>
-                </dl>
-                <sc-if value="{{ pb.hasUpi }}" hint-placeholder-val="{{ false }}">
-                  <a href="{{ pb.upiLink }}" style="display:inline-flex; align-items:center; min-height:46px; margin-top:14px; padding:0 18px; background:#25864d; color:#fff; border-radius:4px; font-size:13px; letter-spacing:.06em; text-transform:uppercase;">Pay With A UPI App</a>
-                </sc-if>
-              </div>
-            </div>
+              <span style="font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#54535c;">Tap to see QR</span>
+            </button>
           </sc-for>
         </div>
         <sc-if value="{{ payHasNote }}" hint-placeholder-val="{{ false }}">
@@ -1122,16 +1113,14 @@ class Component extends DCLogic {
     // "Pay Sharhan Broilers": bank QR / UPI / account details from Admin (site_content/payment).
     // Bank 1 is the document itself, bank 2 (optional) is PAY.bank2.
     const PAY = (typeof window !== 'undefined' && window.__sbPayment) || {};
-    const payBanks = [PAY, PAY.bank2 || {}].filter((b) => b && (b.qr || b.upi || b.account)).map((b) => ({
-      name: b.bank || '',
-      hasName: !!b.bank,
-      qr: b.qr || '',
-      hasQr: !!b.qr,
-      alt: (b.bank || 'Sharhan Broilers') + ' payment QR code',
-      rows: [['UPI ID', b.upi], ['Account Name', b.name], ['Account No.', b.account], ['IFSC', b.ifsc]]
-        .filter((r) => r[1]).map((r) => ({ label: r[0], value: String(r[1]) })),
-      hasUpi: !!b.upi && isMobile,
-      upiLink: b.upi ? 'upi://pay?pa=' + encodeURIComponent(b.upi) + '&pn=' + encodeURIComponent(b.name || 'Sharhan Broilers') + '&cu=INR' : ''
+    // Each bank is a tile (logo, or name without one); tapping it opens the QR popup (sbOpenBank, form script).
+    const payBanks = [PAY, PAY.bank2 || {}].filter((b) => b && (b.qr || b.upi || b.account)).map((b, i) => ({
+      idx: String(i),
+      name: b.bank || 'UPI',
+      logo: b.logo || '',
+      hasLogo: !!b.logo,
+      noLogo: !b.logo,
+      label: 'Show the ' + (b.bank || 'UPI') + ' QR code'
     }));
     const payVars = {
       payOn: PAY.showSite !== false && payBanks.length > 0,
@@ -1197,7 +1186,7 @@ class Component extends DCLogic {
       hExtras: hd('extras', 'Also From Our Floor'),
       hVisit: hd('visit', 'Visit Us'),
       hPay: hd('pay', 'Pay Sharhan Broilers'),
-      hPayText: hd('payText', 'Scan a QR code with any UPI app, or transfer to our bank account.'),
+      hPayText: hd('payText', 'Tap a bank to see its QR code and account details.'),
       occasionImg: cut.img,
       cutLabel: cut.label,
       cutPrevLabel: cuts.length > 1 ? cuts[(this.state.cut + cuts.length - 1) % cuts.length].label : '',
@@ -1313,7 +1302,7 @@ td.sb-na{color:#b5b3ad;}
 .sb-note{font-size:11px;color:#54535c;margin-top:6px;}
 @media (max-width:640px){.sb-modal-body{padding:16px 14px 22px;}}
 /* ?order=1 (Order Now on a product page): only the form, nothing of the site behind it. */
-html.sb-form-only body>*:not(#sb-overlay){display:none!important;}
+html.sb-form-only body>*:not(#sb-overlay):not(.sb-bp){display:none!important;}
 /* The form has two steps: the weekly requirement, then (once that is sent) only Enroll Now. */
 #sb-form:not(.sb-stage-enroll) .sb-enroll-part{display:none!important;}
 .sb-rate-line{margin-top:2px;font-size:12px;font-weight:400;line-height:1.3;color:#6e5b32;}
@@ -1387,10 +1376,22 @@ table.sb-table-booking{min-width:0;}
 .sb-pay{margin:4px 0 14px;padding:14px;border:1px solid #e6e4e0;border-radius:4px;background:#faf9f7;}
 .sb-pay-title{font-family:'Cormorant Garamond',serif;font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:15px;margin-bottom:10px;}
 .sb-pay-body{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;}
-.sb-pay-banks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;}
-.sb-pay-bank{padding:12px;border:1px solid #e6e4e0;border-radius:4px;background:#fff;min-width:0;}
-.sb-pay-bank-name{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#846e3e;margin-bottom:8px;}
-.sb-pay-qr{width:160px;height:160px;object-fit:contain;background:#fff;border:1px solid #eee;border-radius:3px;flex:none;}
+.sb-pay-banks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,128px),1fr));gap:10px;}
+.sb-pay-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:104px;padding:12px 10px;border:1px solid #e6e4e0;border-radius:6px;background:#fff;cursor:pointer;font-family:inherit;color:#1c1c22;text-align:center;transition:border-color .2s,box-shadow .2s;}
+.sb-pay-tile:hover,.sb-pay-tile:focus-visible{border-color:#846e3e;box-shadow:0 2px 10px rgba(132,110,62,.18);outline:none;}
+.sb-pay-tile img{display:block;max-width:100%;height:44px;object-fit:contain;}
+.sb-pay-tile-name{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#846e3e;line-height:1.15;overflow-wrap:anywhere;}
+.sb-pay-tile-tap{font-size:11px;letter-spacing:.04em;color:#54535c;}
+/* Bank popup: QR + details (order form and homepage) */
+.sb-bp{position:fixed;inset:0;z-index:100002;display:none;align-items:center;justify-content:center;padding:12px;background:rgba(20,18,14,.75);}
+.sb-bp.sb-bp-open{display:flex;}
+.sb-bp-card{position:relative;width:min(100%,380px);max-height:calc(100vh - 24px);overflow-y:auto;padding:18px 18px 20px;background:#fff;border-radius:8px;text-align:center;font-family:'Jost',sans-serif;color:#1c1c22;box-shadow:0 12px 40px rgba(0,0,0,.3);}
+.sb-bp-close{position:absolute;top:4px;right:4px;width:44px;height:44px;border:none;background:none;font-size:28px;line-height:1;color:#54535c;cursor:pointer;}
+.sb-bp-logo{display:block;max-width:70%;height:48px;margin:4px auto 6px;object-fit:contain;}
+.sb-bp-name{margin:4px 40px 4px;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#846e3e;}
+.sb-bp-qr{display:block;width:min(100%,280px);height:auto;aspect-ratio:1/1;margin:10px auto 4px;object-fit:contain;background:#fff;border:1px solid #eee;border-radius:6px;}
+.sb-bp-hint{font-size:12px;color:#54535c;margin-bottom:12px;}
+.sb-bp .sb-pay-details{text-align:left;}
 .sb-pay-details{flex:1 1 160px;min-width:0;font-size:13px;line-height:1.7;color:#1c1c22;}
 .sb-pay-details dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:0;}
 .sb-pay-details dt{color:#54535c;font-size:12px;}
@@ -1612,6 +1613,7 @@ table.sb-table-booking{min-width:0;}
         </div>
         <div class="sb-pay" id="sb-pay" style="display:none;">
           <div class="sb-pay-title" data-i18n="payTitle">Pay Sharhan Broilers</div>
+          <p class="sb-note" data-i18n="payTapIntro">Tap a bank to see its QR code and account details.</p>
           <div class="sb-pay-banks" id="sb-pay-banks"></div>
           <div class="sb-pay-note" id="sb-pay-note" style="display:none;"></div>
         </div>
@@ -1729,7 +1731,7 @@ table.sb-table-booking{min-width:0;}
       caError: 'Couldn’t send the application. Please check your internet and try again.',
       caBusy: 'We are getting too many applications right now. Please call us on {phone}.',
       creditOk: '✓ Approved for credit.', creditOkDays: '✓ Approved for credit. Credit days: {days}.', creditChecking: 'Checking credit approval…', creditCheckMobile: 'Enter your registered mobile number above to use credit.',
-      payUpi: 'UPI ID', payName: 'Account name', payBank: 'Bank', payAcc: 'Account no.', payIfsc: 'IFSC', payApp: 'Pay with a UPI app', copy: 'Copy', copied: 'Copied'
+      payTap: 'Tap to see QR', payTapIntro: 'Tap a bank to see its QR code and account details.', payScan: 'Scan with any UPI app (GPay, PhonePe, Paytm…)', close: 'Close', payUpi: 'UPI ID', payName: 'Account name', payBank: 'Bank', payAcc: 'Account no.', payIfsc: 'IFSC', payApp: 'Pay with a UPI app', copy: 'Copy', copied: 'Copied'
     },
     hi: {
       modalTitle: 'B2B (बिज़नेस टू बिज़नेस) व्यावसायिक ऑर्डर फ़ॉर्म', signinOffer: 'वैकल्पिक: अपनी जानकारी सभी डिवाइस पर सेव करें', signinBtn: 'Google से साइन इन करें', signOut: 'साइन आउट',
@@ -1811,7 +1813,7 @@ table.sb-table-booking{min-width:0;}
       caError: 'आवेदन नहीं भेजा जा सका। कृपया इंटरनेट जाँचें और फिर से कोशिश करें।',
       caBusy: 'अभी बहुत सारे आवेदन आ रहे हैं। कृपया हमें {phone} पर कॉल करें।',
       creditOk: '✓ उधार के लिए स्वीकृत।', creditOkDays: '✓ उधार के लिए स्वीकृत। उधार के दिन: {days}।', creditChecking: 'उधार की मंज़ूरी जाँची जा रही है…', creditCheckMobile: 'उधार के लिए ऊपर अपना रजिस्टर्ड मोबाइल नंबर भरें।',
-      payUpi: 'UPI ID', payName: 'खाते का नाम', payBank: 'बैंक', payAcc: 'खाता नंबर', payIfsc: 'IFSC', payApp: 'UPI ऐप से भुगतान करें', copy: 'कॉपी', copied: 'कॉपी हो गया'
+      payTap: 'QR देखने के लिए टैप करें', payTapIntro: 'QR कोड और खाते की जानकारी देखने के लिए बैंक पर टैप करें।', payScan: 'किसी भी UPI ऐप (GPay, PhonePe, Paytm…) से स्कैन करें', close: 'बंद करें', payUpi: 'UPI ID', payName: 'खाते का नाम', payBank: 'बैंक', payAcc: 'खाता नंबर', payIfsc: 'IFSC', payApp: 'UPI ऐप से भुगतान करें', copy: 'कॉपी', copied: 'कॉपी हो गया'
     },
     mr: {
       modalTitle: 'B2B (बिझनेस टू बिझनेस) व्यावसायिक ऑर्डर फॉर्म', signinOffer: 'पर्यायी: तुमची माहिती सर्व डिव्हाइसवर सेव्ह करा', signinBtn: 'Google ने साइन इन करा', signOut: 'साइन आउट',
@@ -1893,7 +1895,7 @@ table.sb-table-booking{min-width:0;}
       caError: 'अर्ज पाठवता आला नाही. कृपया इंटरनेट तपासून पुन्हा प्रयत्न करा.',
       caBusy: 'सध्या खूप अर्ज येत आहेत. कृपया आम्हाला {phone} वर कॉल करा.',
       creditOk: '✓ उधारीसाठी मंजूर.', creditOkDays: '✓ उधारीसाठी मंजूर. उधारीचे दिवस: {days}.', creditChecking: 'उधारीची मंजुरी तपासत आहोत…', creditCheckMobile: 'उधारीसाठी वर तुमचा नोंदणीकृत मोबाईल नंबर भरा.',
-      payUpi: 'UPI ID', payName: 'खातेदाराचे नाव', payBank: 'बँक', payAcc: 'खाते क्रमांक', payIfsc: 'IFSC', payApp: 'UPI ॲपने पेमेंट करा', copy: 'कॉपी', copied: 'कॉपी झाले'
+      payTap: 'QR पाहण्यासाठी टॅप करा', payTapIntro: 'QR कोड आणि खात्याची माहिती पाहण्यासाठी बँकेवर टॅप करा.', payScan: 'कोणत्याही UPI ॲपने (GPay, PhonePe, Paytm…) स्कॅन करा', close: 'बंद करा', payUpi: 'UPI ID', payName: 'खातेदाराचे नाव', payBank: 'बँक', payAcc: 'खाते क्रमांक', payIfsc: 'IFSC', payApp: 'UPI ॲपने पेमेंट करा', copy: 'कॉपी', copied: 'कॉपी झाले'
     }
   };
   var KEY = 'sb-lang';
@@ -3064,16 +3066,9 @@ table.sb-table-booking{min-width:0;}
     var on = pay.showForm !== false && banks.length > 0;
     box.style.display = on ? '' : 'none';
     if (!on) return;
-    var mobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-    document.getElementById('sb-pay-banks').innerHTML = banks.map(function(b){
-      var rows = [['payUpi', b.upi, true], ['payName', b.name], ['payAcc', b.account, true], ['payIfsc', b.ifsc, true]];
-      var h = '<div class="sb-pay-bank">' + (b.bank ? '<div class="sb-pay-bank-name">' + sbPayEsc(b.bank) + '</div>' : '') + '<div class="sb-pay-body">';
-      if (b.qr) h += '<img class="sb-pay-qr" src="' + sbPayEsc(b.qr) + '" alt="' + sbPayEsc((b.bank || 'UPI') + ' QR code') + '" width="160" height="160">';
-      h += '<div class="sb-pay-details"><dl>' + rows.filter(function(r){ return r[1]; }).map(function(r){
-        return '<dt>' + sbPayEsc(sbT(r[0])) + '</dt><dd>' + sbPayEsc(r[1]) + (r[2] ? '<button type="button" class="sb-pay-copy" data-copy="' + sbPayEsc(r[1]) + '">' + sbPayEsc(sbT('copy')) + '</button>' : '') + '</dd>';
-      }).join('') + '</dl>';
-      if (b.upi && mobile) h += '<a class="sb-pay-app" href="upi://pay?pa=' + encodeURIComponent(b.upi) + '&pn=' + encodeURIComponent(b.name || 'Sharhan Broilers') + '&cu=INR">' + sbPayEsc(sbT('payApp')) + '</a>';
-      return h + '</div></div></div>';
+    document.getElementById('sb-pay-banks').innerHTML = banks.map(function(b, i){
+      return '<button type="button" class="sb-pay-tile" data-sb-bank="' + i + '" aria-haspopup="dialog">' + sbBankFace(b) +
+        '<span class="sb-pay-tile-tap">' + sbPayEsc(sbT('payTap')) + '</span></button>';
     }).join('');
     var note = document.getElementById('sb-pay-note');
     note.textContent = pay.note || '';
@@ -3086,6 +3081,54 @@ table.sb-table-booking{min-width:0;}
     if (navigator.clipboard) navigator.clipboard.writeText(b.getAttribute('data-copy')).then(done, function(){});
   });
   window.addEventListener('sb-content', window.sbRefreshPayment);
+  window.addEventListener('sb-lang', window.sbRefreshPayment);
+  // The bank's logo, or its name when no logo was uploaded.
+  function sbBankFace(b){
+    var name = b.bank || 'UPI';
+    return b.logo ? '<img src="' + sbPayEsc(b.logo) + '" alt="' + sbPayEsc(name) + '">' : '<span class="sb-pay-tile-name">' + sbPayEsc(name) + '</span>';
+  }
+  // Tapping a bank tile (order form or homepage, both carry data-sb-bank) opens its QR and details.
+  var sbBp = null, sbBpBack = null;
+  function sbBankClose(){
+    if (!sbBp || !sbBp.classList.contains('sb-bp-open')) return;
+    sbBp.classList.remove('sb-bp-open');
+    if (sbBpBack && sbBpBack.focus) sbBpBack.focus();
+  }
+  window.sbOpenBank = function(i){
+    var pay = window.__sbPayment || {};
+    var b = sbPayBanks(pay)[i];
+    if (!b) return;
+    if (!sbBp) {
+      sbBp = document.createElement('div');
+      sbBp.className = 'sb-bp';
+      sbBp.setAttribute('role', 'dialog');
+      sbBp.setAttribute('aria-modal', 'true');
+      sbBp.setAttribute('aria-labelledby', 'sb-bp-title');
+      sbBp.addEventListener('click', function(e){ if (e.target === sbBp || (e.target.closest && e.target.closest('.sb-bp-close'))) sbBankClose(); });
+      document.body.appendChild(sbBp);
+    }
+    var rows = [['payUpi', b.upi, true], ['payName', b.name], ['payAcc', b.account, true], ['payIfsc', b.ifsc, true]];
+    var h = '<div class="sb-bp-card"><button type="button" class="sb-bp-close" aria-label="' + sbPayEsc(sbT('close')) + '">×</button>';
+    if (b.logo) h += '<img class="sb-bp-logo" src="' + sbPayEsc(b.logo) + '" alt="">';
+    h += '<div class="sb-bp-name" id="sb-bp-title">' + sbPayEsc(b.bank || sbT('payTitle')) + '</div>';
+    if (b.qr) h += '<img class="sb-bp-qr" src="' + sbPayEsc(b.qr) + '" alt="' + sbPayEsc((b.bank || 'UPI') + ' QR code') + '"><div class="sb-bp-hint">' + sbPayEsc(sbT('payScan')) + '</div>';
+    h += '<div class="sb-pay-details"><dl>' + rows.filter(function(r){ return r[1]; }).map(function(r){
+      return '<dt>' + sbPayEsc(sbT(r[0])) + '</dt><dd>' + sbPayEsc(r[1]) + (r[2] ? '<button type="button" class="sb-pay-copy" data-copy="' + sbPayEsc(r[1]) + '">' + sbPayEsc(sbT('copy')) + '</button>' : '') + '</dd>';
+    }).join('') + '</dl>';
+    if (b.upi && /Android|iPhone|iPad/i.test(navigator.userAgent)) h += '<a class="sb-pay-app" href="upi://pay?pa=' + encodeURIComponent(b.upi) + '&pn=' + encodeURIComponent(b.name || 'Sharhan Broilers') + '&cu=INR">' + sbPayEsc(sbT('payApp')) + '</a>';
+    if (pay.note) h += '<div class="sb-pay-note">' + sbPayEsc(pay.note) + '</div>';
+    sbBp.innerHTML = h + '</div></div>';
+    sbBpBack = document.activeElement;
+    sbBp.classList.add('sb-bp-open');
+    sbBp.querySelector('.sb-bp-close').focus();
+  };
+  document.addEventListener('click', function(e){
+    var t = e.target && e.target.closest && e.target.closest('[data-sb-bank]');
+    if (!t) return;
+    e.preventDefault();
+    window.sbOpenBank(parseInt(t.getAttribute('data-sb-bank'), 10) || 0);
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') sbBankClose(); });
   window.sbRefreshPayment();
   window.sbSendEmail = function(){
     var msg = sbValidate();

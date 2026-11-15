@@ -1212,6 +1212,17 @@
       background: #fff;
     }
 
+    .pay-logo-img {
+      max-width: 160px;
+      height: 52px;
+      object-fit: contain;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #fff;
+      margin-top: 8px;
+    }
+
     .pay-check {
       display: inline-flex;
       align-items: center;
@@ -1640,7 +1651,7 @@
 
       <section class="card" aria-labelledby="pay-title">
         <h2 id="pay-title">Bank QR &amp; UPI</h2>
-        <p class="muted">Up to two banks. The order form and the website show them side by side (one under the other on a phone). Leave Bank 2 empty to show only Bank 1.</p>
+        <p class="muted">Up to two banks. The order form and the website show each bank as a tile with its logo (or its name if there is no logo); tapping it opens the QR and details. Leave Bank 2 empty to show only Bank 1.</p>
         <h3 class="pay-sub">Bank 1</h3>
         <div class="pay-grid">
           <div class="pay-qr-box">
@@ -1649,6 +1660,11 @@
             <label class="btn secondary small" for="pay-qr-file">Upload QR photo</label>
             <input type="file" id="pay-qr-file" accept="image/*" hidden>
             <button class="btn secondary small" id="pay-qr-remove" type="button" style="display:none;">Remove QR</button>
+            <img class="pay-logo-img" id="pay-logo-img" alt="Bank 1 logo" style="display:none;">
+            <span class="muted" id="pay-logo-empty">No bank logo yet</span>
+            <label class="btn secondary small" for="pay-logo-file">Upload bank logo</label>
+            <input type="file" id="pay-logo-file" accept="image/*" hidden>
+            <button class="btn secondary small" id="pay-logo-remove" type="button" style="display:none;">Remove logo</button>
           </div>
           <div class="recip-grid" style="margin-top:0;">
             <label class="site-field"><span class="cat-label">Bank</span><input type="text" id="pay-bank" placeholder="e.g. ICICI Bank"></label>
@@ -1666,6 +1682,11 @@
             <label class="btn secondary small" for="pay2-qr-file">Upload QR photo</label>
             <input type="file" id="pay2-qr-file" accept="image/*" hidden>
             <button class="btn secondary small" id="pay2-qr-remove" type="button" style="display:none;">Remove QR</button>
+            <img class="pay-logo-img" id="pay2-logo-img" alt="Bank 2 (optional) logo" style="display:none;">
+            <span class="muted" id="pay2-logo-empty">No bank logo yet</span>
+            <label class="btn secondary small" for="pay2-logo-file">Upload bank logo</label>
+            <input type="file" id="pay2-logo-file" accept="image/*" hidden>
+            <button class="btn secondary small" id="pay2-logo-remove" type="button" style="display:none;">Remove logo</button>
           </div>
           <div class="recip-grid" style="margin-top:0;">
             <label class="site-field"><span class="cat-label">Bank</span><input type="text" id="pay2-bank" placeholder="e.g. Union Bank Of India"></label>
@@ -2995,7 +3016,7 @@
           { k: "cuts", label: "A Cut For Every Kitchen", ph: "A Cut For Every Kitchen", max: 60 },
           { k: "visit", label: "Visit Us", ph: "Visit Us", max: 60 },
           { k: "pay", label: "Pay Sharhan Broilers", ph: "Pay Sharhan Broilers", max: 60 },
-          { k: "payText", label: "Line under the payment heading", ph: "Scan a QR code with any UPI app, or transfer to our bank account.", max: 160 },
+          { k: "payText", label: "Line under the payment heading", ph: "Tap a bank to see its QR code and account details.", max: 160 },
           { k: "categories", label: "Categories (hidden section)", ph: "Categories", max: 60 },
           { k: "bundle", label: "Frequently Ordered Together (hidden section)", ph: "Frequently Ordered Together", max: 60 },
           { k: "extras", label: "Also From Our Floor (hidden section)", ph: "Also From Our Floor", max: 60 },
@@ -4094,14 +4115,16 @@
     // ---------- Payments: bank QR / UPI / account (site_content/payment, public) ----------
     // Bank 1 is stored at the top of the document (as before), Bank 2 under bank2.
     const PAY_FIELDS = ["upi", "name", "bank", "account", "ifsc"];
-    const PAY_SLOTS = [{ p: "pay", label: "Bank 1", kv: "site-qr" }, { p: "pay2", label: "Bank 2", kv: "site-qr2" }];
-    const payQr = { pay: "", pay2: "" };
-    function showPayQr(p) {
-      const src = payQr[p];
-      $(p + "-qr-img").style.display = src ? "" : "none";
-      if (src) $(p + "-qr-img").src = src;
-      $(p + "-qr-empty").style.display = src ? "none" : "";
-      $(p + "-qr-remove").style.display = src ? "" : "none";
+    const PAY_SLOTS = [{ p: "pay", label: "Bank 1", n: "" }, { p: "pay2", label: "Bank 2", n: "2" }];
+    // Each bank has two pictures: the QR (up to 1000 px) and the bank's logo (up to 600 px, shown on the tile).
+    const PAY_PICS = [{ k: "qr", word: "QR photo", kv: "site-qr", max: 1000 }, { k: "logo", word: "logo", kv: "site-banklogo", max: 600 }];
+    const payPics = { pay: { qr: "", logo: "" }, pay2: { qr: "", logo: "" } };
+    function showPayPic(p, k) {
+      const src = payPics[p][k];
+      $(p + "-" + k + "-img").style.display = src ? "" : "none";
+      if (src) $(p + "-" + k + "-img").src = src;
+      $(p + "-" + k + "-empty").style.display = src ? "none" : "";
+      $(p + "-" + k + "-remove").style.display = src ? "" : "none";
     }
     async function loadPayments() {
       let p = {};
@@ -4111,35 +4134,34 @@
       $("pay-note").value = p.note || "";
       $("pay-show-form").checked = p.showForm !== false;
       $("pay-show-site").checked = p.showSite !== false;
-      payQr.pay = p.qr || "";
-      payQr.pay2 = b2.qr || "";
-      PAY_SLOTS.forEach((sl) => showPayQr(sl.p));
+      payPics.pay = { qr: p.qr || "", logo: p.logo || "" };
+      payPics.pay2 = { qr: b2.qr || "", logo: b2.logo || "" };
+      PAY_SLOTS.forEach((sl) => PAY_PICS.forEach((pic) => showPayPic(sl.p, pic.k)));
     }
-    PAY_SLOTS.forEach((sl) => {
-      $(sl.p + "-qr-file").addEventListener("change", async (e) => {
+    PAY_SLOTS.forEach((sl) => PAY_PICS.forEach((pic) => {
+      $(sl.p + "-" + pic.k + "-file").addEventListener("change", async (e) => {
         const file = e.target.files && e.target.files[0];
         e.target.value = "";
         if (!file) return;
-        setStatus("pay-status", sl.label + ": uploading the QR photo…");
+        setStatus("pay-status", sl.label + ": uploading the " + pic.word + "…");
         try {
-          // Up to 1000 px on the long side keeps the QR crisp and the file small.
           const blob = await toJpeg(file, (w, h) => {
-            const k = Math.min(1, 1000 / Math.max(w, h));
+            const k = Math.min(1, pic.max / Math.max(w, h));
             return { w: Math.round(w * k), h: Math.round(h * k), sx: 0, sy: 0, sw: w, sh: h };
           });
-          const { url } = await api("/catalogue-image/" + sl.kv, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: blob });
-          payQr[sl.p] = url;
-          showPayQr(sl.p);
-          setStatus("pay-status", sl.label + ": QR uploaded. Press Save payment details to publish it.", "ok");
+          const { url } = await api("/catalogue-image/" + pic.kv + sl.n, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: blob });
+          payPics[sl.p][pic.k] = url;
+          showPayPic(sl.p, pic.k);
+          setStatus("pay-status", sl.label + ": " + pic.word + " uploaded. Press Save payment details to publish it.", "ok");
         } catch (err) {
           setStatus("pay-status", sl.label + ": upload failed: " + err.message, "err");
         }
       });
-      $(sl.p + "-qr-remove").addEventListener("click", () => { payQr[sl.p] = ""; showPayQr(sl.p); setStatus("pay-status", sl.label + ": QR removed. Press Save payment details to publish."); });
-    });
+      $(sl.p + "-" + pic.k + "-remove").addEventListener("click", () => { payPics[sl.p][pic.k] = ""; showPayPic(sl.p, pic.k); setStatus("pay-status", sl.label + ": " + pic.word + " removed. Press Save payment details to publish."); });
+    }));
     $("pay-save").addEventListener("click", async () => {
       const bank = (p) => {
-        const b = { qr: payQr[p] };
+        const b = { qr: payPics[p].qr, logo: payPics[p].logo };
         PAY_FIELDS.forEach((k) => { b[k] = $(p + "-" + k).value.trim(); });
         b.ifsc = b.ifsc.toUpperCase();
         return b;

@@ -73,8 +73,9 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
 - After Send Catalogue Now, the customers WhatsApp accepted are unticked (`send: false`); failed ones stay ticked.
 - Quantities must be multiples of the chosen pack (`SB_PACK_MULTIPLES = true` in index.html, back on since 15 Nov 2026). Set it to
   false to accept any quantity: the form then shows the packing breakdown (full packs + kg loose) and the pack discount applies only to kg in full packs.
-- Admin → Credit → Bank QR & UPI holds up to two banks: bank 1 at the top of `site_content/payment`, bank 2 under `bank2`. The form and
-  the homepage show them side by side.
+- Admin → Credit → Bank QR & UPI holds up to two banks: bank 1 at the top of `site_content/payment`, bank 2 under `bank2`, each with a QR
+  and an optional logo. The form and the homepage show a tile per bank (logo, or the bank name); tapping one (`data-sb-bank`) opens
+  `sbOpenBank`'s popup with the QR and details. In `?order=1` mode the popup must stay outside the `body>*` hide rule.
 - Homepage section headings are editable in Admin → Website content → Section headings (`site_content/main.headings`; empty = built-in text).
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - Admin → Send shows an approximate WhatsApp balance and a Recharge link. Meta has no API for the balance: an admin types Meta's figure
