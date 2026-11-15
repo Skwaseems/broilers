@@ -5,13 +5,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <!-- SEO:START -->
-  <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/site.webmanifest">
-  <meta name="theme-color" content="#22352a">
-  <!-- SEO:END -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#22352a">
+<!-- SEO:END -->
   <title>Sharhan Broilers &mdash; Catalogue Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
@@ -1203,7 +1203,7 @@
       text-align: center;
     }
 
-    #pay-qr-img {
+    .pay-qr-img {
       width: 160px;
       height: 160px;
       object-fit: contain;
@@ -1640,22 +1640,43 @@
 
       <section class="card" aria-labelledby="pay-title">
         <h2 id="pay-title">Bank QR &amp; UPI</h2>
+        <p class="muted">Up to two banks. The order form and the website show them side by side (one under the other on a phone). Leave Bank 2 empty to show only Bank 1.</p>
+        <h3 class="pay-sub">Bank 1</h3>
         <div class="pay-grid">
           <div class="pay-qr-box">
-            <img id="pay-qr-img" alt="Payment QR code" width="160" height="160" style="display:none;">
+            <img class="pay-qr-img" id="pay-qr-img" alt="Bank 1 QR code" width="160" height="160" style="display:none;">
             <span class="muted" id="pay-qr-empty">No QR code yet</span>
             <label class="btn secondary small" for="pay-qr-file">Upload QR photo</label>
             <input type="file" id="pay-qr-file" accept="image/*" hidden>
             <button class="btn secondary small" id="pay-qr-remove" type="button" style="display:none;">Remove QR</button>
           </div>
           <div class="recip-grid" style="margin-top:0;">
+            <label class="site-field"><span class="cat-label">Bank</span><input type="text" id="pay-bank" placeholder="e.g. ICICI Bank"></label>
             <label class="site-field"><span class="cat-label">UPI ID</span><input type="text" id="pay-upi" placeholder="e.g. sharhan@okhdfcbank"></label>
             <label class="site-field"><span class="cat-label">Account name</span><input type="text" id="pay-name" placeholder="e.g. Sharhan Broilers"></label>
-            <label class="site-field"><span class="cat-label">Bank</span><input type="text" id="pay-bank"></label>
             <label class="site-field"><span class="cat-label">Account no.</span><input type="text" id="pay-account" inputmode="numeric"></label>
             <label class="site-field"><span class="cat-label">IFSC</span><input type="text" id="pay-ifsc" style="text-transform:uppercase;"></label>
-            <label class="site-field"><span class="cat-label">Note (optional)</span><input type="text" id="pay-note" placeholder="e.g. Please share the payment screenshot on WhatsApp"></label>
           </div>
+        </div>
+        <h3 class="pay-sub">Bank 2 (optional)</h3>
+        <div class="pay-grid">
+          <div class="pay-qr-box">
+            <img class="pay-qr-img" id="pay2-qr-img" alt="Bank 2 (optional) QR code" width="160" height="160" style="display:none;">
+            <span class="muted" id="pay2-qr-empty">No QR code yet</span>
+            <label class="btn secondary small" for="pay2-qr-file">Upload QR photo</label>
+            <input type="file" id="pay2-qr-file" accept="image/*" hidden>
+            <button class="btn secondary small" id="pay2-qr-remove" type="button" style="display:none;">Remove QR</button>
+          </div>
+          <div class="recip-grid" style="margin-top:0;">
+            <label class="site-field"><span class="cat-label">Bank</span><input type="text" id="pay2-bank" placeholder="e.g. Union Bank Of India"></label>
+            <label class="site-field"><span class="cat-label">UPI ID</span><input type="text" id="pay2-upi" placeholder="e.g. name@oksbi"></label>
+            <label class="site-field"><span class="cat-label">Account name</span><input type="text" id="pay2-name" placeholder="e.g. Sharhan Broilers"></label>
+            <label class="site-field"><span class="cat-label">Account no.</span><input type="text" id="pay2-account" inputmode="numeric"></label>
+            <label class="site-field"><span class="cat-label">IFSC</span><input type="text" id="pay2-ifsc" style="text-transform:uppercase;"></label>
+          </div>
+        </div>
+        <div class="recip-grid">
+          <label class="site-field"><span class="cat-label">Note under both (optional)</span><input type="text" id="pay-note" placeholder="e.g. Please share the payment screenshot on WhatsApp"></label>
         </div>
         <div class="row-form">
           <label class="pay-check"><input type="checkbox" id="pay-show-form" checked> Show in the order form</label>
@@ -2965,6 +2986,22 @@
         fields: [{ k: "heading", label: "Heading", max: 120 }, { k: "p1", label: "First paragraph", area: true, max: 600 }, { k: "p2", label: "Second paragraph", area: true, max: 900 }]
       },
       {
+        // Empty = the heading the website has built in (shown as the box's hint).
+        key: "headings", title: "Section headings (empty = keep the current one)", list: false,
+        fields: [
+          { k: "certificates", label: "Certificates", ph: "Certificates", max: 60 },
+          { k: "stock", label: "Today's Fresh Stock", ph: "Today's Fresh Stock", max: 60 },
+          { k: "packs", label: "Packs", ph: "Packs", max: 60 },
+          { k: "cuts", label: "A Cut For Every Kitchen", ph: "A Cut For Every Kitchen", max: 60 },
+          { k: "visit", label: "Visit Us", ph: "Visit Us", max: 60 },
+          { k: "pay", label: "Pay Sharhan Broilers", ph: "Pay Sharhan Broilers", max: 60 },
+          { k: "payText", label: "Line under the payment heading", ph: "Scan a QR code with any UPI app, or transfer to our bank account.", max: 160 },
+          { k: "categories", label: "Categories (hidden section)", ph: "Categories", max: 60 },
+          { k: "bundle", label: "Frequently Ordered Together (hidden section)", ph: "Frequently Ordered Together", max: 60 },
+          { k: "extras", label: "Also From Our Floor (hidden section)", ph: "Also From Our Floor", max: 60 },
+        ]
+      },
+      {
         key: "certificates", title: "Certificates", noun: "certificate", list: true, min: 0, max: 12,
         fields: [{ k: "name", label: "Name", max: 60 }], images: [{ k: "image", label: "Photo" }]
       },
@@ -3018,6 +3055,7 @@
     function siteText(f, obj, label) {
       const input = f.area ? el("textarea", { value: obj[f.k] || "", rows: 3 }) : el("input", { type: "text", value: obj[f.k] || "" });
       if (f.max) input.maxLength = f.max;
+      if (f.ph) input.placeholder = f.ph;
       input.setAttribute("aria-label", label);
       input.addEventListener("input", () => { obj[f.k] = input.value; markSiteDirty(); });
       return el("label", { className: "site-field" }, [el("span", { className: "cat-label", textContent: f.label }), input]);
@@ -4054,49 +4092,64 @@
     });
 
     // ---------- Payments: bank QR / UPI / account (site_content/payment, public) ----------
-    const PAY_FIELDS = ["upi", "name", "bank", "account", "ifsc", "note"];
-    let payQr = "";
-    function showPayQr() {
-      $("pay-qr-img").style.display = payQr ? "" : "none";
-      if (payQr) $("pay-qr-img").src = payQr;
-      $("pay-qr-empty").style.display = payQr ? "none" : "";
-      $("pay-qr-remove").style.display = payQr ? "" : "none";
+    // Bank 1 is stored at the top of the document (as before), Bank 2 under bank2.
+    const PAY_FIELDS = ["upi", "name", "bank", "account", "ifsc"];
+    const PAY_SLOTS = [{ p: "pay", label: "Bank 1", kv: "site-qr" }, { p: "pay2", label: "Bank 2", kv: "site-qr2" }];
+    const payQr = { pay: "", pay2: "" };
+    function showPayQr(p) {
+      const src = payQr[p];
+      $(p + "-qr-img").style.display = src ? "" : "none";
+      if (src) $(p + "-qr-img").src = src;
+      $(p + "-qr-empty").style.display = src ? "none" : "";
+      $(p + "-qr-remove").style.display = src ? "" : "none";
     }
     async function loadPayments() {
       let p = {};
       try { const s = await db.collection("site_content").doc("payment").get(); if (s.exists) p = s.data(); } catch (e) { /* empty form */ }
-      PAY_FIELDS.forEach((k) => { $("pay-" + k).value = p[k] || ""; });
+      const b2 = (p.bank2 && typeof p.bank2 === "object") ? p.bank2 : {};
+      PAY_FIELDS.forEach((k) => { $("pay-" + k).value = p[k] || ""; $("pay2-" + k).value = b2[k] || ""; });
+      $("pay-note").value = p.note || "";
       $("pay-show-form").checked = p.showForm !== false;
       $("pay-show-site").checked = p.showSite !== false;
-      payQr = p.qr || "";
-      showPayQr();
+      payQr.pay = p.qr || "";
+      payQr.pay2 = b2.qr || "";
+      PAY_SLOTS.forEach((sl) => showPayQr(sl.p));
     }
-    $("pay-qr-file").addEventListener("change", async (e) => {
-      const file = e.target.files && e.target.files[0];
-      e.target.value = "";
-      if (!file) return;
-      setStatus("pay-status", "Uploading the QR photo…");
-      try {
-        // Up to 1000 px on the long side keeps the QR crisp and the file small.
-        const blob = await toJpeg(file, (w, h) => {
-          const k = Math.min(1, 1000 / Math.max(w, h));
-          return { w: Math.round(w * k), h: Math.round(h * k), sx: 0, sy: 0, sw: w, sh: h };
-        });
-        const { url } = await api("/catalogue-image/site-qr", { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: blob });
-        payQr = url;
-        showPayQr();
-        setStatus("pay-status", "QR uploaded. Press Save payment details to publish it.", "ok");
-      } catch (err) {
-        setStatus("pay-status", "Upload failed: " + err.message, "err");
-      }
+    PAY_SLOTS.forEach((sl) => {
+      $(sl.p + "-qr-file").addEventListener("change", async (e) => {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = "";
+        if (!file) return;
+        setStatus("pay-status", sl.label + ": uploading the QR photo…");
+        try {
+          // Up to 1000 px on the long side keeps the QR crisp and the file small.
+          const blob = await toJpeg(file, (w, h) => {
+            const k = Math.min(1, 1000 / Math.max(w, h));
+            return { w: Math.round(w * k), h: Math.round(h * k), sx: 0, sy: 0, sw: w, sh: h };
+          });
+          const { url } = await api("/catalogue-image/" + sl.kv, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: blob });
+          payQr[sl.p] = url;
+          showPayQr(sl.p);
+          setStatus("pay-status", sl.label + ": QR uploaded. Press Save payment details to publish it.", "ok");
+        } catch (err) {
+          setStatus("pay-status", sl.label + ": upload failed: " + err.message, "err");
+        }
+      });
+      $(sl.p + "-qr-remove").addEventListener("click", () => { payQr[sl.p] = ""; showPayQr(sl.p); setStatus("pay-status", sl.label + ": QR removed. Press Save payment details to publish."); });
     });
-    $("pay-qr-remove").addEventListener("click", () => { payQr = ""; showPayQr(); setStatus("pay-status", "QR removed. Press Save payment details to publish."); });
     $("pay-save").addEventListener("click", async () => {
-      const doc = { qr: payQr, showForm: $("pay-show-form").checked, showSite: $("pay-show-site").checked, updatedAt: new Date().toISOString() };
-      PAY_FIELDS.forEach((k) => { doc[k] = $("pay-" + k).value.trim(); });
-      doc.ifsc = doc.ifsc.toUpperCase();
-      if (doc.upi && !/^[\w.-]{2,}@[a-zA-Z][\w.-]*$/.test(doc.upi)) return setStatus("pay-status", "The UPI ID doesn't look right (it looks like name@bank).", "err");
-      if (doc.ifsc && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(doc.ifsc)) return setStatus("pay-status", "The IFSC doesn't look right (11 characters, e.g. HDFC0001234).", "err");
+      const bank = (p) => {
+        const b = { qr: payQr[p] };
+        PAY_FIELDS.forEach((k) => { b[k] = $(p + "-" + k).value.trim(); });
+        b.ifsc = b.ifsc.toUpperCase();
+        return b;
+      };
+      const b1 = bank("pay"), b2 = bank("pay2");
+      for (const [b, label] of [[b1, "Bank 1"], [b2, "Bank 2"]]) {
+        if (b.upi && !/^[\w.-]{2,}@[a-zA-Z][\w.-]*$/.test(b.upi)) return setStatus("pay-status", label + ": the UPI ID doesn't look right (it looks like name@bank).", "err");
+        if (b.ifsc && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(b.ifsc)) return setStatus("pay-status", label + ": the IFSC doesn't look right (11 characters, e.g. HDFC0001234).", "err");
+      }
+      const doc = { ...b1, note: $("pay-note").value.trim(), bank2: b2, showForm: $("pay-show-form").checked, showSite: $("pay-show-site").checked, updatedAt: new Date().toISOString() };
       $("pay-save").disabled = true;
       try {
         await trackedSet(db.collection("site_content").doc("payment"), doc, null, "Credit & payments", "Bank QR & UPI");
@@ -4127,7 +4180,7 @@ h3{margin:18px 0 8px;font-size:14px}.row{margin:6px 0}.legal{margin:6px 0;text-a
 .sign img{display:block;width:230px;max-width:100%}.note{margin-top:12px;font-size:12px;color:#54535c}
 button{margin-bottom:16px;padding:10px 18px;font-size:14px;cursor:pointer}@media print{button{display:none}body{padding:0}}
 </style></head><body><button type="button" onclick="print()">Print / Save as PDF</button>
-<h1>SHARHAN BROILERS</h1><p class="addr">27/28, 296, Nagdevi street, Opp Crawford Market, Mumbai &ndash; 400003.</p>
+<h1>SHARHAN BROILERS</h1><p class="addr">Office No 27 &amp; 28, Bldg No 296, Crawford Market, Next to Union Bank Of India, Mazgaon, Mumbai &ndash; 400010, Maharashtra.</p>
 <h2>KNOW YOUR CLIENT (KYC) APPLICATION FORM</h2>
 <div class="top"><p><b>Please fill this form if you want goods on Credit.</b></p><div class="photo"><img src="${esc(selfieUrl)}" alt="Applicant's selfie"></div></div>
 <h3>IDENTITY DETAILS</h3>
@@ -4225,7 +4278,8 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
         y += 44;
       };
       centre("SHARHAN BROILERS", "bold 66px Georgia, serif", "#2f6ea5"); y += 50;
-      centre("27/28, 296, Nagdevi street, Opp Crawford Market, Mumbai \u2013 400003.", "26px Arial, sans-serif"); y += 74;
+      centre("Office No 27 & 28, Bldg No 296, Crawford Market, Next to Union Bank Of India,", "24px Arial, sans-serif"); y += 32;
+      centre("Mazgaon, Mumbai \u2013 400010, Maharashtra.", "24px Arial, sans-serif"); y += 64;
       centre("KNOW YOUR CLIENT (KYC) APPLICATION FORM", "bold 28px Arial, sans-serif"); y += 56;
       const boxW = 190, boxH = Math.round(boxW * selfie.naturalHeight / selfie.naturalWidth);
       x.strokeStyle = "#14141c"; x.lineWidth = 2;

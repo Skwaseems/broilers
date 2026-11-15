@@ -69,8 +69,11 @@ Live: https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (s
 - Sending the weekly requirement records the customer in `form_customers/{mobile}` (via the Worker's `/form-customer`) so
   they appear in Customer rates, with their Rate Selection (`rateType`), which fills Rates -> Rate type unless an admin saved one later. It's kept apart from `whatsapp_customers`, the catalogue list, which needs their consent.
 - After Send Catalogue Now, the customers WhatsApp accepted are unticked (`send: false`); failed ones stay ticked.
-- Any quantity is accepted (the "multiples of the pack size" check is off: `SB_PACK_MULTIPLES` in index.html). The form shows the packing
-  breakdown (full packs + kg loose) and the pack discount applies only to kg in full packs.
+- Quantities must be multiples of the chosen pack (`SB_PACK_MULTIPLES = true` in index.html, back on since 15 Nov 2026). Set it to
+  false to accept any quantity: the form then shows the packing breakdown (full packs + kg loose) and the pack discount applies only to kg in full packs.
+- Admin → Credit → Bank QR & UPI holds up to two banks: bank 1 at the top of `site_content/payment`, bank 2 under `bank2`. The form and
+  the homepage show them side by side.
+- Homepage section headings are editable in Admin → Website content → Section headings (`site_content/main.headings`; empty = built-in text).
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - Admin → Send shows an approximate WhatsApp balance and a Recharge link. Meta has no API for the balance: an admin types Meta's figure
   (`settings/whatsapp_balance`) and the Worker's `/balance` subtracts Meta's charges since then plus 18% GST. It needs retyping after each recharge.
