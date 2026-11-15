@@ -37,7 +37,9 @@ and `npx firebase-tools deploy --only hosting`; Worker: `cd cloudflare-worker &&
 rules: `npx firebase-tools deploy --only firestore:rules`. Never run `wrangler pages` from
 `cloudflare-worker/`.
 
-Live: https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (same site).
+Live: https://sharhanbroilers.co.in (main address since 15 Nov 2026; Firebase Hosting custom domain, DNS at GoDaddy;
+www redirects to it), also https://sharhan-broilers.pages.dev and https://sharhan-broilers.web.app (same site).
+`/p/<slug>` item pages run only on pages.dev (firebase.json redirects there); the Worker's SITE_URL and WhatsApp links stay on pages.dev.
 
 ## Rules
 
