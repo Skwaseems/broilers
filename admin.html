@@ -1668,7 +1668,7 @@
           </div>
           <div class="recip-grid" style="margin-top:0;">
             <label class="site-field"><span class="cat-label">Bank</span><input type="text" id="pay-bank" placeholder="e.g. ICICI Bank"></label>
-            <label class="site-field"><span class="cat-label">UPI ID</span><input type="text" id="pay-upi" placeholder="e.g. sharhan@okhdfcbank"></label>
+            <label class="site-field"><span class="cat-label">UPI ID (needed for the Pay buttons)</span><input type="text" id="pay-upi" placeholder="e.g. sharhan@okhdfcbank"></label>
             <label class="site-field"><span class="cat-label">Account name</span><input type="text" id="pay-name" placeholder="e.g. Sharhan Broilers"></label>
             <label class="site-field"><span class="cat-label">Account no.</span><input type="text" id="pay-account" inputmode="numeric"></label>
             <label class="site-field"><span class="cat-label">IFSC</span><input type="text" id="pay-ifsc" style="text-transform:uppercase;"></label>
@@ -1690,7 +1690,7 @@
           </div>
           <div class="recip-grid" style="margin-top:0;">
             <label class="site-field"><span class="cat-label">Bank</span><input type="text" id="pay2-bank" placeholder="e.g. Union Bank Of India"></label>
-            <label class="site-field"><span class="cat-label">UPI ID</span><input type="text" id="pay2-upi" placeholder="e.g. name@oksbi"></label>
+            <label class="site-field"><span class="cat-label">UPI ID (needed for the Pay buttons)</span><input type="text" id="pay2-upi" placeholder="e.g. name@oksbi"></label>
             <label class="site-field"><span class="cat-label">Account name</span><input type="text" id="pay2-name" placeholder="e.g. Sharhan Broilers"></label>
             <label class="site-field"><span class="cat-label">Account no.</span><input type="text" id="pay2-account" inputmode="numeric"></label>
             <label class="site-field"><span class="cat-label">IFSC</span><input type="text" id="pay2-ifsc" style="text-transform:uppercase;"></label>
@@ -4177,7 +4177,10 @@
       $("pay-save").disabled = true;
       try {
         await trackedSet(db.collection("site_content").doc("payment"), doc, null, "Credit & payments", "Bank QR & UPI");
-        setStatus("pay-status", "Saved. The form and website show it from the next page load.", "ok");
+        // A QR without a UPI ID still saves, but the popup's Pay now / GPay / PhonePe / Paytm buttons need the UPI ID.
+        const noUpi = [[b1, "Bank 1"], [b2, "Bank 2"]].filter(([b]) => b.qr && !b.upi).map(([, l]) => l);
+        setStatus("pay-status", "Saved. The form and website show it from the next page load." +
+          (noUpi.length ? " Note: " + noUpi.join(" and ") + " has a QR but no UPI ID, so customers get no Pay now / GPay / PhonePe / Paytm buttons for it. Type the UPI ID shown on the QR and save again." : ""), noUpi.length ? "err" : "ok");
       } catch (e) {
         setStatus("pay-status", "Couldn't save: " + e.message, "err");
       } finally {
