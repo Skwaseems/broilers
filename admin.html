@@ -2999,7 +2999,8 @@
     const SITE_SECTIONS = [
       {
         key: "slides", title: "Top banner slides", noun: "slide", list: true, min: 1, max: 6, required: true,
-        fields: [{ k: "script", label: "Word in script", max: 30 }, { k: "sub", label: "Line under SHARHAN", max: 80 }],
+        fields: [{ k: "script", label: "Word in script", max: 30 }, { k: "sub", label: "Line under SHARHAN", max: 80 },
+          { k: "link", label: "Link when the banner is tapped (optional)", ph: "Empty = opens the order form. Or #packs, or https://…", max: 300 }],
         images: [{ k: "left", label: "Left photo" }, { k: "right", label: "Right photo" }]
       },
       {
@@ -3048,11 +3049,12 @@
       },
       {
         key: "gallery", title: "Photo grid", noun: "photo", list: true, min: 1, max: 8, required: true,
-        fields: [], images: [{ k: "image", label: "Photo" }]
+        fields: [{ k: "caption", label: "Caption under the photo", max: 40 }], images: [{ k: "image", label: "Photo" }]
       },
       {
         key: "visit", title: "Visit us", list: false,
-        fields: [{ k: "text", label: "Text", area: true, max: 400 }], images: [{ k: "image", label: "Background photo" }]
+        fields: [{ k: "text", label: "Text", area: true, max: 400 },
+          { k: "map", label: "Locate Our Unit – Google Maps link", ph: "https://maps.app.goo.gl/BFNbfgxyER2BHT8V9", max: 300 }], images: [{ k: "image", label: "Background photo" }]
       },
     ];
 

@@ -626,7 +626,7 @@
 
   <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
     <section style="position:relative; background:#22352a;">
-      <div id="sb-hero-img-m" role="img" aria-label="{{ slide.sub }}" style="position:relative; aspect-ratio:4/5; max-height:78vh; background:{{ slide.leftBg }}; touch-action:pan-y;">
+      <div id="sb-hero-img-m" role="img" aria-label="{{ slide.sub }}" data-sb-link="{{ slide.link }}" style="position:relative; aspect-ratio:4/5; max-height:78vh; background:{{ slide.leftBg }}; touch-action:pan-y; cursor:pointer;">
         <div style="position:absolute; left:0; right:0; bottom:10px; display:flex; justify-content:center; gap:10px;">
           <sc-for list="{{ slideDots }}" as="dot" hint-placeholder-count="3">
             <button sc-camel-on-click="{{ dot.go }}" aria-label="{{ dot.label }}" style="width:26px; height:24px; padding:0; border:none; cursor:pointer; background:linear-gradient({{ dot.bg }},{{ dot.bg }}) center / 100% 3px no-repeat; transition:background .3s;"></button>
@@ -643,7 +643,7 @@
 
   <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
     <section style="position:relative; background:#1f2b23;">
-      <div id="sb-hero-img-d" style="display:grid; grid-template-columns:1fr 1fr 1fr; align-items:stretch; touch-action:pan-y;">
+      <div id="sb-hero-img-d" data-sb-link="{{ slide.link }}" style="display:grid; grid-template-columns:1fr 1fr 1fr; align-items:stretch; touch-action:pan-y; cursor:pointer;">
         <div style="position:relative; overflow:hidden; min-height:clamp(300px,40vw,775px); background:{{ slide.leftBg }};"></div>
         <div style="position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:clamp(40px,4vw,70px) clamp(20px,2vw,40px); background:#22352a; text-align:center; min-height:clamp(300px,40vw,775px);">
           <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:clamp(24px,2.6vw,46px); color:#f3efe7; line-height:1;">{{ slide.script }}</div>
@@ -860,7 +860,7 @@
     <div style="padding:0 clamp(14px,3vw,60px); max-width:min(100%,640px);">
       <div style="font-family:'Cormorant Garamond',serif; font-weight:600; font-size:clamp(18px,1.8vw,32px); letter-spacing:.03em; text-transform:uppercase; color:#fff;">{{ hVisit }}</div>
       <p style="margin:clamp(8px,1vw,18px) 0 0; font-family:'Jost',sans-serif; font-size:clamp(12px,1.05vw,19px); line-height:1.5; color:#fff; text-wrap:pretty;">{{ visitText }}</p>
-      <a href="https://www.google.com/maps/search/?api=1&amp;query=18.948384148201573%2C72.8344467067504" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; min-height:44px; margin-top:clamp(14px,1.9vw,34px); background:#fff; color:#1c1c22; padding:0 clamp(18px,1.7vw,30px); font-family:'Jost',sans-serif; font-size:clamp(11px,.85vw,15px); letter-spacing:.07em; text-transform:uppercase; transition:background .3s, color .3s;" style-hover="background:#846e3e; color:#fff;">Locate Our Unit</a>
+      <a href="{{ visitMap }}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; min-height:44px; margin-top:clamp(14px,1.9vw,34px); background:#fff; color:#1c1c22; padding:0 clamp(18px,1.7vw,30px); font-family:'Jost',sans-serif; font-size:clamp(11px,.85vw,15px); letter-spacing:.07em; text-transform:uppercase; transition:background .3s, color .3s;" style-hover="background:#846e3e; color:#fff;">Locate Our Unit</a>
     </div>
   </section>
 
@@ -869,17 +869,16 @@
   <section style="max-width:1800px; margin:0 auto; padding:clamp(30px,5.6vw,108px) clamp(14px,3vw,60px) clamp(28px,4.4vw,84px);">
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:clamp(10px,1.9vw,36px);">
       <sc-for list="{{ gallery }}" as="g" hint-placeholder-count="4">
+        <figure style="margin:0; min-width:0;">
         <div style="position:relative; aspect-ratio:1/1; overflow:hidden; border-radius:16px; background:#c6c6c6;">
           <div style="width:100%; height:100%; background:{{ g.img }}; transition:transform .8s cubic-bezier(.2,.8,.2,1);" style-hover="transform:scale(1.05);"></div>
           <span style="position:absolute; top:12px; right:12px; color:#fff; opacity:.85; display:flex;"><svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M10 9l6 3-6 3z" fill="currentColor" stroke="none"></path></svg></span>
         </div>
+        <sc-if value="{{ g.hasCaption }}" hint-placeholder-val="{{ true }}">
+          <figcaption style="margin-top:clamp(8px,.9vw,14px); text-align:center; font-family:'Jost',sans-serif; font-size:clamp(12px,.88vw,16px); line-height:1.35; color:#2f2f3a;">{{ g.caption }}</figcaption>
+        </sc-if>
+        </figure>
       </sc-for>
-    </div>
-    <div style="margin-top:clamp(16px,2.3vw,44px); display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:clamp(8px,1.2vw,22px); text-align:center; font-family:'Jost',sans-serif; font-size:clamp(11px,.88vw,16px); color:#2f2f3a;">
-      <span>Cut To Spec</span>
-      <span>Daily Dispatch</span>
-      <span>0–4°C Cold Chain</span>
-      <span>Trade Accounts</span>
     </div>
   </section>
 
@@ -1050,7 +1049,9 @@ class Component extends DCLogic {
     const url = (u) => `url('${String(u || '').replace(/'/g, '%27')}') center/cover no-repeat`;
     const pick = (list, map, fallback) => (Array.isArray(list) && list.length ? list.map(map) : fallback);
 
-    const slides = pick(C.slides, (x) => ({ script: x.script || '', sub: x.sub || '', leftImg: url(x.left || x.right), rightImg: url(x.right || x.left) }), [
+    // link: Admin -> Top banner slides -> "Link when tapped" (#section or https://...); empty = the order form.
+    const safeLink = (v) => { v = String(v || '').trim(); return /^(#[\w-]+|https:\/\/\S+)$/.test(v) ? v : ''; };
+    const slides = pick(C.slides, (x) => ({ script: x.script || '', sub: x.sub || '', link: safeLink(x.link), leftImg: url(x.left || x.right), rightImg: url(x.right || x.left) }), [
       { script: 'Sharhan', sub: 'Fresh Poultry For Kitchens', leftImg: bg(P.board), rightImg: bg(P.chefChop) },
       { script: 'Portioned', sub: 'Curry Cut · Boneless · Tandoori', leftImg: bg(P.pieces), rightImg: bg(P.plating) },
       { script: 'Daily', sub: 'Hotels · Restaurants · Cloud Kitchens', leftImg: bg(P.pot), rightImg: bg(P.kitchen) }
@@ -1146,7 +1147,7 @@ class Component extends DCLogic {
       cutCols: isMobile ? '1fr' : '1fr 1fr 1fr',
       bundleCols: isMobile ? '1fr' : '1fr 1fr',
       payAlign: isMobile ? 'center' : 'flex-end',
-      slide: { script: s.script, sub: s.sub, leftBg: s.leftImg, rightBg: s.rightImg },
+      slide: { script: s.script, sub: s.sub, link: s.link || '', leftBg: s.leftImg, rightBg: s.rightImg },
       slideDots: slides.map((sl, i) => ({
         bg: i === this.state.slide ? '#b49c6c' : 'rgba(255,255,255,.85)',
         label: 'Show slide ' + (i + 1),
@@ -1208,13 +1209,18 @@ class Component extends DCLogic {
       posts: isMobile ? postsAll : rotate(postsAll, this.state.postPage).slice(0, 3),
       prevPost: () => this.setState(st => ({ postPage: (st.postPage + 3) % 4 })),
       nextPost: () => this.setState(st => ({ postPage: (st.postPage + 1) % 4 })),
-      gallery: pick(C.gallery, (x) => ({ img: url(x.image) }), [
+      // Caption typed per photo in Admin -> Photo grid; until then the old labels, in order.
+      gallery: pick(C.gallery, (x) => ({ img: url(x.image), caption: String(x.caption || '').trim() }), [
         { img: bg(P.garnish) }, { img: bg(P.utensils) },
         { img: bg(P.chefChop) }, { img: bg(P.potStove) }
-      ]),
+      ]).map((g, i) => {
+        const caption = g.caption !== undefined && g.caption !== '' ? g.caption : (C.gallery && C.gallery.length && C.gallery.some((x) => x && x.caption) ? '' : (['Cut To Spec', 'Daily Dispatch', '0\u20134\u00b0C Cold Chain', 'Trade Accounts'][i] || ''));
+        return { img: g.img, caption, hasCaption: !!caption };
+      }),
       aboutHeading: about.heading || 'Suppliers & Contractors Of Live And Processed Chicken Broilers',
       aboutP1: about.p1 || 'Established in 1990, Sharhan Broilers has grown into a trusted poultry supplier for Mumbai\u2019s professional kitchens.',
       aboutP2: about.p2 || 'Three decades on, the work is unchanged: dress the birds before dawn, portion them to each kitchen\u2019s spec, and deliver them cold. Hotels, restaurants, caterers and cloud kitchens across the city order on a standing daily schedule.',
+      visitMap: /^https:\/\/\S+$/.test(String(visit.map || '').trim()) ? String(visit.map).trim() : 'https://maps.app.goo.gl/BFNbfgxyER2BHT8V9',
       visitText: visit.text || 'Sharhan Broilers supplies hotels, restaurants and cloud kitchens across Mumbai. Our office is at Crawford Market, next to Union Bank Of India.',
       visitBg: 'linear-gradient(90deg,rgba(12,12,14,.78) 0%,rgba(12,12,14,.35) 50%,rgba(12,12,14,.08) 100%), ' + (visit.image ? url(visit.image) : "url('/assets/img/cc1ae4f6.webp') center/cover no-repeat"),
       footerSections: footerDefs.map((f, i) => ({
@@ -1307,7 +1313,20 @@ html.sb-form-only body>*:not(#sb-overlay):not(.sb-bp){display:none!important;}
 #sb-form:not(.sb-stage-enroll) .sb-enroll-part{display:none!important;}
 .sb-rate-line{margin-top:2px;font-size:12px;font-weight:400;line-height:1.3;color:#6e5b32;}
 .sb-pack-line{margin-top:2px;font-size:12px;font-weight:400;line-height:1.3;color:#54535c;}
-#sb-form.sb-stage-enroll>:not(.sb-enroll-part):not(.sb-send-row):not(.sb-wa-second),#sb-form.sb-stage-enroll>.sb-enroll-checks{display:none!important;}
+#sb-form.sb-stage-enroll>:not(.sb-enroll-part):not(.sb-send-row):not(.sb-wa-second):not(.sb-keep),#sb-form.sb-stage-enroll>.sb-enroll-checks{display:none!important;}
+.sb-steps{display:flex;gap:6px;margin:0 0 8px;padding:0;list-style:none;counter-reset:none;}
+.sb-steps li{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-top:3px solid #e3ded4;font-size:11px;line-height:1.3;text-align:center;color:#8a877f;}
+.sb-step-n{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:1px solid #cfc8ba;background:#fff;font-size:12px;font-weight:600;color:#8a877f;}
+.sb-steps li.sb-step-done{border-top-color:#25864d;color:#1d6b3c;}
+.sb-steps li.sb-step-done .sb-step-n{background:#25864d;border-color:#25864d;color:#fff;}
+.sb-steps li.sb-step-on{border-top-color:#846e3e;color:#1c1c22;font-weight:600;}
+.sb-steps li.sb-step-on .sb-step-n{background:#846e3e;border-color:#846e3e;color:#fff;}
+.sb-step-note{margin:0 0 10px;}
+.sb-help{margin:0 0 14px;}
+.sb-help a{color:#846e3e;font-weight:500;word-break:break-word;}
+.sb-contact-note{margin:16px 0 0;font-weight:500;color:#1c1c22;}
+.sb-sent-ok{margin:0 0 14px;padding:12px 14px;background:#eef7f1;border-left:3px solid #25864d;border-radius:3px;font-size:13px;line-height:1.5;color:#1d6b3c;font-weight:500;}
+#sb-sent-ok2{margin:14px 0 0;}
 html.sb-form-only .sb-overlay{display:flex;background:#fff;padding:0;}
 html.sb-form-only .sb-modal{max-width:none;min-height:100vh;margin:0;border-radius:0;box-shadow:none;overflow:visible;}
 html.sb-form-only .sb-modal-body{max-width:920px;margin:0 auto;}
@@ -1350,6 +1369,8 @@ table.sb-table-booking{min-width:0;}
 #sb-ca-status.sb-ca-err{color:#b3302c;font-weight:500;}
 #sb-wa-float{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:90;display:flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:50%;background:#25d366;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.3);}
 #sb-wa-float svg{width:32px;height:32px;fill:currentColor;}
+#sb-enroll-float{position:fixed;left:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:90;display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 24px;border-radius:25px;background:#846e3e;color:#fff;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;box-shadow:0 4px 16px rgba(0,0,0,.28);}
+#sb-enroll-float:hover,#sb-enroll-float:focus-visible{background:#6e5b32;color:#fff;}
 #sb-refresh-float{position:fixed;right:22px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:90;display:flex;align-items:center;justify-content:center;width:46px;height:46px;padding:0;border:1px solid #ddd8d0;border-radius:50%;background:#fff;color:#1c1c22;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.2);}
 #sb-refresh-float svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 #sb-credit-apply:not(.sb-ekyc) .sb-ca-full{display:none!important;}
@@ -1401,6 +1422,7 @@ table.sb-table-booking{min-width:0;}
 .sb-pay-note{margin-top:8px;font-size:12px;color:#54535c;}
 </style>
 <button type="button" id="sb-refresh-float" aria-label="Refresh page" title="Refresh" onclick="location.reload()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg></button>
+<a id="sb-enroll-float" href="#contact">Enroll Now</a>
 <a id="sb-wa-float" href="https://wa.me/919820132880" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
 <script>
 // Goes to the first WhatsApp number in Admin → Order form → Order recipients.
@@ -1415,7 +1437,7 @@ table.sb-table-booking{min-width:0;}
   window.addEventListener('sb-content', setLink);
 })();
 </script>
-<div class="sb-overlay" id="sb-overlay">
+<div class="sb-overlay" id="sb-overlay" data-clarity-mask="true">
   <div class="sb-ca-win" id="sb-ca-cam" role="dialog" aria-modal="true" aria-labelledby="sb-ca-cam-title" hidden>
     <div class="sb-ca-box">
       <h3 id="sb-ca-cam-title" data-i18n="caSelfieTitle">Selfie with date and time</h3>
@@ -1470,6 +1492,14 @@ table.sb-table-booking{min-width:0;}
           <button type="button" class="sb-signout-btn" id="sb-signout-btn" onclick="sbSignOut()" style="display:none;" data-i18n="signOut">Sign out</button>
         </div>
         <div id="sb-signin-error" class="sb-login-error" style="display:none;margin:-8px 0 12px;"></div>
+        <ol class="sb-steps" id="sb-steps">
+          <li data-step="1"><span class="sb-step-n">1</span><span data-i18n="step1">Weekly requirement</span></li>
+          <li data-step="2"><span class="sb-step-n">2</span><span data-i18n="step2">Next-day order</span></li>
+          <li data-step="3"><span class="sb-step-n">3</span><span data-i18n="step3">Booking &amp; rates confirmed</span></li>
+        </ol>
+        <p class="sb-note sb-step-note" id="sb-step-note"></p>
+        <div class="sb-sent-ok" id="sb-sent-ok" role="status" style="display:none;" data-i18n="sentOk">Your form has been submitted successfully! Our team will contact you within 24 hours to complete your account setup and discuss pricing and payment details.</div>
+        <p class="sb-note sb-help" data-i18n-html="helpLine">Please contact us if you need any assistance completing the form: <a href="tel:+919820132880">98201 32880</a>, <a href="mailto:sharhanbroilerplant@gmail.com">sharhanbroilerplant@gmail.com</a></p>
       <form id="sb-form" onsubmit="return false;">
         <div class="sb-section-title" data-i18n="weeklyTitle">Fill Your Approximate Weekly Requirement Here</div>
         <div class="sb-field sb-pack-field">
@@ -1633,6 +1663,7 @@ table.sb-table-booking{min-width:0;}
           <textarea id="sb-preview" readonly></textarea>
         </div>
 
+        <p class="sb-note sb-keep sb-contact-note" data-i18n="contactNote">We’ll contact you within 24 hours to complete your account setup and confirm pricing and payment details.</p>
         <div class="sb-send-row">
           <button type="button" class="sb-btn sb-btn-wa" onclick="sbSendWhatsApp()" data-i18n="sendWa">Send Via WhatsApp</button>
           <button type="button" class="sb-btn sb-btn-email" onclick="sbSendEmail()" data-i18n="sendEmail">Send Via Email</button>
@@ -1641,6 +1672,7 @@ table.sb-table-booking{min-width:0;}
           <p data-i18n="waSecondText">Sent it? Please also send the same order to our second WhatsApp number — one more tap.</p>
           <button type="button" class="sb-btn sb-btn-wa" id="sb-wa-second-btn" onclick="sbSendWhatsAppSecond()"><span id="sb-wa-second-label" data-i18n="alsoSendTo">Also Send To</span> <span id="sb-wa-second-num"></span></button>
         </div>
+        <div class="sb-sent-ok sb-keep" id="sb-sent-ok2" role="status" style="display:none;" data-i18n="sentOk">Your form has been submitted successfully! Our team will contact you within 24 hours to complete your account setup and discuss pricing and payment details.</div>
       </form>
       </div>
     </div>
@@ -1731,7 +1763,7 @@ table.sb-table-booking{min-width:0;}
       caError: 'Couldn’t send the application. Please check your internet and try again.',
       caBusy: 'We are getting too many applications right now. Please call us on {phone}.',
       creditOk: '✓ Approved for credit.', creditOkDays: '✓ Approved for credit. Credit days: {days}.', creditChecking: 'Checking credit approval…', creditCheckMobile: 'Enter your registered mobile number above to use credit.',
-      payTap: 'Tap to see QR', payTapIntro: 'Tap a bank to see its QR code and account details.', payScan: 'Scan with any UPI app (GPay, PhonePe, Paytm…)', close: 'Close', payUpi: 'UPI ID', payName: 'Account name', payBank: 'Bank', payAcc: 'Account no.', payIfsc: 'IFSC', payApp: 'Pay with a UPI app', copy: 'Copy', copied: 'Copied'
+      step1: 'Weekly requirement', step2: 'Next-day order', step3: 'Booking & rates confirmed', stepNote1: 'Step 1 of 3: send your approximate weekly requirement. Next you can order for next-day delivery, and then our team confirms your booking and rates.', stepNote2: 'Step 2 of 3: order for next-day delivery. After you send it, our team confirms your booking and rates.', stepNote3: 'Step 3 of 3: our team will confirm your booking and rates. You can send another next-day order any time.', helpLine: 'Please contact us if you need any assistance completing the form: <a href="tel:+919820132880">98201 32880</a>, <a href="mailto:sharhanbroilerplant@gmail.com">sharhanbroilerplant@gmail.com</a>', contactNote: 'We’ll contact you within 24 hours to complete your account setup and confirm pricing and payment details.', sentOk: 'Your form has been submitted successfully! Our team will contact you within 24 hours to complete your account setup and discuss pricing and payment details.', payTap: 'Tap to see QR', payTapIntro: 'Tap a bank to see its QR code and account details.', payScan: 'Scan with any UPI app (GPay, PhonePe, Paytm…)', close: 'Close', payUpi: 'UPI ID', payName: 'Account name', payBank: 'Bank', payAcc: 'Account no.', payIfsc: 'IFSC', payApp: 'Pay with a UPI app', copy: 'Copy', copied: 'Copied'
     },
     hi: {
       modalTitle: 'B2B (बिज़नेस टू बिज़नेस) व्यावसायिक ऑर्डर फ़ॉर्म', signinOffer: 'वैकल्पिक: अपनी जानकारी सभी डिवाइस पर सेव करें', signinBtn: 'Google से साइन इन करें', signOut: 'साइन आउट',
@@ -1813,7 +1845,7 @@ table.sb-table-booking{min-width:0;}
       caError: 'आवेदन नहीं भेजा जा सका। कृपया इंटरनेट जाँचें और फिर से कोशिश करें।',
       caBusy: 'अभी बहुत सारे आवेदन आ रहे हैं। कृपया हमें {phone} पर कॉल करें।',
       creditOk: '✓ उधार के लिए स्वीकृत।', creditOkDays: '✓ उधार के लिए स्वीकृत। उधार के दिन: {days}।', creditChecking: 'उधार की मंज़ूरी जाँची जा रही है…', creditCheckMobile: 'उधार के लिए ऊपर अपना रजिस्टर्ड मोबाइल नंबर भरें।',
-      payTap: 'QR देखने के लिए टैप करें', payTapIntro: 'QR कोड और खाते की जानकारी देखने के लिए बैंक पर टैप करें।', payScan: 'किसी भी UPI ऐप (GPay, PhonePe, Paytm…) से स्कैन करें', close: 'बंद करें', payUpi: 'UPI ID', payName: 'खाते का नाम', payBank: 'बैंक', payAcc: 'खाता नंबर', payIfsc: 'IFSC', payApp: 'UPI ऐप से भुगतान करें', copy: 'कॉपी', copied: 'कॉपी हो गया'
+      step1: 'साप्ताहिक ज़रूरत', step2: 'अगले दिन का ऑर्डर', step3: 'बुकिंग व रेट की पुष्टि', stepNote1: 'चरण 1/3: अपनी अनुमानित साप्ताहिक ज़रूरत भेजें। इसके बाद आप अगले दिन की डिलीवरी के लिए ऑर्डर कर सकते हैं, और फिर हमारी टीम आपकी बुकिंग और रेट की पुष्टि करेगी।', stepNote2: 'चरण 2/3: अगले दिन की डिलीवरी के लिए ऑर्डर करें। भेजने के बाद हमारी टीम आपकी बुकिंग और रेट की पुष्टि करेगी।', stepNote3: 'चरण 3/3: हमारी टीम आपकी बुकिंग और रेट की पुष्टि करेगी। आप कभी भी अगले दिन का नया ऑर्डर भेज सकते हैं।', helpLine: 'फ़ॉर्म भरने में कोई मदद चाहिए तो हमसे संपर्क करें: <a href="tel:+919820132880">98201 32880</a>, <a href="mailto:sharhanbroilerplant@gmail.com">sharhanbroilerplant@gmail.com</a>', contactNote: 'हम 24 घंटे के अंदर आपसे संपर्क करके आपका अकाउंट सेटअप पूरा करेंगे और रेट व भुगतान की जानकारी पक्की करेंगे।', sentOk: 'आपका फ़ॉर्म सफलतापूर्वक भेज दिया गया है! हमारी टीम 24 घंटे के अंदर आपसे संपर्क करके आपका अकाउंट सेटअप पूरा करेगी और रेट व भुगतान की जानकारी पर बात करेगी।', payTap: 'QR देखने के लिए टैप करें', payTapIntro: 'QR कोड और खाते की जानकारी देखने के लिए बैंक पर टैप करें।', payScan: 'किसी भी UPI ऐप (GPay, PhonePe, Paytm…) से स्कैन करें', close: 'बंद करें', payUpi: 'UPI ID', payName: 'खाते का नाम', payBank: 'बैंक', payAcc: 'खाता नंबर', payIfsc: 'IFSC', payApp: 'UPI ऐप से भुगतान करें', copy: 'कॉपी', copied: 'कॉपी हो गया'
     },
     mr: {
       modalTitle: 'B2B (बिझनेस टू बिझनेस) व्यावसायिक ऑर्डर फॉर्म', signinOffer: 'पर्यायी: तुमची माहिती सर्व डिव्हाइसवर सेव्ह करा', signinBtn: 'Google ने साइन इन करा', signOut: 'साइन आउट',
@@ -1895,7 +1927,7 @@ table.sb-table-booking{min-width:0;}
       caError: 'अर्ज पाठवता आला नाही. कृपया इंटरनेट तपासून पुन्हा प्रयत्न करा.',
       caBusy: 'सध्या खूप अर्ज येत आहेत. कृपया आम्हाला {phone} वर कॉल करा.',
       creditOk: '✓ उधारीसाठी मंजूर.', creditOkDays: '✓ उधारीसाठी मंजूर. उधारीचे दिवस: {days}.', creditChecking: 'उधारीची मंजुरी तपासत आहोत…', creditCheckMobile: 'उधारीसाठी वर तुमचा नोंदणीकृत मोबाईल नंबर भरा.',
-      payTap: 'QR पाहण्यासाठी टॅप करा', payTapIntro: 'QR कोड आणि खात्याची माहिती पाहण्यासाठी बँकेवर टॅप करा.', payScan: 'कोणत्याही UPI ॲपने (GPay, PhonePe, Paytm…) स्कॅन करा', close: 'बंद करा', payUpi: 'UPI ID', payName: 'खातेदाराचे नाव', payBank: 'बँक', payAcc: 'खाते क्रमांक', payIfsc: 'IFSC', payApp: 'UPI ॲपने पेमेंट करा', copy: 'कॉपी', copied: 'कॉपी झाले'
+      step1: 'साप्ताहिक गरज', step2: 'दुसऱ्या दिवशीची ऑर्डर', step3: 'बुकिंग व दरांची पुष्टी', stepNote1: 'पायरी 1/3: तुमची अंदाजे साप्ताहिक गरज पाठवा. त्यानंतर तुम्ही दुसऱ्या दिवशीच्या डिलिव्हरीसाठी ऑर्डर करू शकता, आणि मग आमची टीम तुमची बुकिंग आणि दरांची पुष्टी करेल.', stepNote2: 'पायरी 2/3: दुसऱ्या दिवशीच्या डिलिव्हरीसाठी ऑर्डर करा. पाठवल्यानंतर आमची टीम तुमची बुकिंग आणि दरांची पुष्टी करेल.', stepNote3: 'पायरी 3/3: आमची टीम तुमची बुकिंग आणि दरांची पुष्टी करेल. तुम्ही कधीही दुसऱ्या दिवशीची नवी ऑर्डर पाठवू शकता.', helpLine: 'फॉर्म भरण्यासाठी मदत हवी असल्यास आमच्याशी संपर्क साधा: <a href="tel:+919820132880">98201 32880</a>, <a href="mailto:sharhanbroilerplant@gmail.com">sharhanbroilerplant@gmail.com</a>', contactNote: 'आम्ही 24 तासांच्या आत तुमच्याशी संपर्क साधून तुमचे अकाउंट सेटअप पूर्ण करू आणि दर व पेमेंटची माहिती निश्चित करू.', sentOk: 'तुमचा फॉर्म यशस्वीरित्या पाठवला गेला आहे! आमची टीम 24 तासांच्या आत तुमच्याशी संपर्क साधून तुमचे अकाउंट सेटअप पूर्ण करेल आणि दर व पेमेंटच्या माहितीबद्दल बोलेल.', payTap: 'QR पाहण्यासाठी टॅप करा', payTapIntro: 'QR कोड आणि खात्याची माहिती पाहण्यासाठी बँकेवर टॅप करा.', payScan: 'कोणत्याही UPI ॲपने (GPay, PhonePe, Paytm…) स्कॅन करा', close: 'बंद करा', payUpi: 'UPI ID', payName: 'खातेदाराचे नाव', payBank: 'बँक', payAcc: 'खाते क्रमांक', payIfsc: 'IFSC', payApp: 'UPI ॲपने पेमेंट करा', copy: 'कॉपी', copied: 'कॉपी झाले'
     }
   };
   var KEY = 'sb-lang';
@@ -2178,9 +2210,25 @@ table.sb-table-booking{min-width:0;}
   var sbWeeklySent = false;
   function sbEnrollStage(){ return document.getElementById('sb-form').classList.contains('sb-stage-enroll'); }
   // Step 2 needs the customer's saved details: without them (e.g. after signing out) it's step 1.
+  // The 3 steps at the top: 1 weekly requirement, 2 next-day order, 3 our team confirms booking & rates.
+  var sbOrderSent = false;
+  function sbShowSteps(){
+    var step = !sbEnrollStage() ? 1 : sbOrderSent ? 3 : 2;
+    document.querySelectorAll('#sb-steps li').forEach(function(li){
+      var n = parseInt(li.getAttribute('data-step'), 10);
+      li.classList.toggle('sb-step-done', n < step);
+      li.classList.toggle('sb-step-on', n === step);
+      if (n === step) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+    });
+    var note = document.getElementById('sb-step-note');
+    if (note) note.textContent = sbT('stepNote' + step);
+  }
+  window.addEventListener('sb-lang', sbShowSteps);
   function sbApplyStage(){
     var enroll = sbWeeklySent && !!sbVal('sb-company') && sbMobile10().length === 10;
     document.getElementById('sb-form').classList.toggle('sb-stage-enroll', enroll);
+    if (!enroll) sbOrderSent = false;
+    sbShowSteps();
     var on = document.getElementById('sb-booking-on');
     if (on.checked !== enroll) { on.checked = enroll; sbToggleBooking(); }
     sbLoadRates();
@@ -2188,6 +2236,8 @@ table.sb-table-booking{min-width:0;}
   // Back to step 1 with everything still filled in; sending it again returns to step 2.
   window.sbModifyWeekly = function(){
     sbWeeklySent = false;
+    document.getElementById('sb-sent-ok').style.display = 'none';
+    document.getElementById('sb-sent-ok2').style.display = 'none';
     sbApplyStage();
     document.getElementById('sb-wa-second').style.display = 'none';
     document.getElementById('sb-overlay').scrollTop = 0;
@@ -2280,6 +2330,10 @@ table.sb-table-booking{min-width:0;}
   }
 
   function sbAfterSend(){
+    // "Submitted successfully": at the top after the weekly requirement (the form moves to step 2), under the buttons after an order.
+    document.getElementById(sbEnrollStage() ? 'sb-sent-ok2' : 'sb-sent-ok').style.display = '';
+    document.getElementById(sbEnrollStage() ? 'sb-sent-ok' : 'sb-sent-ok2').style.display = 'none';
+    if (sbEnrollStage()) { sbOrderSent = true; sbShowSteps(); }
     if (!sbEnrollStage()) {
       fetch(SB_WORKER + '/form-customer', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile: sbMobile10(), name: sbVal('sb-company'), rate: sbVal('sb-rate') }) }).catch(function(){});
       sbWeeklySent = true;
@@ -3460,9 +3514,20 @@ table.sb-table-booking{min-width:0;}
     var dy = e.clientY - s.y;
     if (Math.abs(dx) <= THRESHOLD || Math.abs(dx) <= Math.abs(dy)) return;
     var btn = document.getElementById((dx < 0 ? 'sb-hero-next-' : 'sb-hero-prev-') + s.suffix);
+    swipedAt = Date.now();
     if (btn) btn.click();
   });
   document.addEventListener('pointercancel', function(){ start = null; });
+  // A tap on the banner picture (not a swipe, not its arrows/dots/button) opens the slide's link, or the order form.
+  var swipedAt = 0;
+  document.addEventListener('click', function(e){
+    var el = e.target && e.target.closest && e.target.closest('#sb-hero-img-m, #sb-hero-img-d');
+    if (!el || e.target.closest('button, a') || Date.now() - swipedAt < 500) return;
+    var link = el.getAttribute('data-sb-link') || '';
+    if (link.charAt(0) === '#') { var t = document.querySelector(link); if (t) t.scrollIntoView({ behavior: 'smooth' }); }
+    else if (/^https:\/\//.test(link)) { if (link.indexOf(location.origin) === 0) location.href = link; else window.open(link, '_blank', 'noopener'); }
+    else if (window.sbOpenForm) window.sbOpenForm();
+  });
 })();
 </script>
 
@@ -3924,5 +3989,13 @@ table.sb-table-booking{min-width:0;}
     document.body.appendChild(bar);
   } catch (e) {}
 })();
+</script>
+<script>
+// Microsoft Clarity (heatmaps + session recordings). Put the project ID from clarity.microsoft.com here; '' keeps it off.
+// The order form (#sb-overlay, data-clarity-mask) is masked, so customers' typed details are never recorded.
+(function(id){
+  if (!id) return;
+  (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", id);
+})('');
 </script>
 </body></html>
