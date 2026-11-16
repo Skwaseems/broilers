@@ -80,8 +80,7 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
 - Admin → Website content: each banner slide has an optional link (#section or https://; empty = tapping the banner opens the order
   form), each Photo grid photo its own caption, Visit us a "Locate Our Unit" map link. A sticky Enroll Now button (bottom centre, appears after the banner) opens the form, which opens with a circle-reveal animation from the tap.
 - The order form shows 3 steps (weekly requirement → next-day order → booking & rates confirmed), a help line, a "we'll contact you
-  within 24 hours" note and a "submitted successfully" box after sending. Microsoft Clarity is wired but off until its project ID is
-  put in the loader at the end of index.html; the order form is masked (`data-clarity-mask`).
+  within 24 hours" note and a "submitted successfully" box after sending. Microsoft Clarity is on (project ID zeotiyvqlh, in the loader at the end of index.html); the order form is masked (`data-clarity-mask`).
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - Admin → Send shows an approximate WhatsApp balance and a Recharge link. Meta has no API for the balance: an admin types Meta's figure
   (`settings/whatsapp_balance`) and the Worker's `/balance` subtracts Meta's charges since then plus 18% GST. It needs retyping after each recharge.
