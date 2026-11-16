@@ -71,7 +71,8 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
 - Sending the weekly requirement records the customer in `form_customers/{mobile}` (via the Worker's `/form-customer`) so
   they appear in Customer rates, with their Rate Selection (`rateType`), which fills Rates -> Rate type unless an admin saved one later. It's kept apart from `whatsapp_customers`, the catalogue list, which needs their consent.
 - After Send Catalogue Now, the customers WhatsApp accepted are unticked (`send: false`); failed ones stay ticked.
-- Quantities must be multiples of the chosen pack (`SB_PACK_MULTIPLES = true` in index.html, back on since 15 Nov 2026). Set it to
+- Quantities must be multiples of the chosen pack (`SB_PACK_MULTIPLES = true` in index.html, back on since 15 Nov 2026); since 17 Nov
+  other amounts are rounded UP to the next full pack when the customer leaves the box (owner's choice), with a green note. Set it to
   false to accept any quantity: the form then shows the packing breakdown (full packs + kg loose) and the pack discount applies only to kg in full packs.
 - Admin → Credit → Bank QR & UPI holds up to two banks: bank 1 at the top of `site_content/payment`, bank 2 under `bank2`, each with a QR
   and an optional logo. The form and the homepage show a tile per bank (logo, or the bank name); tapping one (`data-sb-bank`) opens

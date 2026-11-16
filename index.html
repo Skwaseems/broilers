@@ -1296,6 +1296,9 @@ input.sb-qty{width:48px;padding:4px 2px;text-align:center;border:1px solid #ddd;
 .sb-brand-text{display:block;text-align:left;min-width:0;}
 @media (max-width:380px){.sb-brand .sb-brand-name{font-size:14px !important;letter-spacing:.06em !important;}.sb-brand-logo{height:38px;}}
 input.sb-qty.sb-qty-bad{border-color:#b3302c;background:#fbeceb;color:#b3302c;}
+input.sb-qty.sb-qty-fixed{border-color:#25864d;background:#eef7f1;color:#1d6b3c;transition:background .4s,border-color .4s;}
+#sb-toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));z-index:100001;max-width:min(92vw,440px);padding:11px 18px;border-radius:22px;background:#1d6b3c;color:#fff;font-family:'Jost',sans-serif;font-size:13px;line-height:1.4;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transform:translate(-50%,16px);pointer-events:none;transition:opacity .3s,transform .3s;}
+#sb-toast.sb-toast-on{opacity:1;transform:translate(-50%,0);}
 .sb-pack-hint{color:#846e3e;font-weight:500;}
 .sb-pack-field{margin-bottom:14px;}
 td.sb-na{color:#b5b3ad;}
@@ -1724,8 +1727,8 @@ table.sb-table-booking{min-width:0;}
       waSecondText: 'Sent it? Please also send the same order to our second WhatsApp number — one more tap.', alsoSendTo: 'Also Send To', openedFor: '✓ Opened For',
       item: 'Item', itemKg: 'Item (Kg)', dailyTotal: 'Daily Total', total: 'Total',
       dayMon: 'Mon', dayTue: 'Tue', dayWed: 'Wed', dayThu: 'Thu', dayFri: 'Fri', daySat: 'Sat', daySun: 'Sun',
-      packHint: 'Quantities must be in multiples of {n} kg ({n}, {n2}, {n3}…).', packInfo: 'Packed in {n} kg packs. Anything that does not fill a full pack is sent loose, with no pack discount.', packSplit: '{p} × {n} kg', looseKg: '{k} kg loose', packingLabel: 'Packing',
-      packError: 'With your packing choice, quantities must be in multiples of {n} kg. Please correct the boxes marked in red.',
+      packHint: 'Quantities go in full {n} kg packs ({n}, {n2}, {n3}…). Other amounts are rounded up to the next full pack.', packInfo: 'Packed in {n} kg packs. Anything that does not fill a full pack is sent loose, with no pack discount.', packSplit: '{p} × {n} kg', looseKg: '{k} kg loose', packingLabel: 'Packing',
+      packRounded: '{a} kg changed to {b} kg ({p} × {n} kg packs)', packRoundedMany: '{c} quantities rounded up to full packs', packError: 'With your packing choice, quantities must be in multiples of {n} kg. Please correct the boxes marked in red.',
       cutoffMoved: 'That date is past the 3:00 PM cutoff, so the delivery date has been moved to {date}. Please check and send again.',
       bookingEmpty: 'Please enter at least one quantity.',
       qtyEmpty: 'Please enter at least one quantity in the weekly requirement table.',
@@ -1806,8 +1809,8 @@ table.sb-table-booking{min-width:0;}
       waSecondText: 'भेज दिया? कृपया यही ऑर्डर हमारे दूसरे WhatsApp नंबर पर भी भेजें — बस एक और टैप।', alsoSendTo: 'यहाँ भी भेजें:', openedFor: '✓ खोला गया:',
       item: 'आइटम', itemKg: 'आइटम (किलो)', dailyTotal: 'दैनिक कुल', total: 'कुल',
       dayMon: 'सोम', dayTue: 'मंगल', dayWed: 'बुध', dayThu: 'गुरु', dayFri: 'शुक्र', daySat: 'शनि', daySun: 'रवि',
-      packHint: 'मात्रा {n} किलो के गुणक में होनी चाहिए ({n}, {n2}, {n3}…)।', packInfo: '{n} किलो के पैक में पैकिंग होगी। जो मात्रा पूरा पैक नहीं भरती, वो खुली भेजी जाएगी और उस पर पैक की छूट नहीं मिलेगी।', packSplit: '{p} × {n} किलो', looseKg: '{k} किलो खुला', packingLabel: 'पैकिंग',
-      packError: 'आपकी पैकिंग के अनुसार मात्रा {n} किलो के गुणक में होनी चाहिए। कृपया लाल रंग वाले खाने ठीक करें।',
+      packHint: 'मात्रा पूरे {n} किलो के पैक में होगी ({n}, {n2}, {n3}…)। बाकी मात्रा अगले पूरे पैक तक बढ़ा दी जाएगी।', packInfo: '{n} किलो के पैक में पैकिंग होगी। जो मात्रा पूरा पैक नहीं भरती, वो खुली भेजी जाएगी और उस पर पैक की छूट नहीं मिलेगी।', packSplit: '{p} × {n} किलो', looseKg: '{k} किलो खुला', packingLabel: 'पैकिंग',
+      packRounded: '{a} किलो को {b} किलो किया गया ({p} × {n} किलो पैक)', packRoundedMany: '{c} मात्राएँ पूरे पैक तक बढ़ाई गईं', packError: 'आपकी पैकिंग के अनुसार मात्रा {n} किलो के गुणक में होनी चाहिए। कृपया लाल रंग वाले खाने ठीक करें।',
       cutoffMoved: 'वह तारीख दोपहर 3:00 बजे की समय-सीमा के बाद की है, इसलिए डिलीवरी की तारीख {date} कर दी गई है। कृपया जाँच कर फिर से भेजें।',
       bookingEmpty: 'कृपया कम से कम एक मात्रा भरें।',
       qtyEmpty: 'कृपया साप्ताहिक ज़रूरत की टेबल में कम से कम एक मात्रा भरें।',
@@ -1888,8 +1891,8 @@ table.sb-table-booking{min-width:0;}
       waSecondText: 'पाठवले? कृपया हीच ऑर्डर आमच्या दुसऱ्या WhatsApp नंबरवरही पाठवा — फक्त अजून एक टॅप.', alsoSendTo: 'येथेही पाठवा:', openedFor: '✓ उघडले:',
       item: 'आयटम', itemKg: 'आयटम (किलो)', dailyTotal: 'दैनिक एकूण', total: 'एकूण',
       dayMon: 'सोम', dayTue: 'मंगळ', dayWed: 'बुध', dayThu: 'गुरु', dayFri: 'शुक्र', daySat: 'शनि', daySun: 'रवि',
-      packHint: 'प्रमाण {n} किलोच्या पटीत असावे ({n}, {n2}, {n3}…).', packInfo: '{n} किलोच्या पॅकमध्ये पॅकिंग होईल. जे प्रमाण पूर्ण पॅक भरत नाही ते सुटे पाठवले जाईल आणि त्यावर पॅकची सूट मिळणार नाही.', packSplit: '{p} × {n} किलो', looseKg: '{k} किलो सुटे', packingLabel: 'पॅकिंग',
-      packError: 'तुमच्या पॅकिंगनुसार प्रमाण {n} किलोच्या पटीत असावे. कृपया लाल रंगातील रकाने दुरुस्त करा.',
+      packHint: 'प्रमाण पूर्ण {n} किलोच्या पॅकमध्ये असेल ({n}, {n2}, {n3}…). इतर प्रमाण पुढच्या पूर्ण पॅकपर्यंत वाढवले जाईल.', packInfo: '{n} किलोच्या पॅकमध्ये पॅकिंग होईल. जे प्रमाण पूर्ण पॅक भरत नाही ते सुटे पाठवले जाईल आणि त्यावर पॅकची सूट मिळणार नाही.', packSplit: '{p} × {n} किलो', looseKg: '{k} किलो सुटे', packingLabel: 'पॅकिंग',
+      packRounded: '{a} किलो बदलून {b} किलो केले ({p} × {n} किलो पॅक)', packRoundedMany: '{c} प्रमाणे पूर्ण पॅकपर्यंत वाढवली', packError: 'तुमच्या पॅकिंगनुसार प्रमाण {n} किलोच्या पटीत असावे. कृपया लाल रंगातील रकाने दुरुस्त करा.',
       cutoffMoved: 'ती तारीख दुपारी 3:00 च्या मुदतीनंतरची आहे, म्हणून डिलिव्हरीची तारीख {date} केली आहे. कृपया तपासून पुन्हा पाठवा.',
       bookingEmpty: 'कृपया किमान एक प्रमाण भरा.',
       qtyEmpty: 'कृपया साप्ताहिक गरजेच्या टेबलमध्ये किमान एक प्रमाण भरा.',
@@ -2639,8 +2642,49 @@ table.sb-table-booking{min-width:0;}
     return bad;
   }
   window.sbPackBadCount = sbApplyPackStep;
+  // Not a whole number of packs? Round UP to the next full pack (7 kg in 5 kg packs -> 10 kg) and say so.
+  // Runs when the customer leaves a box, when the pack size changes, and once more before sending.
+  function sbRoundUpBox(el){
+    if (!SB_PACK_MULTIPLES || !el || !sbQtyVisible(el)) return null;
+    var step = el.closest('table.sb-table-booking') ? sbBookingPackStep() : sbPackStep();
+    var v = parseFloat(el.value);
+    if (!step || !(v > 0) || Math.abs(v / step - Math.round(v / step)) < 1e-9) return null;
+    var up = Math.ceil(v / step - 1e-9) * step;
+    el.value = String(up);
+    el.classList.add('sb-qty-fixed');
+    setTimeout(function(){ el.classList.remove('sb-qty-fixed'); }, 1600);
+    return { from: v, to: up, step: step };
+  }
+  function sbRoundUpAll(){
+    var last = null, count = 0;
+    document.querySelectorAll('#sb-form input.sb-qty').forEach(function(el){ var r = sbRoundUpBox(el); if (r) { last = r; count++; } });
+    if (count) { sbRecalc(); sbToast(count === 1 ? sbRoundedText(last) : sbT('packRoundedMany').replace('{c}', count)); }
+    return count;
+  }
+  function sbRoundedText(r){
+    return sbT('packRounded').replace('{a}', r.from).replace('{b}', r.to).replace('{p}', r.to / r.step).replace('{n}', r.step);
+  }
+  var sbToastTimer = null;
+  function sbToast(text){
+    var t = document.getElementById('sb-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'sb-toast';
+      t.setAttribute('role', 'status');
+      document.getElementById('sb-overlay').appendChild(t);
+    }
+    t.textContent = text;
+    t.classList.add('sb-toast-on');
+    clearTimeout(sbToastTimer);
+    sbToastTimer = setTimeout(function(){ t.classList.remove('sb-toast-on'); }, 3500);
+  }
+  window.sbRoundUpAll = sbRoundUpAll;
   document.addEventListener('change', function(e){
-    if (e.target && (e.target.id === 'sb-pack' || e.target.id === 'sb-booking-pack')) sbRecalc();
+    if (e.target && (e.target.id === 'sb-pack' || e.target.id === 'sb-booking-pack')) { sbRecalc(); sbRoundUpAll(); return; }
+    if (e.target && e.target.matches && e.target.matches('#sb-form input.sb-qty')) {
+      var r = sbRoundUpBox(e.target);
+      if (r) { sbRecalc(); sbToast(sbRoundedText(r)); }
+    }
   });
 
   function sbRecalc(){
@@ -2786,6 +2830,7 @@ table.sb-table-booking{min-width:0;}
 
   function sbValidate(){
     var form = document.getElementById('sb-form');
+    sbRoundUpAll();
     if (sbApplyPackStep()) {
       var first = form.querySelector('input.sb-qty-bad');
       alert(sbT('packError').replace(/\{n\}/g, first ? first.step : sbPackStep()));
