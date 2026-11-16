@@ -78,7 +78,7 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   `sbOpenBank`'s popup with the QR and details. In `?order=1` mode the popup must stay outside the `body>*` hide rule.
 - Homepage section headings are editable in Admin → Website content → Section headings (`site_content/main.headings`; empty = built-in text).
 - Admin → Website content: each banner slide has an optional link (#section or https://; empty = tapping the banner opens the order
-  form), each Photo grid photo its own caption, Visit us a "Locate Our Unit" map link. A sticky Enroll Now button opens the form.
+  form), each Photo grid photo its own caption, Visit us a "Locate Our Unit" map link. A sticky Enroll Now button (bottom centre, appears after the banner) opens the form, which opens with a circle-reveal animation from the tap.
 - The order form shows 3 steps (weekly requirement → next-day order → booking & rates confirmed), a help line, a "we'll contact you
   within 24 hours" note and a "submitted successfully" box after sending. Microsoft Clarity is wired but off until its project ID is
   put in the loader at the end of index.html; the order form is masked (`data-clarity-mask`).
@@ -86,6 +86,6 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
 - Admin → Send shows an approximate WhatsApp balance and a Recharge link. Meta has no API for the balance: an admin types Meta's figure
   (`settings/whatsapp_balance`) and the Worker's `/balance` subtracts Meta's charges since then plus 18% GST. It needs retyping after each recharge.
 - WhatsApp usage (today / this month) and the payment alert in Admin → Send are hidden for now (`USAGE_ON` in admin.html).
-- eKYC (KYC form, selfie, signature, terms, admin PDF and share) is built but switched off until its bill is approved:
-  to turn it on set `SB_EKYC` in index.html, `EKYC_TOOLS` in admin.html and `EKYC = "on"` in wrangler.toml.
+- eKYC (KYC form, selfie, signature, terms, admin PDF and share) is ON since 17 Nov 2026 (owner approved): `SB_EKYC` in index.html,
+  `EKYC_TOOLS` in admin.html and `EKYC = "on"` in wrangler.toml must all match (false/false/remove the line turns it off).
 - The eKYC declaration and terms are in both index.html and the Worker (`KYC_DECLARATION`, `KYC_TERMS`): change both.

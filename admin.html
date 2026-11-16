@@ -4204,7 +4204,7 @@ h3{margin:18px 0 8px;font-size:14px}.row{margin:6px 0}.legal{margin:6px 0;text-a
 .sign img{display:block;width:230px;max-width:100%}.note{margin-top:12px;font-size:12px;color:#54535c}
 button{margin-bottom:16px;padding:10px 18px;font-size:14px;cursor:pointer}@media print{button{display:none}body{padding:0}}
 </style></head><body><button type="button" onclick="print()">Print / Save as PDF</button>
-<h1>SHARHAN BROILERS</h1><p class="addr">Office No 27 &amp; 28, Bldg No 296, Crawford Market, Next to Union Bank Of India, Mazgaon, Mumbai &ndash; 400010, Maharashtra.</p>
+<h1>SHARHAN BROILERS</h1><p class="addr">78/80, Sant Savata Mali Marg, near Union Bank of India Byculla, Mustafa Bazar, Byculla, Mumbai &ndash; 400010, Maharashtra.</p>
 <h2>KNOW YOUR CLIENT (KYC) APPLICATION FORM</h2>
 <div class="top"><p><b>Please fill this form if you want goods on Credit.</b></p><div class="photo"><img src="${esc(selfieUrl)}" alt="Applicant's selfie"></div></div>
 <h3>IDENTITY DETAILS</h3>
@@ -4302,8 +4302,8 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
         y += 44;
       };
       centre("SHARHAN BROILERS", "bold 66px Georgia, serif", "#2f6ea5"); y += 50;
-      centre("Office No 27 & 28, Bldg No 296, Crawford Market, Next to Union Bank Of India,", "24px Arial, sans-serif"); y += 32;
-      centre("Mazgaon, Mumbai \u2013 400010, Maharashtra.", "24px Arial, sans-serif"); y += 64;
+      centre("78/80, Sant Savata Mali Marg, near Union Bank of India Byculla, Mustafa Bazar,", "24px Arial, sans-serif"); y += 32;
+      centre("Byculla, Mumbai \u2013 400010, Maharashtra.", "24px Arial, sans-serif"); y += 64;
       centre("KNOW YOUR CLIENT (KYC) APPLICATION FORM", "bold 28px Arial, sans-serif"); y += 56;
       const boxW = 190, boxH = Math.round(boxW * selfie.naturalHeight / selfie.naturalWidth);
       x.strokeStyle = "#14141c"; x.lineWidth = 2;
@@ -4333,7 +4333,7 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
       para("Signed online. Selfie time on the photo: " + (a.selfieStamp || "") + ". Received by the server: " + when + "." + (a.signedIp ? " IP address: " + a.signedIp + "." : ""), W - M * 2, "21px Arial, sans-serif");
       return new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error("the form couldn't be drawn"))), "image/jpeg", 0.85));
     }
-    const EKYC_TOOLS = false; // the PDF, WhatsApp share and signed-form buttons; on with eKYC (SB_EKYC in index.html)
+    const EKYC_TOOLS = true; // the PDF, WhatsApp share and signed-form buttons; on with eKYC (SB_EKYC in index.html)
     const kycPdfs = {}; // built PDFs, so a second tap (e.g. share after download) doesn't fetch everything again
     async function kycPdfFile(a) {
       const key = a.mobile + "|" + (a.submittedAt || "");
