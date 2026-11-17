@@ -57,6 +57,7 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   (INVALID_FORMAT); new templates need fresh wording.
 - Never put a customer's or the owner's family's phone number in this repo. Admin → Users → "Remove a number from all
   records" clears a number; `hidden_numbers` keeps only its hash, and the webhook then ignores it.
+- Each KYC document has "Take photo" (camera, `capture`) and "Choose file" buttons (`sbCaPickers`).
 - KYC photos (Aadhaar/PAN/cheque/selfie/signature) are sensitive: they are only served to signed-in admins.
   Only the last 4 Aadhaar digits are collected as text; the order form's saved copy must never hold KYC fields.
 - Homepage sections Categories, Cold Chain banner, Frequently Ordered Together, Portioned banner and Also From Our Floor
@@ -80,7 +81,8 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
 - Homepage section headings are editable in Admin → Website content → Section headings (`site_content/main.headings`; empty = built-in text).
 - Admin → Website content: each banner slide has an optional link (#section or https://; empty = tapping the banner opens the order
   form), each Photo grid photo its own caption, Visit us a "Locate Our Unit" map link. A sticky Enroll Now button (bottom centre, appears after the banner) opens the form, which opens with a circle-reveal animation from the tap.
-- The order form shows 3 steps (weekly requirement → next-day order → booking & rates confirmed), a help line, a "we'll contact you
+- The order form shows 3 tappable steps (weekly requirement → next-day order → booking & rates confirmed; `sbGoStep(n)`, any step
+  any time: step 2 opened before step 1 also shows the Client Profile rows (`.sb-details-part`); step 3 is an info panel), a help line, a "we'll contact you
   within 24 hours" note and a "submitted successfully" box after sending. Microsoft Clarity is on (project ID zeotiyvqlh, in the loader at the end of index.html); the order form is masked (`data-clarity-mask`).
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - Admin → Send shows an approximate WhatsApp balance and a Recharge link. Meta has no API for the balance: an admin types Meta's figure

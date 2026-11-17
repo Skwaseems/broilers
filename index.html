@@ -1316,9 +1316,16 @@ html.sb-form-only body>*:not(#sb-overlay):not(.sb-bp){display:none!important;}
 #sb-form:not(.sb-stage-enroll) .sb-enroll-part{display:none!important;}
 .sb-rate-line{margin-top:2px;font-size:12px;font-weight:400;line-height:1.3;color:#6e5b32;}
 .sb-pack-line{margin-top:2px;font-size:12px;font-weight:400;line-height:1.3;color:#54535c;}
-#sb-form.sb-stage-enroll>:not(.sb-enroll-part):not(.sb-send-row):not(.sb-wa-second):not(.sb-keep),#sb-form.sb-stage-enroll>.sb-enroll-checks{display:none!important;}
+#sb-form.sb-stage-enroll>:not(.sb-enroll-part):not(.sb-send-row):not(.sb-wa-second):not(.sb-keep):not(.sb-details-part),#sb-form.sb-stage-enroll>.sb-enroll-checks,#sb-form.sb-stage-enroll:not(.sb-show-details)>.sb-details-part{display:none!important;}
 .sb-steps{display:flex;gap:6px;margin:0 0 8px;padding:0;list-style:none;counter-reset:none;}
-.sb-steps li{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-top:3px solid #e3ded4;font-size:11px;line-height:1.3;text-align:center;color:#8a877f;}
+.sb-steps li{flex:1 1 0;min-width:0;display:flex;border-top:3px solid #e3ded4;font-size:11px;line-height:1.3;text-align:center;color:#8a877f;}
+.sb-step-btn{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;min-height:58px;padding:8px 4px;border:none;background:none;font:inherit;color:inherit;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.sb-step-btn:hover{background:#faf8f3;}
+.sb-step-btn:focus-visible{outline:2px solid #846e3e;outline-offset:-2px;}
+.sb-step3{margin:0 0 18px;padding:14px 16px;border:1px solid #e3d9c4;border-left:3px solid #846e3e;border-radius:4px;background:#fdfbf6;font-size:13px;line-height:1.6;color:#1c1c22;}
+.sb-step3 p{margin:0 0 6px;}
+.sb-step3 ul{margin:0 0 14px;padding-left:20px;}
+/* Step 2 opened before step 1 was sent: also ask who the order is from. */
 .sb-step-n{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:1px solid #cfc8ba;background:#fff;font-size:12px;font-weight:600;color:#8a877f;}
 .sb-steps li.sb-step-done{border-top-color:#25864d;color:#1d6b3c;}
 .sb-steps li.sb-step-done .sb-step-n{background:#25864d;border-color:#25864d;color:#fff;}
@@ -1409,6 +1416,12 @@ table.sb-table-booking{min-width:0;}
 .sb-ca-btns button:disabled{opacity:.5;cursor:default;}
 .sb-ca-file{display:inline-flex;align-items:center;margin-top:8px;}
 .sb-ca-file input{display:none;}
+.sb-ca-hidden-file{display:none!important;}
+.sb-ca-pick{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.sb-ca-pick-btn{flex:1 1 110px;min-height:42px;padding:0 10px;border:1px solid #846e3e;border-radius:4px;background:#fff;color:#846e3e;font:inherit;font-size:13px;font-weight:500;cursor:pointer;}
+.sb-ca-pick-btn.sb-ca-pick-cam{background:#846e3e;color:#fff;}
+.sb-ca-picked{display:block;margin-top:4px;font-size:12px;font-weight:500;color:#1d6b3c;overflow-wrap:anywhere;}
+.sb-ca-picked:empty{display:none;}
 .sb-ca-winerr{margin:6px 0;font-size:13px;font-weight:500;color:#b3302c;}
 .sb-pay{margin:4px 0 14px;padding:14px;border:1px solid #e6e4e0;border-radius:4px;background:#faf9f7;}
 .sb-pay-title{font-family:'Cormorant Garamond',serif;font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:15px;margin-bottom:10px;}
@@ -1515,13 +1528,23 @@ table.sb-table-booking{min-width:0;}
         </div>
         <div id="sb-signin-error" class="sb-login-error" style="display:none;margin:-8px 0 12px;"></div>
         <ol class="sb-steps" id="sb-steps">
-          <li data-step="1"><span class="sb-step-n">1</span><span data-i18n="step1">Weekly requirement</span></li>
-          <li data-step="2"><span class="sb-step-n">2</span><span data-i18n="step2">Next-day order</span></li>
-          <li data-step="3"><span class="sb-step-n">3</span><span data-i18n="step3">Booking &amp; rates confirmed</span></li>
+          <li data-step="1"><button type="button" class="sb-step-btn" onclick="sbGoStep(1)"><span class="sb-step-n">1</span><span data-i18n="step1">Weekly requirement</span></button></li>
+          <li data-step="2"><button type="button" class="sb-step-btn" onclick="sbGoStep(2)"><span class="sb-step-n">2</span><span data-i18n="step2">Next-day order</span></button></li>
+          <li data-step="3"><button type="button" class="sb-step-btn" onclick="sbGoStep(3)"><span class="sb-step-n">3</span><span data-i18n="step3">Booking &amp; rates confirmed</span></button></li>
         </ol>
         <p class="sb-note sb-step-note" id="sb-step-note"></p>
         <div class="sb-sent-ok" id="sb-sent-ok" role="status" style="display:none;" data-i18n="sentOk">Your form has been submitted successfully! Our team will contact you within 24 hours to complete your account setup and discuss pricing and payment details.</div>
         <p class="sb-note sb-help" data-i18n-html="helpLine">Please contact us if you need any assistance completing the form: <a href="tel:+919820132880">98201 32880</a>, <a href="mailto:sharhanbroilerplant@gmail.com">sharhanbroilerplant@gmail.com</a></p>
+        <div class="sb-step3" id="sb-step3" style="display:none;">
+          <div class="sb-section-title" data-i18n="step3Title">Booking &amp; Rates Confirmed</div>
+          <p data-i18n="step3Text">This step is done by our team. After you send your weekly requirement and your next-day order, we contact you within 24 hours to:</p>
+          <ul>
+            <li data-i18n="step3a">confirm your booking and delivery time,</li>
+            <li data-i18n="step3b">confirm your rates as per your rate selection (daily, weekly, monthly or annual),</li>
+            <li data-i18n="step3c">complete your account setup and payment terms.</li>
+          </ul>
+          <button type="button" class="sb-btn sb-btn-wa" onclick="sbGoStep(2)" data-i18n="step3Go">Place a next-day order</button>
+        </div>
       <form id="sb-form" onsubmit="return false;">
         <div class="sb-section-title" data-i18n="weeklyTitle">Fill Your Approximate Weekly Requirement Here</div>
         <div class="sb-field sb-pack-field">
@@ -1543,12 +1566,12 @@ table.sb-table-booking{min-width:0;}
         <div class="sb-pkg-block" id="sb-frozen-wrap"><h4><span class="sb-pkg-tag sb-pkg-tag-frozen" data-i18n="frozen">Frozen</span> <span data-i18n="qtyDayWise">Quantity In Kg, Day-Wise</span></h4><div class="sb-table-wrap"><table class="sb-table" data-grid="frozen"></table></div><div class="sb-week-total"><span data-i18n="frozenWeekTotal">Frozen Week Total</span>: <strong><span id="sb-frozen-week-total">0</span>kg</strong></div></div>
         <div class="sb-note" data-i18n="tableNote">Scroll the table sideways on mobile. Leave a box blank or 0 if not required that day.</div>
 
-        <div class="sb-section-title" data-i18n="clientProfile">Client Profile</div>
-        <div class="sb-row">
+        <div class="sb-section-title sb-details-part" data-i18n="clientProfile">Client Profile</div>
+        <div class="sb-row sb-details-part">
           <div class="sb-field"><label for="sb-company"><span data-i18n="billingName">Billing Name</span> *</label><input type="text" id="sb-company" required></div>
           <div class="sb-field"><label for="sb-owner" data-i18n="ownerName">Owner Name</label><input type="text" id="sb-owner"></div>
         </div>
-        <div class="sb-row">
+        <div class="sb-row sb-details-part">
           <div class="sb-field"><label for="sb-business-type" data-i18n="businessType">Business Type</label>
             <select id="sb-business-type">
               <option value="" data-i18n="select">Select...</option>
@@ -1561,11 +1584,11 @@ table.sb-table-booking{min-width:0;}
           </div>
           <div class="sb-field"><label for="sb-pm"><span data-i18n="purchaseManager">Purchase Manager</span> *</label><input type="text" id="sb-pm" required></div>
         </div>
-        <div class="sb-row">
+        <div class="sb-row sb-details-part">
           <div class="sb-field"><label for="sb-pm-mobile"><span data-i18n="mobile">Mobile Number</span> *</label><input type="tel" id="sb-pm-mobile" required></div>
           <div class="sb-field"><label for="sb-delivery-loc"><span data-i18n="deliveryLocation">Delivery Location</span> *</label><input type="text" id="sb-delivery-loc" required></div>
         </div>
-        <div class="sb-row">
+        <div class="sb-row sb-details-part">
           <div class="sb-field"><label for="sb-map-link" data-i18n="mapLabel">Location On Google Maps</label>
             <div class="sb-map-row">
               <input type="url" id="sb-map-link" inputmode="url" autocomplete="off" placeholder="Paste a Google Maps link, or tap Use My Location" data-i18n-ph="mapPlaceholder">
@@ -1574,7 +1597,7 @@ table.sb-table-booking{min-width:0;}
             <span class="sb-note" id="sb-map-hint"><span id="sb-map-msg" data-i18n="mapHint">Optional — helps our delivery team reach you.</span> <a id="sb-map-open" href="#" target="_blank" rel="noopener" style="display:none;" data-i18n="checkOnMap">Check on map ↗</a></span>
           </div>
         </div>
-        <div class="sb-row">
+        <div class="sb-row sb-details-part">
           <div class="sb-field"><label for="sb-receiver" data-i18n="goodsReceiver">Goods Receiver</label><input type="text" id="sb-receiver"></div>
           <div class="sb-field"><label for="sb-delivery-time" data-i18n="deliveryTime">Time Of Delivery</label><select id="sb-delivery-time"><option value="" data-i18n="select">Select...</option><option value="Morning (6:00 AM - 12:00 Noon)" data-i18n="timeMorning">Morning (6:00 AM - 12:00 Noon)</option><option value="Afternoon (12:01 PM - 4:00 PM)" data-i18n="timeAfternoon">Afternoon (12:01 PM - 4:00 PM)</option><option value="Evening (4:00 PM onwards)" data-i18n="timeEvening">Evening (4:00 PM onwards)</option></select></div>
         </div>
@@ -1785,7 +1808,7 @@ table.sb-table-booking{min-width:0;}
       caError: 'Couldn’t send the application. Please check your internet and try again.',
       caBusy: 'We are getting too many applications right now. Please call us on {phone}.',
       creditOk: '✓ Approved for credit.', creditOkDays: '✓ Approved for credit. Credit days: {days}.', creditChecking: 'Checking credit approval…', creditCheckMobile: 'Enter your registered mobile number above to use credit.',
-      step1: 'Weekly requirement', step2: 'Next-day order', step3: 'Booking & rates confirmed', stepNote1: 'Step 1 of 3: send your approximate weekly requirement. Next you can order for next-day delivery, and then our team confirms your booking and rates.', stepNote2: 'Step 2 of 3: order for next-day delivery. After you send it, our team confirms your booking and rates.', stepNote3: 'Step 3 of 3: our team will confirm your booking and rates. You can send another next-day order any time.', helpLine: 'Please contact us if you need any assistance completing the form: <a href="tel:+919820132880">98201 32880</a>, <a href="mailto:sharhanbroilerplant@gmail.com">sharhanbroilerplant@gmail.com</a>', contactNote: 'We’ll contact you within 24 hours to complete your account setup and confirm pricing and payment details.', sentOk: 'Your form has been submitted successfully! Our team will contact you within 24 hours to complete your account setup and discuss pricing and payment details.', payNow: 'Pay now', payWith: 'Or open directly in:', payDesk: 'To pay with GPay, PhonePe or Paytm, open this page on your phone, or scan the QR code with your phone.', payTap: 'Tap to see QR', payTapIntro: 'Tap a bank to see its QR code and account details.', payScan: 'Scan with any UPI app (GPay, PhonePe, Paytm…)', close: 'Close', payUpi: 'UPI ID', payName: 'Account name', payBank: 'Bank', payAcc: 'Account no.', payIfsc: 'IFSC', payApp: 'Pay with a UPI app', copy: 'Copy', copied: 'Copied'
+      step1: 'Weekly requirement', step2: 'Next-day order', step3: 'Booking & rates confirmed', stepNote1: 'Step 1 of 3: send your approximate weekly requirement. Next you can order for next-day delivery, and then our team confirms your booking and rates.', stepNote2: 'Step 2 of 3: order for next-day delivery. After you send it, our team confirms your booking and rates.', stepNote3: 'Step 3 of 3: our team will confirm your booking and rates. You can send another next-day order any time.', helpLine: 'Please contact us if you need any assistance completing the form: <a href="tel:+919820132880">98201 32880</a>, <a href="mailto:sharhanbroilerplant@gmail.com">sharhanbroilerplant@gmail.com</a>', contactNote: 'We’ll contact you within 24 hours to complete your account setup and confirm pricing and payment details.', sentOk: 'Your form has been submitted successfully! Our team will contact you within 24 hours to complete your account setup and discuss pricing and payment details.', caTakePhoto: 'Take photo', caChooseFile: 'Choose file', caAdded: 'Added', stepsTap: 'Tap a step to open it.', step3Title: 'Booking & Rates Confirmed', step3Text: 'This step is done by our team. After you send your weekly requirement and your next-day order, we contact you within 24 hours to:', step3a: 'confirm your booking and delivery time,', step3b: 'confirm your rates as per your rate selection (daily, weekly, monthly or annual),', step3c: 'complete your account setup and payment terms.', step3Go: 'Place a next-day order', payNow: 'Pay now', payWith: 'Or open directly in:', payDesk: 'To pay with GPay, PhonePe or Paytm, open this page on your phone, or scan the QR code with your phone.', payTap: 'Tap to see QR', payTapIntro: 'Tap a bank to see its QR code and account details.', payScan: 'Scan with any UPI app (GPay, PhonePe, Paytm…)', close: 'Close', payUpi: 'UPI ID', payName: 'Account name', payBank: 'Bank', payAcc: 'Account no.', payIfsc: 'IFSC', payApp: 'Pay with a UPI app', copy: 'Copy', copied: 'Copied'
     },
     hi: {
       modalTitle: 'B2B (बिज़नेस टू बिज़नेस) व्यावसायिक ऑर्डर फ़ॉर्म', signinOffer: 'वैकल्पिक: अपनी जानकारी सभी डिवाइस पर सेव करें', signinBtn: 'Google से साइन इन करें', signOut: 'साइन आउट',
@@ -1867,7 +1890,7 @@ table.sb-table-booking{min-width:0;}
       caError: 'आवेदन नहीं भेजा जा सका। कृपया इंटरनेट जाँचें और फिर से कोशिश करें।',
       caBusy: 'अभी बहुत सारे आवेदन आ रहे हैं। कृपया हमें {phone} पर कॉल करें।',
       creditOk: '✓ उधार के लिए स्वीकृत।', creditOkDays: '✓ उधार के लिए स्वीकृत। उधार के दिन: {days}।', creditChecking: 'उधार की मंज़ूरी जाँची जा रही है…', creditCheckMobile: 'उधार के लिए ऊपर अपना रजिस्टर्ड मोबाइल नंबर भरें।',
-      step1: 'साप्ताहिक ज़रूरत', step2: 'अगले दिन का ऑर्डर', step3: 'बुकिंग व रेट की पुष्टि', stepNote1: 'चरण 1/3: अपनी अनुमानित साप्ताहिक ज़रूरत भेजें। इसके बाद आप अगले दिन की डिलीवरी के लिए ऑर्डर कर सकते हैं, और फिर हमारी टीम आपकी बुकिंग और रेट की पुष्टि करेगी।', stepNote2: 'चरण 2/3: अगले दिन की डिलीवरी के लिए ऑर्डर करें। भेजने के बाद हमारी टीम आपकी बुकिंग और रेट की पुष्टि करेगी।', stepNote3: 'चरण 3/3: हमारी टीम आपकी बुकिंग और रेट की पुष्टि करेगी। आप कभी भी अगले दिन का नया ऑर्डर भेज सकते हैं।', helpLine: 'फ़ॉर्म भरने में कोई मदद चाहिए तो हमसे संपर्क करें: <a href="tel:+919820132880">98201 32880</a>, <a href="mailto:sharhanbroilerplant@gmail.com">sharhanbroilerplant@gmail.com</a>', contactNote: 'हम 24 घंटे के अंदर आपसे संपर्क करके आपका अकाउंट सेटअप पूरा करेंगे और रेट व भुगतान की जानकारी पक्की करेंगे।', sentOk: 'आपका फ़ॉर्म सफलतापूर्वक भेज दिया गया है! हमारी टीम 24 घंटे के अंदर आपसे संपर्क करके आपका अकाउंट सेटअप पूरा करेगी और रेट व भुगतान की जानकारी पर बात करेगी।', payNow: 'अभी भुगतान करें', payWith: 'या सीधे इसमें खोलें:', payDesk: 'GPay, PhonePe या Paytm से भुगतान करने के लिए यह पेज फ़ोन पर खोलें, या फ़ोन से QR कोड स्कैन करें।', payTap: 'QR देखने के लिए टैप करें', payTapIntro: 'QR कोड और खाते की जानकारी देखने के लिए बैंक पर टैप करें।', payScan: 'किसी भी UPI ऐप (GPay, PhonePe, Paytm…) से स्कैन करें', close: 'बंद करें', payUpi: 'UPI ID', payName: 'खाते का नाम', payBank: 'बैंक', payAcc: 'खाता नंबर', payIfsc: 'IFSC', payApp: 'UPI ऐप से भुगतान करें', copy: 'कॉपी', copied: 'कॉपी हो गया'
+      step1: 'साप्ताहिक ज़रूरत', step2: 'अगले दिन का ऑर्डर', step3: 'बुकिंग व रेट की पुष्टि', stepNote1: 'चरण 1/3: अपनी अनुमानित साप्ताहिक ज़रूरत भेजें। इसके बाद आप अगले दिन की डिलीवरी के लिए ऑर्डर कर सकते हैं, और फिर हमारी टीम आपकी बुकिंग और रेट की पुष्टि करेगी।', stepNote2: 'चरण 2/3: अगले दिन की डिलीवरी के लिए ऑर्डर करें। भेजने के बाद हमारी टीम आपकी बुकिंग और रेट की पुष्टि करेगी।', stepNote3: 'चरण 3/3: हमारी टीम आपकी बुकिंग और रेट की पुष्टि करेगी। आप कभी भी अगले दिन का नया ऑर्डर भेज सकते हैं।', helpLine: 'फ़ॉर्म भरने में कोई मदद चाहिए तो हमसे संपर्क करें: <a href="tel:+919820132880">98201 32880</a>, <a href="mailto:sharhanbroilerplant@gmail.com">sharhanbroilerplant@gmail.com</a>', contactNote: 'हम 24 घंटे के अंदर आपसे संपर्क करके आपका अकाउंट सेटअप पूरा करेंगे और रेट व भुगतान की जानकारी पक्की करेंगे।', sentOk: 'आपका फ़ॉर्म सफलतापूर्वक भेज दिया गया है! हमारी टीम 24 घंटे के अंदर आपसे संपर्क करके आपका अकाउंट सेटअप पूरा करेगी और रेट व भुगतान की जानकारी पर बात करेगी।', caTakePhoto: 'फ़ोटो खींचें', caChooseFile: 'फ़ाइल चुनें', caAdded: 'जोड़ दिया', stepsTap: 'किसी भी चरण पर टैप करके उसे खोलें।', step3Title: 'बुकिंग व रेट की पुष्टि', step3Text: 'यह चरण हमारी टीम पूरा करती है। आपकी साप्ताहिक ज़रूरत और अगले दिन का ऑर्डर मिलने के बाद हम 24 घंटे के अंदर आपसे संपर्क करके:', step3a: 'आपकी बुकिंग और डिलीवरी का समय पक्का करेंगे,', step3b: 'आपके चुने हुए रेट (रोज़ाना, साप्ताहिक, मासिक या सालाना) पक्के करेंगे,', step3c: 'आपका अकाउंट सेटअप और भुगतान की शर्तें पूरी करेंगे।', step3Go: 'अगले दिन का ऑर्डर करें', payNow: 'अभी भुगतान करें', payWith: 'या सीधे इसमें खोलें:', payDesk: 'GPay, PhonePe या Paytm से भुगतान करने के लिए यह पेज फ़ोन पर खोलें, या फ़ोन से QR कोड स्कैन करें।', payTap: 'QR देखने के लिए टैप करें', payTapIntro: 'QR कोड और खाते की जानकारी देखने के लिए बैंक पर टैप करें।', payScan: 'किसी भी UPI ऐप (GPay, PhonePe, Paytm…) से स्कैन करें', close: 'बंद करें', payUpi: 'UPI ID', payName: 'खाते का नाम', payBank: 'बैंक', payAcc: 'खाता नंबर', payIfsc: 'IFSC', payApp: 'UPI ऐप से भुगतान करें', copy: 'कॉपी', copied: 'कॉपी हो गया'
     },
     mr: {
       modalTitle: 'B2B (बिझनेस टू बिझनेस) व्यावसायिक ऑर्डर फॉर्म', signinOffer: 'पर्यायी: तुमची माहिती सर्व डिव्हाइसवर सेव्ह करा', signinBtn: 'Google ने साइन इन करा', signOut: 'साइन आउट',
@@ -1949,7 +1972,7 @@ table.sb-table-booking{min-width:0;}
       caError: 'अर्ज पाठवता आला नाही. कृपया इंटरनेट तपासून पुन्हा प्रयत्न करा.',
       caBusy: 'सध्या खूप अर्ज येत आहेत. कृपया आम्हाला {phone} वर कॉल करा.',
       creditOk: '✓ उधारीसाठी मंजूर.', creditOkDays: '✓ उधारीसाठी मंजूर. उधारीचे दिवस: {days}.', creditChecking: 'उधारीची मंजुरी तपासत आहोत…', creditCheckMobile: 'उधारीसाठी वर तुमचा नोंदणीकृत मोबाईल नंबर भरा.',
-      step1: 'साप्ताहिक गरज', step2: 'दुसऱ्या दिवशीची ऑर्डर', step3: 'बुकिंग व दरांची पुष्टी', stepNote1: 'पायरी 1/3: तुमची अंदाजे साप्ताहिक गरज पाठवा. त्यानंतर तुम्ही दुसऱ्या दिवशीच्या डिलिव्हरीसाठी ऑर्डर करू शकता, आणि मग आमची टीम तुमची बुकिंग आणि दरांची पुष्टी करेल.', stepNote2: 'पायरी 2/3: दुसऱ्या दिवशीच्या डिलिव्हरीसाठी ऑर्डर करा. पाठवल्यानंतर आमची टीम तुमची बुकिंग आणि दरांची पुष्टी करेल.', stepNote3: 'पायरी 3/3: आमची टीम तुमची बुकिंग आणि दरांची पुष्टी करेल. तुम्ही कधीही दुसऱ्या दिवशीची नवी ऑर्डर पाठवू शकता.', helpLine: 'फॉर्म भरण्यासाठी मदत हवी असल्यास आमच्याशी संपर्क साधा: <a href="tel:+919820132880">98201 32880</a>, <a href="mailto:sharhanbroilerplant@gmail.com">sharhanbroilerplant@gmail.com</a>', contactNote: 'आम्ही 24 तासांच्या आत तुमच्याशी संपर्क साधून तुमचे अकाउंट सेटअप पूर्ण करू आणि दर व पेमेंटची माहिती निश्चित करू.', sentOk: 'तुमचा फॉर्म यशस्वीरित्या पाठवला गेला आहे! आमची टीम 24 तासांच्या आत तुमच्याशी संपर्क साधून तुमचे अकाउंट सेटअप पूर्ण करेल आणि दर व पेमेंटच्या माहितीबद्दल बोलेल.', payNow: 'आता पेमेंट करा', payWith: 'किंवा थेट यात उघडा:', payDesk: 'GPay, PhonePe किंवा Paytm ने पेमेंट करण्यासाठी हे पेज फोनवर उघडा, किंवा फोनने QR कोड स्कॅन करा.', payTap: 'QR पाहण्यासाठी टॅप करा', payTapIntro: 'QR कोड आणि खात्याची माहिती पाहण्यासाठी बँकेवर टॅप करा.', payScan: 'कोणत्याही UPI ॲपने (GPay, PhonePe, Paytm…) स्कॅन करा', close: 'बंद करा', payUpi: 'UPI ID', payName: 'खातेदाराचे नाव', payBank: 'बँक', payAcc: 'खाते क्रमांक', payIfsc: 'IFSC', payApp: 'UPI ॲपने पेमेंट करा', copy: 'कॉपी', copied: 'कॉपी झाले'
+      step1: 'साप्ताहिक गरज', step2: 'दुसऱ्या दिवशीची ऑर्डर', step3: 'बुकिंग व दरांची पुष्टी', stepNote1: 'पायरी 1/3: तुमची अंदाजे साप्ताहिक गरज पाठवा. त्यानंतर तुम्ही दुसऱ्या दिवशीच्या डिलिव्हरीसाठी ऑर्डर करू शकता, आणि मग आमची टीम तुमची बुकिंग आणि दरांची पुष्टी करेल.', stepNote2: 'पायरी 2/3: दुसऱ्या दिवशीच्या डिलिव्हरीसाठी ऑर्डर करा. पाठवल्यानंतर आमची टीम तुमची बुकिंग आणि दरांची पुष्टी करेल.', stepNote3: 'पायरी 3/3: आमची टीम तुमची बुकिंग आणि दरांची पुष्टी करेल. तुम्ही कधीही दुसऱ्या दिवशीची नवी ऑर्डर पाठवू शकता.', helpLine: 'फॉर्म भरण्यासाठी मदत हवी असल्यास आमच्याशी संपर्क साधा: <a href="tel:+919820132880">98201 32880</a>, <a href="mailto:sharhanbroilerplant@gmail.com">sharhanbroilerplant@gmail.com</a>', contactNote: 'आम्ही 24 तासांच्या आत तुमच्याशी संपर्क साधून तुमचे अकाउंट सेटअप पूर्ण करू आणि दर व पेमेंटची माहिती निश्चित करू.', sentOk: 'तुमचा फॉर्म यशस्वीरित्या पाठवला गेला आहे! आमची टीम 24 तासांच्या आत तुमच्याशी संपर्क साधून तुमचे अकाउंट सेटअप पूर्ण करेल आणि दर व पेमेंटच्या माहितीबद्दल बोलेल.', caTakePhoto: 'फोटो काढा', caChooseFile: 'फाइल निवडा', caAdded: 'जोडले', stepsTap: 'कोणत्याही पायरीवर टॅप करून ती उघडा.', step3Title: 'बुकिंग व दरांची पुष्टी', step3Text: 'ही पायरी आमची टीम पूर्ण करते. तुमची साप्ताहिक गरज आणि दुसऱ्या दिवशीची ऑर्डर मिळाल्यानंतर आम्ही 24 तासांच्या आत तुमच्याशी संपर्क साधून:', step3a: 'तुमची बुकिंग आणि डिलिव्हरीची वेळ निश्चित करू,', step3b: 'तुम्ही निवडलेले दर (दैनंदिन, साप्ताहिक, मासिक किंवा वार्षिक) निश्चित करू,', step3c: 'तुमचे अकाउंट सेटअप आणि पेमेंटच्या अटी पूर्ण करू.', step3Go: 'दुसऱ्या दिवशीची ऑर्डर करा', payNow: 'आता पेमेंट करा', payWith: 'किंवा थेट यात उघडा:', payDesk: 'GPay, PhonePe किंवा Paytm ने पेमेंट करण्यासाठी हे पेज फोनवर उघडा, किंवा फोनने QR कोड स्कॅन करा.', payTap: 'QR पाहण्यासाठी टॅप करा', payTapIntro: 'QR कोड आणि खात्याची माहिती पाहण्यासाठी बँकेवर टॅप करा.', payScan: 'कोणत्याही UPI ॲपने (GPay, PhonePe, Paytm…) स्कॅन करा', close: 'बंद करा', payUpi: 'UPI ID', payName: 'खातेदाराचे नाव', payBank: 'बँक', payAcc: 'खाते क्रमांक', payIfsc: 'IFSC', payApp: 'UPI ॲपने पेमेंट करा', copy: 'कॉपी', copied: 'कॉपी झाले'
     }
   };
   var KEY = 'sb-lang';
@@ -2197,6 +2220,8 @@ table.sb-table-booking{min-width:0;}
       try { localStorage.removeItem(SB_LOCAL_KEY); } catch (e) {}
       sbCloudLoadedFor = null;
       sbWeeklySent = false;
+      sbViewStep = 0;
+      sbOrderSent = false;
       sbApplyStage();
       document.getElementById('sb-fresh-wrap').style.display = 'none';
       document.getElementById('sb-frozen-wrap').style.display = 'none';
@@ -2233,23 +2258,37 @@ table.sb-table-booking{min-width:0;}
   function sbEnrollStage(){ return document.getElementById('sb-form').classList.contains('sb-stage-enroll'); }
   // Step 2 needs the customer's saved details: without them (e.g. after signing out) it's step 1.
   // The 3 steps at the top: 1 weekly requirement, 2 next-day order, 3 our team confirms booking & rates.
-  var sbOrderSent = false;
+  // Any step can be opened by tapping it (sbViewStep); 0 = follow the customer's progress.
+  var sbOrderSent = false, sbViewStep = 0;
   function sbShowSteps(){
-    var step = !sbEnrollStage() ? 1 : sbOrderSent ? 3 : 2;
+    var step = sbViewStep === 3 ? 3 : sbEnrollStage() ? 2 : 1;
+    var done = { 1: sbWeeklySent, 2: sbOrderSent, 3: false };
     document.querySelectorAll('#sb-steps li').forEach(function(li){
       var n = parseInt(li.getAttribute('data-step'), 10);
-      li.classList.toggle('sb-step-done', n < step);
+      li.classList.toggle('sb-step-done', !!done[n] && n !== step);
       li.classList.toggle('sb-step-on', n === step);
       if (n === step) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
     });
     var note = document.getElementById('sb-step-note');
-    if (note) note.textContent = sbT('stepNote' + step);
+    if (note) note.textContent = sbT('stepNote' + step) + ' ' + sbT('stepsTap');
   }
   window.addEventListener('sb-lang', sbShowSteps);
+  window.sbGoStep = function(n){
+    sbViewStep = n;
+    sbApplyStage();
+    document.getElementById('sb-overlay').scrollTop = 0;
+    var head = document.getElementById('sb-steps');
+    if (head && head.scrollIntoView) head.scrollIntoView({ block: 'start' });
+  };
   function sbApplyStage(){
-    var enroll = sbWeeklySent && !!sbVal('sb-company') && sbMobile10().length === 10;
-    document.getElementById('sb-form').classList.toggle('sb-stage-enroll', enroll);
-    if (!enroll) sbOrderSent = false;
+    var natural = sbWeeklySent && !!sbVal('sb-company') && sbMobile10().length === 10;
+    var enroll = sbViewStep === 1 ? false : sbViewStep === 2 ? true : natural;
+    var form = document.getElementById('sb-form');
+    form.classList.toggle('sb-stage-enroll', enroll);
+    form.classList.toggle('sb-show-details', enroll && !natural);
+    form.style.display = sbViewStep === 3 ? 'none' : '';
+    document.getElementById('sb-step3').style.display = sbViewStep === 3 ? '' : 'none';
+    if (!enroll && !sbViewStep) sbOrderSent = false;
     sbShowSteps();
     var on = document.getElementById('sb-booking-on');
     if (on.checked !== enroll) { on.checked = enroll; sbToggleBooking(); }
@@ -2258,6 +2297,7 @@ table.sb-table-booking{min-width:0;}
   // Back to step 1 with everything still filled in; sending it again returns to step 2.
   window.sbModifyWeekly = function(){
     sbWeeklySent = false;
+    sbViewStep = 0;
     document.getElementById('sb-sent-ok').style.display = 'none';
     document.getElementById('sb-sent-ok2').style.display = 'none';
     sbApplyStage();
@@ -2359,6 +2399,7 @@ table.sb-table-booking{min-width:0;}
     if (!sbEnrollStage()) {
       fetch(SB_WORKER + '/form-customer', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile: sbMobile10(), name: sbVal('sb-company'), rate: sbVal('sb-rate') }) }).catch(function(){});
       sbWeeklySent = true;
+      sbViewStep = 0;
       sbApplyStage();
       document.getElementById('sb-overlay').scrollTop = 0;
     }
@@ -2838,6 +2879,10 @@ table.sb-table-booking{min-width:0;}
       return null;
     }
     var enroll = sbEnrollStage();
+    if (enroll && form.classList.contains('sb-show-details')) {
+      var need = ['sb-company', 'sb-pm-mobile', 'sb-delivery-loc'];
+      for (var i = 0; i < need.length; i++) { var el = document.getElementById(need[i]); if (el && !el.reportValidity()) return null; }
+    }
     if (enroll) {
       if (!document.getElementById('sb-booking-date').reportValidity() || !document.getElementById('sb-booking-pack').reportValidity()) return null;
     } else if (!form.reportValidity()) return null;
@@ -2973,6 +3018,48 @@ table.sb-table-booking{min-width:0;}
     ? [['aadhaar_front', 'caAadhaarFront', true], ['aadhaar_back', 'caAadhaarBack', false], ['pan', 'caPan', true], ['udyam', 'caUdyam', true], ['cheque', 'caCheque', true]]
     : [['aadhaar_front', 'caAadhaarFront', true], ['aadhaar_back', 'caAadhaarBack', false], ['pan', 'caPan', true], ['business', 'caBusiness', true]];
   var sbCaSelfie = null; // { blob, stamp, mode: 'live' (camera on this page) | 'file' (phone's picker) }
+  // Each document photo: "Take photo" opens the back camera, "Choose file" the gallery/files. A camera photo goes into the
+  // same file box (or, where a browser can't do that, into sbCaTaken), so sending works the same either way.
+  var sbCaTaken = {};
+  function sbCaPickers(){
+    document.querySelectorAll('input[type="file"][data-kyc]').forEach(function(inp){
+      if (inp.getAttribute('data-sb-pick')) return;
+      inp.setAttribute('data-sb-pick', '1');
+      inp.classList.add('sb-ca-hidden-file');
+      var slot = inp.getAttribute('data-kyc');
+      var cam = document.createElement('input');
+      cam.type = 'file'; cam.accept = 'image/*'; cam.setAttribute('capture', 'environment'); cam.className = 'sb-ca-hidden-file'; cam.tabIndex = -1;
+      var row = document.createElement('span');
+      row.className = 'sb-ca-pick';
+      row.innerHTML = '<button type="button" class="sb-ca-pick-btn sb-ca-pick-cam" data-act="cam"><span data-i18n="caTakePhoto">' + sbT('caTakePhoto') + '</span></button>' +
+        '<button type="button" class="sb-ca-pick-btn" data-act="file"><span data-i18n="caChooseFile">' + sbT('caChooseFile') + '</span></button>';
+      var status = document.createElement('span');
+      status.className = 'sb-ca-picked';
+      inp.parentNode.insertBefore(status, inp.nextSibling);
+      inp.parentNode.insertBefore(row, status);
+      inp.parentNode.insertBefore(cam, row);
+      var show = function(){
+        var f = (inp.files && inp.files[0]) || sbCaTaken[slot];
+        status.textContent = f ? '✓ ' + sbT('caAdded') + (f.name ? ': ' + (f.name.length > 28 ? f.name.slice(0, 25) + '…' : f.name) : '') : '';
+      };
+      row.addEventListener('click', function(e){
+        var b = e.target.closest('button');
+        if (!b) return;
+        e.preventDefault();
+        (b.getAttribute('data-act') === 'cam' ? cam : inp).click();
+      });
+      cam.addEventListener('change', function(){
+        var f = cam.files && cam.files[0];
+        if (!f) return;
+        try { var dt = new DataTransfer(); dt.items.add(f); inp.files = dt.files; delete sbCaTaken[slot]; }
+        catch (err) { sbCaTaken[slot] = f; }
+        cam.value = '';
+        show();
+      });
+      inp.addEventListener('change', function(){ if (inp.files && inp.files[0]) delete sbCaTaken[slot]; show(); });
+    });
+  }
+  sbCaPickers();
   var sbCaSign = null;   // the signature as a JPEG blob
   var sbCaStream = null;
   function sbCaEl(id){ return document.getElementById(id); }
@@ -3128,7 +3215,7 @@ table.sb-table-booking{min-width:0;}
   window.sbCreditApply = function(){
     var status = document.getElementById('sb-ca-status');
     var say = function(t, ok){ status.textContent = t; status.className = 'sb-note ' + (ok ? 'sb-ca-ok' : 'sb-ca-err'); };
-    var fileOf = function(slot){ var f = document.querySelector('input[data-kyc="' + slot + '"]'); return f && f.files && f.files[0]; };
+    var fileOf = function(slot){ var f = document.querySelector('input[data-kyc="' + slot + '"]'); return (f && f.files && f.files[0]) || sbCaTaken[slot]; };
     var mobile = sbMobile10();
     var pan = sbVal('sb-ca-pan').toUpperCase();
     if (!sbVal('sb-company') || mobile.length !== 10) { say(sbT('caNeedDetails')); return; }
@@ -3165,6 +3252,8 @@ table.sb-table-booking{min-width:0;}
           sbCredit = { mobile: mobile, state: d.status === 'approved' ? 'yes' : 'pending' };
           say(d.status === 'approved' ? sbT('creditOk') : sbT('caDone').replace('{mobile}', mobile), true);
           document.querySelectorAll('input[data-kyc]').forEach(function(f){ f.value = ''; });
+          sbCaTaken = {};
+          document.querySelectorAll('.sb-ca-picked').forEach(function(el){ el.textContent = ''; });
           ['sb-ca-applicant', 'sb-ca-pan', 'sb-ca-aadhaar', 'sb-ca-email'].forEach(function(id){ document.getElementById(id).value = ''; });
           ['sb-ca-terms', 'sb-ca-consent'].forEach(function(id){ document.getElementById(id).checked = false; });
           sbCaSelfie = null; sbCaSign = null;
