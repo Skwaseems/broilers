@@ -11,6 +11,10 @@
     ],
     "redirects": [
       { "source": "/p/:slug", "destination": "https://sharhan-broilers.pages.dev/p/:slug", "type": 302 }
+    ],
+    "headers": [
+      { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+      { "source": "**/*.@(html|json|txt|xml|webmanifest)", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
     ]
   }
 }
