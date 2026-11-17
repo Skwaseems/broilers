@@ -82,7 +82,8 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
 - Admin → Website content: each banner slide has an optional link (#section or https://; empty = tapping the banner opens the order
   form), each Photo grid photo its own caption, Visit us a "Locate Our Unit" map link. A sticky Enroll Now button (bottom centre, appears after the banner) opens the form, which opens with a circle-reveal animation from the tap.
 - The order form shows 3 tappable steps (weekly requirement → next-day order → booking & rates confirmed; `sbGoStep(n)`, any step
-  any time: step 2 opened before step 1 also shows the Client Profile rows (`.sb-details-part`); step 3 is an info panel), a help line, a "we'll contact you
+  any time; step 2 never shows the Client Profile (owner, 17 Nov): sending it without name/mobile/location goes back to step 1 at the
+  empty box; there's no Modify Weekly Requirement button, step 1 is opened by tapping it; step 3 is an info panel), a help line, a "we'll contact you
   within 24 hours" note and a "submitted successfully" box after sending. Microsoft Clarity is on (project ID zeotiyvqlh, in the loader at the end of index.html); the order form is masked (`data-clarity-mask`).
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - Admin → Send shows an approximate WhatsApp balance and a Recharge link. Meta has no API for the balance: an admin types Meta's figure
