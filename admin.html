@@ -2249,10 +2249,12 @@
     const db = firebase.firestore();
 
     const WORKER_BASE = "https://sharhan-whatsapp.waseemshaikh597.workers.dev";
-    const ALLOWED_EMAILS = ["waseemshaikh597@gmail.com",
+    const ALLOWED_EMAILS = ["sharhanbroilerplant@gmail.com", "waseemshaikh597@gmail.com",
       'former-admin@example.invalid', 'bagbanhanif@gmail.com', 'farixashk06@gmail.com'];
-    // Owner: may set the main admin ID & password; "Forgot password?" emails a link here.
-    const OWNER_EMAIL = "waseemshaikh597@gmail.com";
+    // Owner: may set the main admin ID & password; "Forgot password?" emails a link here (the business
+    // email since 19 Nov 2026). OWNER_EMAILS: Google accounts with the owner's powers (also the old one).
+    const OWNER_EMAIL = "sharhanbroilerplant@gmail.com";
+    const OWNER_EMAILS = [OWNER_EMAIL, "waseemshaikh597@gmail.com"];
     const MAX_ITEMS = 15;
     const MAX_TEXT = 100;     // card text; leaves room for the ticked-items card's fixed wording (160 total)
     const PICK_MIN = 2, PICK_MAX = 10;
@@ -2425,7 +2427,7 @@
         $("signin-error").textContent = "This Google account is not authorized for this dashboard.";
         return false;
       }
-      const owner = email === OWNER_EMAIL;
+      const owner = OWNER_EMAILS.includes(email);
       me = { staff: null, manager: owner, owner, user: user.email, label: email };
       return true;
     }
@@ -4200,7 +4202,7 @@
     // ---------- Customer rates: customer_rates/{10-digit mobile} = { name, rates: { item: { fresh, frozen } },
     // remarks: { item: text }, rateType, from, to }. Only `rates` ever reaches the public form (Worker /customer-rates). ----------
     // Who may see and set rates. The same list is in firestore.rules (canSetRates), which enforces it.
-    const RATE_ADMINS = ["admin", "hanif", "waseemshaikh597@gmail.com", "bagbanhanif@gmail.com"];
+    const RATE_ADMINS = ["admin", "hanif", "sharhanbroilerplant@gmail.com", "waseemshaikh597@gmail.com", "bagbanhanif@gmail.com"];
     function canSetRates() { return !!me.manager || RATE_ADMINS.includes(String(me.user || "").toLowerCase()); }
     let rateCustomers = {}; // mobile -> saved doc, for "has rates" in the search
     let formCustomers = []; // people who sent the order form (form_customers), newest first

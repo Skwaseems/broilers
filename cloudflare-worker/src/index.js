@@ -206,7 +206,7 @@ async function rateFormulas(env) {
 // Same people as canSetRates() in firestore.rules.
 function canSetRatesUser(user) {
   return user.sb_role === "main" || ["admin", "hanif"].includes(String(user.sb_user || "").toLowerCase())
-    || (!user.sb_user && ["waseemshaikh597@gmail.com", "bagbanhanif@gmail.com"].includes(String(user.email || "").toLowerCase()));
+    || (!user.sb_user && ["sharhanbroilerplant@gmail.com", "waseemshaikh597@gmail.com", "bagbanhanif@gmail.com"].includes(String(user.email || "").toLowerCase()));
 }
 export function dailyRates(formulas, today, level) {
   const out = {};

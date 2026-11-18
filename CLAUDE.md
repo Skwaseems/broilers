@@ -47,8 +47,10 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   Worker secrets live only on Cloudflare (`wrangler secret put`).
 - Admins normally sign in with an admin ID + password (Worker `src/staff.js`, accounts in Firestore
   `admin_users`, managed by the main admin in Admin → Users; 5 wrong tries lock an ID for 15 min).
-  The owner (`OWNER_EMAIL` = waseemshaikh597@gmail.com) can always set up / reset the main admin,
-  via Google sign-in or the "Forgot password?" email link. Never set passwords yourself.
+  The owner can always set up / reset the main admin, via Google sign-in or the "Forgot password?" email link.
+  Since 19 Nov 2026 the owner's email is the business Gmail sharhanbroilerplant@gmail.com (no "s" after broiler; it gets
+  the reset link: `OWNER_EMAIL` in admin.html); the old personal Gmail keeps the owner's powers too (`OWNER_EMAILS` in
+  admin.html, `isManager()` in firestore.rules, the comma list `OWNER_EMAIL` in wrangler.toml). Never set passwords yourself.
 - Google sign-in is the backup. A Google admin email must be in all three lists: `ALLOWED_EMAILS` in
   admin.html, `isAdmin()` in firestore.rules, `ALLOWED_EMAILS` in cloudflare-worker/wrangler.toml.
 - Don't invent business facts (certifications, years, prices); only use what the owner gives.

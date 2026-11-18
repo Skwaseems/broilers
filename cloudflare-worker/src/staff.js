@@ -158,7 +158,9 @@ export async function requireStaff(env, payload) {
   return doc;
 }
 
-const isOwner = (env, user) => !!(user.email_verified && env.OWNER_EMAIL && String(user.email).toLowerCase() === env.OWNER_EMAIL.toLowerCase());
+// OWNER_EMAIL may list several emails, comma-separated.
+const isOwner = (env, user) => !!(user.email_verified && env.OWNER_EMAIL
+  && String(env.OWNER_EMAIL).toLowerCase().split(",").map((e) => e.trim()).includes(String(user.email).toLowerCase()));
 export const isManager = (env, user) => (user.staff ? user.staff.role === "main" : isOwner(env, user));
 
 // GET /staff-users (manager): every account, without password data.

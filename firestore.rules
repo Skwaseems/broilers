@@ -13,8 +13,8 @@ service cloud.firestore {
     // started after its last password change.
     function isAdmin() {
       return request.auth != null && (
-        request.auth.token.get('email', '') in ['waseemshaikh597@gmail.com', 'former-admin@example.invalid',
-                                                'bagbanhanif@gmail.com', 'farixashk06@gmail.com']
+        request.auth.token.get('email', '') in ['sharhanbroilerplant@gmail.com', 'waseemshaikh597@gmail.com',
+                                                'former-admin@example.invalid', 'bagbanhanif@gmail.com', 'farixashk06@gmail.com']
         || (request.auth.token.get('sb_user', '') != '' && staffActive()));
     }
 
@@ -35,13 +35,13 @@ service cloud.firestore {
 
     // Who may see and set customer rates (RATE_ADMINS in admin.html shows or hides the tab).
     function canSetRates() {
-      return isManager() || (isAdmin() && actor() in ['admin', 'hanif', 'waseemshaikh597@gmail.com', 'bagbanhanif@gmail.com']);
+      return isManager() || (isAdmin() && actor() in ['admin', 'hanif', 'sharhanbroilerplant@gmail.com', 'waseemshaikh597@gmail.com', 'bagbanhanif@gmail.com']);
     }
 
-    // The main admin ID, or the owner's Google email.
+    // The main admin ID, or the owner's Google emails (business email, and the old personal one).
     function isManager() {
       return isAdmin() && (request.auth.token.get('sb_role', '') == 'main'
-        || request.auth.token.get('email', '') == 'waseemshaikh597@gmail.com');
+        || request.auth.token.get('email', '') in ['sharhanbroilerplant@gmail.com', 'waseemshaikh597@gmail.com']);
     }
 
     // Who changed what. Every admin adds entries for their own saves (their own name, the
