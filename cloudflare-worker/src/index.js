@@ -1438,7 +1438,8 @@ export default {
       // Daily-rate customers: today's formula prices replace typed ones for the products that have a formula.
       let rateType = doc && doc.rateType;
       if (!rateType) rateType = ((await getDocument(env, "form_customers", mobile).catch(() => null)) || {}).rateType;
-      if (rateType === "daily") {
+      // Hidden for now (owner, 18 Nov 2026): on only with DAILY_RATES = "on" in wrangler.toml.
+      if (rateType === "daily" && env.DAILY_RATES === "on") {
         const [formulas, today] = await Promise.all([
           rateFormulas(env),
           getDocument(env, "rate_settings", "today").catch(() => null),

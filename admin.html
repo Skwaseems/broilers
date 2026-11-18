@@ -1862,7 +1862,7 @@
       </div>
 
       <div class="tab-panel" role="tabpanel" id="panel-rates" aria-labelledby="tab-rates" hidden>
-      <section class="card" aria-labelledby="daily-title">
+      <section class="card" id="daily-card" aria-labelledby="daily-title" hidden>
         <h2 id="daily-title">Daily market rates</h2>
         <p class="muted">For customers whose rate type is <b>Daily</b>. Type today's rates each morning: their prices in the order form are worked out from the formulas below. Weekly, monthly and annual customers keep the rates you type for them.</p>
         <div class="recip-grid">
@@ -3717,6 +3717,8 @@
 
     // ---------- Daily market rates (rate_settings/today) and formulas (rate_settings/formulas): rate admins only ----------
     // The same arithmetic is in the Worker (dailyPrice), which prices the order form for daily customers.
+    // Hidden for now (owner, 18 Nov 2026). true shows it again; also set DAILY_RATES = "on" in wrangler.toml for the Worker.
+    const DAILY_RATES_ON = false;
     let dailyToday = {}, formulaLines = [];
     const dailyNum = (v) => { const t = String(v == null ? "" : v).trim(); return t === "" || isNaN(Number(t)) ? null : Number(t); };
     function dailyPick(arr, level) {
@@ -3936,7 +3938,7 @@
     });
     // In a customer's rates: level picker and today's formula price under each product (daily customers).
     function refreshDailyCells() {
-      const daily = $("rates-type").value === "daily";
+      const daily = DAILY_RATES_ON && $("rates-type").value === "daily";
       $("rates-level-wrap").hidden = !daily;
       $("rates-daily-note").hidden = !daily;
       const level = Number($("rates-level").value) || 1;
@@ -4033,7 +4035,7 @@
       setStatus("rates-status", "", "");
     }
     $("rates-search").addEventListener("input", renderRateMatches);
-    document.addEventListener("sb-tab", (e) => { if (e.detail === "rates" && auth.currentUser && canSetRates()) { loadRateList(); loadDaily(); } });
+    document.addEventListener("sb-tab", (e) => { if (e.detail === "rates" && auth.currentUser && canSetRates()) { loadRateList(); if (DAILY_RATES_ON) { $("daily-card").hidden = false; loadDaily(); } } });
     // What's on the screen, checked. Null (with the reason shown) if something is wrong.
     function collectRates() {
       const rates = {}, remarks = {};
@@ -4056,7 +4058,7 @@
       const level = Number($("rates-level").value) || 1;
       // For the WhatsApp message only: today's formula prices of a daily customer (never saved as typed rates).
       const daily = {};
-      if (rateType === "daily") formItems.forEach((it) => { const p = it.name && dailyFor(it.name, level); if (p) daily[it.name] = { fresh: it.fresh ? p : 0, frozen: it.frozen ? p : 0 }; });
+      if (DAILY_RATES_ON && rateType === "daily") formItems.forEach((it) => { const p = it.name && dailyFor(it.name, level); if (p) daily[it.name] = { fresh: it.fresh ? p : 0, frozen: it.frozen ? p : 0 }; });
       return { rates, remarks, count, rateType, from, to, level, daily };
     }
     const rateTypeLabel = (v) => ([...$("rates-type").options].find((o) => o.value === v) || { text: v }).text;
@@ -4067,7 +4069,7 @@
       if (rateName) lines.push("For: " + rateName);
       if (data.rateType) lines.push("Rate type: " + rateTypeLabel(data.rateType));
       if (data.from) lines.push("Valid: " + rateDate(data.from) + " to " + rateDate(data.to));
-      if (data.rateType === "daily" && dailyToday.day) lines.push("Daily market rate of " + rateDate(dailyToday.day));
+      if (DAILY_RATES_ON && data.rateType === "daily" && dailyToday.day) lines.push("Daily market rate of " + rateDate(dailyToday.day));
       formItems.filter((it) => it.name && (data.rates[it.name] || data.daily[it.name] || data.remarks[it.name])).forEach((it) => {
         const r = data.daily[it.name] || data.rates[it.name] || {};
         const prices = [r.fresh && "Fresh ₹" + r.fresh + "/kg", r.frozen && "Frozen ₹" + r.frozen + "/kg"].filter(Boolean).join(", ");
