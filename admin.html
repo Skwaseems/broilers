@@ -1754,6 +1754,7 @@
           <span class="badge" id="cust-count">0 of 0 ticked</span>
           <button class="btn secondary small" id="cust-all">Tick all</button>
           <button class="btn secondary small" id="cust-none">Untick all</button>
+          <button class="btn secondary small" id="cust-held" type="button" hidden>Tick held back</button>
         </div>
         <table class="cust-table">
           <thead>
@@ -4459,7 +4460,7 @@
 
     const STATUS_RANK = { failed: 0, sent: 1, delivered: 2, read: 3 };
     const ERROR_TEXT = {
-      131049: "WhatsApp held it back — it limits how many marketing messages one person gets. Try again in a day or two.",
+      131049: "Held back by WhatsApp's own limit, not because of you: WhatsApp caps how many offer/marketing messages a person gets from all businesses together, so even a first catalogue can be held back. Send again in 1–2 days, or ask them to send \"Hi\" to your WhatsApp number: the catalogue then goes to them straight away.",
       131026: "Couldn't reach this number — it may not be on WhatsApp.",
       131050: "This customer has turned off marketing messages from businesses.",
       131047: "More than 24 hours since this customer last messaged.",
@@ -4538,6 +4539,9 @@
       renderUnsubscribed();
       const shown = customersShown();
       $("cust-all").textContent = $("cust-search").value.trim() ? "Tick these" : "Tick all";
+      const held = heldBackCustomers();
+      $("cust-held").hidden = !held.length;
+      $("cust-held").textContent = "Tick held back (" + held.length + ")";
       if (!shown.length && active.length) body.appendChild(el("tr", {}, [el("td", { colSpan: 5, className: "muted", textContent: "No customer found.", style: "grid-column:1/-1;grid-row:auto;" })]));
       shown.forEach((c) => {
         const del = el("button", { className: "btn secondary small", textContent: "Remove" });
@@ -5240,6 +5244,24 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
       change.forEach((c) => batch.update(db.collection("whatsapp_customers").doc(c.id), { send: on }));
       try { await batch.commit(); if (change.length) logChange("Send catalogue", (on ? "Ticked all" : "Unticked all") + " (" + change.length + " customers)", change.map((c) => (c.name || "") + " · " + c.phone)); } catch (e) { setStatus("send-status", "Couldn't update customers: " + e.message, "err"); }
     }
+    // Customers whose last catalogue WhatsApp held back (131049) and who aren't ticked yet: one tap ticks them to send again.
+    function heldBackCustomers() {
+      return customers.filter((c) => {
+        const d = deliveryFor(c.phone);
+        return !isTicked(c) && !c.unsubscribed && d && d.status === "failed" && (d.errors || []).some((e) => Number(e.code) === 131049);
+      });
+    }
+    $("cust-held").addEventListener("click", async () => {
+      const change = heldBackCustomers();
+      if (!change.length) return;
+      const batch = db.batch();
+      change.forEach((c) => batch.update(db.collection("whatsapp_customers").doc(c.id), { send: true }));
+      try {
+        await batch.commit();
+        logChange("Send catalogue", "Ticked the held-back customers (" + change.length + ")", change.map((c) => (c.name || "") + " · " + c.phone));
+        setStatus("send-status", change.length + " held-back customers ticked. Best to send to them after a day or two.", "ok");
+      } catch (e) { setStatus("send-status", "Couldn't update customers: " + e.message, "err"); }
+    });
     $("cust-search").addEventListener("input", renderCustomers);
     $("cust-all").addEventListener("click", () => setAllCustomers(true));
     $("cust-none").addEventListener("click", () => setAllCustomers(false));
