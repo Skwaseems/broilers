@@ -1,4 +1,4 @@
-import { listDocuments, addDocument, getDocument, setDocument, deleteDocument, commitWrites } from "./firestore.js";
+import { listDocuments, addDocument, getDocument, setDocument, deleteDocument, commitWrites, queryDocuments } from "./firestore.js";
 import { verifyFirebaseIdToken } from "./verifyIdToken.js";
 import { staffRoute, requireStaff, isManager } from "./staff.js";
 
@@ -131,6 +131,11 @@ async function purgeNumber(env, mobile, confirm) {
   found.credit_applications = application ? 1 : 0;
   if (application) writes.push({ delete: ["credit_applications", mobile] });
 
+  // Website visits (Admin → Visitors) that carry this number: the visit goes too.
+  const visits = await queryDocuments(env, "site_visits", "mobile", mobile).catch(() => []);
+  found.site_visits = visits.length;
+  visits.forEach((d) => writes.push({ delete: ["site_visits", d.id] }));
+
   const rates = await getDocument(env, "customer_rates", mobile).catch(() => null);
   found.customer_rates = rates ? 1 : 0;
   if (rates) writes.push({ delete: ["customer_rates", mobile] });
@@ -224,6 +229,57 @@ async function noteFormCustomer(env, request) {
   const at = new Date().toISOString();
   const rateType = FORM_RATE_TYPES[String(body.rate || "")] || (prev && prev.rateType) || "";
   await setDocument(env, "form_customers", mobile, { mobile, name, rateType, firstAt: (prev && prev.firstAt) || at, lastAt: at });
+  return json({ ok: true });
+}
+
+// ---- Website visits (Admin → Visitors), from assets/track.js. One document per visit (site_visits/{sid}),
+// rewritten with the visit so far each time, so no reads. City and network come from Cloudflare; the IP isn't kept.
+// A name and mobile come only from a phone that has sent the order form. ----
+const TRACK_BOTS = /bot|crawl|spider|slurp|headless|lighthouse|preview|facebookexternalhit|whatsapp\//i;
+const trackHits = new Map(); // ip -> { n, at }: a light per-isolate limit against floods
+function deviceOf(ua) {
+  const device = /iPad/.test(ua) ? "iPad" : /iPhone/.test(ua) ? "iPhone" : /Android/.test(ua) ? (/Mobile/.test(ua) ? "Android phone" : "Android tablet")
+    : /Windows/.test(ua) ? "Windows PC" : /Macintosh/.test(ua) ? "Mac" : /CrOS/.test(ua) ? "Chromebook" : /Linux/.test(ua) ? "Linux PC" : "Other";
+  const browser = /Instagram/.test(ua) ? "Instagram app" : /FBAN|FBAV|FB_IAB/.test(ua) ? "Facebook app" : /SamsungBrowser/.test(ua) ? "Samsung Internet"
+    : /EdgA?\/|Edg\//.test(ua) ? "Edge" : /OPR\/|Opera/.test(ua) ? "Opera" : /Firefox|FxiOS/.test(ua) ? "Firefox" : /CriOS|Chrome\//.test(ua) ? "Chrome"
+    : /Safari/.test(ua) ? "Safari" : "";
+  return { device, browser };
+}
+async function trackVisit(env, request) {
+  const ua = request.headers.get("User-Agent") || "";
+  if (TRACK_BOTS.test(ua)) return json({ ok: true });
+  const raw = await request.text();
+  if (raw.length > 16000) return json({ error: "too big" }, 413);
+  let b;
+  try { b = JSON.parse(raw); } catch (e) { return json({ error: "bad" }, 400); }
+  const ID = /^[a-z0-9]{10,24}$/;
+  if (!b || !ID.test(b.sid) || !ID.test(b.vid)) return json({ error: "bad" }, 400);
+
+  const ip = request.headers.get("CF-Connecting-IP") || "";
+  const now = Date.now();
+  const hit = trackHits.get(ip);
+  if (hit && now - hit.at < 600000) { if (++hit.n > 60) return json({ error: "busy" }, 429); }
+  else { if (trackHits.size > 5000) trackHits.clear(); trackHits.set(ip, { n: 1, at: now }); }
+
+  const txt = (v, n) => String(v == null ? "" : v).replace(/[\u0000-\u001f<>]/g, " ").trim().slice(0, n);
+  const start = Math.min(now, Math.max(now - 12 * 3600000, Number(b.start) || now));
+  const ev = (Array.isArray(b.ev) ? b.ev : []).slice(-60)
+    .map((x) => ({ t: Math.max(0, Math.min(43200, Math.round(Number(x && x.t) || 0))), e: txt(x && x.e, 12), d: txt(x && x.d, 80) }))
+    .filter((x) => /^[a-z]{2,12}$/.test(x.e));
+  let name = "", mobile = "";
+  if (b.who && typeof b.who === "object") {
+    const m = lastTen(b.who.mobile);
+    if (/^[6-9][0-9]{9}$/.test(m) && !(await isHiddenNumber(env, m))) { mobile = m; name = txt(b.who.name, 80); }
+  }
+  const cf = request.cf || {};
+  const { device, browser } = deviceOf(ua);
+  await setDocument(env, "site_visits", b.sid, {
+    sid: b.sid, vid: b.vid, n: Math.max(1, Math.min(9999, Math.round(Number(b.n) || 1))),
+    day: new Date(start + 330 * 60000).toISOString().slice(0, 10), // India date
+    start: new Date(start).toISOString(), last: new Date(now).toISOString(), secs: Math.round((now - start) / 1000),
+    src: txt(b.src, 40), ev, name, mobile, device, browser, w: Math.max(0, Math.min(9999, Math.round(Number(b.w) || 0))), lang: txt(b.lang, 4),
+    city: txt(cf.city, 60), region: txt(cf.region, 60), country: txt(cf.country, 4), isp: txt(cf.asOrganization, 60),
+  });
   return json({ ok: true });
 }
 
@@ -1420,6 +1476,11 @@ export default {
       const mobile = String(body.mobile || "").replace(/\D/g, "").slice(-10);
       if (mobile.length !== 10) return json({ approved: false });
       return json(await creditStatus(env, mobile));
+    }
+
+    // Public: the website's visitor watch (assets/track.js), for Admin → Visitors.
+    if (path === "/track" && request.method === "POST") {
+      return trackVisit(env, request).catch(() => json({ ok: false }, 500));
     }
 
     // Public: the order form notes who sent their weekly requirement.

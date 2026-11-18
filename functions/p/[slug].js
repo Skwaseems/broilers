@@ -104,6 +104,7 @@ ${cards ? `<section class="more"><h2>Other products</h2><div class="grid">${card
 <a class="wa" href="https://wa.me/${whatsapp}?text=${encodeURIComponent("Hi Sharhan Broilers, I have an enquiry.")}" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${WHATSAPP_PATH}"/></svg></a>
 <div class="order"><a href="${esc(order)}">Fill your approx. qty. weekly requirement</a></div>
 <script>${TRIM_BANDS}</script>
+<script src="/assets/track.js" defer></script>
 </body></html>`;
 }
 

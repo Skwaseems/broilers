@@ -587,6 +587,100 @@
       border-bottom: 1px solid var(--line);
     }
 
+    /* Visitors tab */
+    .vis-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin: 12px 0 4px;
+    }
+
+    .vis-stat {
+      padding: 10px 6px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #fff;
+      text-align: center;
+    }
+
+    .vis-stat b {
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .vis-stat span {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .vis-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 2px 10px;
+    }
+
+    .vis-who {
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+
+    .vis-meta {
+      color: var(--muted);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .vis-steps {
+      margin: 6px 0 0;
+      padding: 0;
+      list-style: none;
+      font-size: 15px;
+    }
+
+    .vis-steps li {
+      display: flex;
+      gap: 10px;
+      padding: 2px 0;
+    }
+
+    .vis-steps time {
+      flex: 0 0 auto;
+      min-width: 62px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .vis-steps .vis-key {
+      color: var(--ok);
+      font-weight: 600;
+    }
+
+    .vis-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .vis-live {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: #2e9e5b;
+      vertical-align: middle;
+    }
+
+    @media (max-width: 380px) {
+      .vis-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
     .act-item .act-when {
       color: var(--muted);
       font-size: 14px;
@@ -1622,6 +1716,7 @@
         <button type="button" role="tab" id="tab-orders" aria-controls="panel-orders" data-tab="orders"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg><span class="tab-label">Order form</span></button>
         <button type="button" role="tab" id="tab-rates" aria-controls="panel-rates" data-tab="rates" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg><span class="tab-label">Rates</span></button>
         <button type="button" role="tab" id="tab-website" aria-controls="panel-website" data-tab="website"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><span class="tab-label">Website</span></button>
+        <button type="button" role="tab" id="tab-visitors" aria-controls="panel-visitors" data-tab="visitors" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span class="tab-label">Visitors</span></button>
         <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" data-tab="activity" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span class="tab-label">Activity</span></button>
         <button type="button" role="tab" id="tab-users" aria-controls="panel-users" data-tab="users" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span class="tab-label">Users</span></button>
       </div>
@@ -1996,6 +2091,30 @@
       <section class="card" aria-labelledby="inbox-title">
         <h2 id="inbox-title">Inbox <span class="badge" id="inbox-count">0</span></h2>
         <div id="inbox-list"></div>
+      </section>
+      </div>
+
+      <div class="tab-panel" role="tabpanel" id="panel-visitors" aria-labelledby="tab-visitors" hidden>
+      <section class="card" aria-labelledby="visitors-title">
+        <h2 id="visitors-title">Website visitors</h2>
+        <p class="muted">Who opened the website and what they did, updated live. A name shows only for customers who have
+          sent the order form from that phone; everyone else is a visitor. What people type is never recorded.
+          Your own admin devices are left out.</p>
+        <div class="act-chips" id="visitors-ranges" role="group" aria-label="Dates">
+          <button type="button" class="act-chip" data-range="today" aria-pressed="true">Today</button>
+          <button type="button" class="act-chip" data-range="yesterday">Yesterday</button>
+          <button type="button" class="act-chip" data-range="7">Last 7 days</button>
+          <button type="button" class="act-chip" data-range="30">Last 30 days</button>
+        </div>
+        <div class="vis-stats" id="visitors-stats"></div>
+        <div class="act-chips" id="visitors-filter" role="group" aria-label="Show">
+          <button type="button" class="act-chip" data-show="all" aria-pressed="true">All</button>
+          <button type="button" class="act-chip" data-show="form">Opened the form</button>
+          <button type="button" class="act-chip" data-show="sent">Sent the form</button>
+          <button type="button" class="act-chip" data-show="known">Known customers</button>
+        </div>
+        <div id="visitors-list"><p class="muted">Loading&hellip;</p></div>
+        <div class="row-form"><button class="btn secondary" id="visitors-more" type="button" hidden>Show more</button></div>
       </section>
       </div>
 
@@ -2590,6 +2709,130 @@
     // The log is only read when its tab is opened.
     document.addEventListener("sb-tab", (e) => { if (e.detail === "activity" && me.manager && !activityUnsub) startActivity(); });
 
+    // ---------- Visitors tab: website visits (site_visits, written by the Worker's /track from assets/track.js) ----------
+    const VIS_PAGE = 300;
+    let visUnsub = null, visits = [], visRange = "today", visShow = "all", visLimit = VIS_PAGE, visFull = false, visTimer = null;
+    const VIS_KEY = ["weekly", "order", "credit"];
+    const VIS_FORM = ["form", "step", "weekly", "order", "credit"];
+    function visLabel(x) {
+      const d = x.d || "";
+      switch (x.e) {
+        case "page": return "Opened " + (d || "a page");
+        case "form": return "Opened the order form";
+        case "step": return "Went to step " + d + " of the form";
+        case "weekly": return "Sent the weekly requirement ✓";
+        case "order": return "Sent the next-day order (Enroll Now) ✓";
+        case "credit": return "Applied for credit ✓";
+        case "bank": return "Opened the " + (d || "bank") + " QR / pay";
+        case "wa": return "Tapped WhatsApp";
+        case "call": return "Tapped Call";
+        case "mail": return "Tapped Email";
+        case "map": return "Opened the map";
+        case "lang": return "Switched the form to " + d;
+        default: return x.e + (d ? ": " + d : "");
+      }
+    }
+    const visTime = (d) => d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    function visLength(secs) {
+      const m = Math.round((Number(secs) || 0) / 60);
+      return m < 1 ? "under 1 min" : m < 60 ? m + " min" : Math.floor(m / 60) + " h " + (m % 60) + " min";
+    }
+    function startVisitors() {
+      if (visUnsub) visUnsub();
+      const span = { today: [0, -1], yesterday: [1, 0], 7: [6, -1], 30: [29, -1] }[visRange] || [0, -1];
+      let q = db.collection("site_visits").where("last", ">=", fromDateInput(daysAgo(span[0])).toISOString());
+      if (span[1] >= 0) q = q.where("last", "<", fromDateInput(daysAgo(span[1])).toISOString());
+      visUnsub = q.orderBy("last", "desc").limit(visLimit).onSnapshot((snap) => {
+        visits = snap.docs.map((d) => d.data());
+        visFull = snap.size >= visLimit;
+        renderVisitors();
+      }, (e) => { $("visitors-list").textContent = "Couldn't load the visitors: " + e.message; });
+      clearInterval(visTimer);
+      visTimer = setInterval(() => { if (!$("panel-visitors").hidden) renderVisitors(); }, 60000); // "active now" goes stale
+    }
+    function renderVisitors() {
+      const ev = (v) => (Array.isArray(v.ev) ? v.ev : []);
+      const openedForm = (v) => ev(v).some((x) => VIS_FORM.includes(x.e)) || ev(v).some((x) => x.e === "page" && /^Order form/.test(x.d || ""));
+      const sent = (v) => ev(v).some((x) => VIS_KEY.includes(x.e));
+      // A phone that sent the form once is named on its other visits too.
+      const names = new Map();
+      visits.forEach((v) => { if (v.name && !names.has(v.vid)) names.set(v.vid, { name: v.name, mobile: v.mobile }); });
+      const whoOf = (v) => (v.name ? { name: v.name, mobile: v.mobile } : names.get(v.vid) || null);
+
+      const stats = [
+        [visits.length, "Visits"], [new Set(visits.map((v) => v.vid)).size, "People"],
+        [visits.filter(openedForm).length, "Opened form"], [visits.filter(sent).length, "Sent form"],
+      ];
+      const box = $("visitors-stats");
+      box.innerHTML = "";
+      stats.forEach(([n, t]) => box.appendChild(el("div", { className: "vis-stat" }, [el("b", { textContent: String(n) }), el("span", { textContent: t })])));
+
+      const list = visits.filter((v) => visShow === "all" || (visShow === "form" && openedForm(v)) || (visShow === "sent" && sent(v)) || (visShow === "known" && whoOf(v)));
+      const out = $("visitors-list");
+      out.innerHTML = "";
+      $("visitors-more").hidden = !visFull;
+      if (!list.length) {
+        out.appendChild(el("p", { className: "muted", textContent: visits.length ? "No visits match this filter." : "No visits in these dates yet." }));
+        return;
+      }
+      let lastDay = "";
+      list.forEach((v) => {
+        const start = new Date(v.start || v.last), last = new Date(v.last);
+        const day = toDateInput(start);
+        if (visRange !== "today" && visRange !== "yesterday" && day !== lastDay) {
+          lastDay = day;
+          const count = list.filter((x) => toDateInput(new Date(x.start || x.last)) === day).length;
+          out.appendChild(el("div", { className: "act-group-head" }, [el("span", { textContent: dayHeading(start) }), el("span", { className: "badge", textContent: String(count) })]));
+        }
+        const who = whoOf(v);
+        const active = Date.now() - last.getTime() < 3 * 60000;
+        const head = el("div", { className: "vis-head" }, [
+          el("span", { className: "vis-who" }, [
+            active ? el("span", { className: "vis-live", title: "Active now" }) : "",
+            who ? who.name + (who.mobile ? " · " + who.mobile.slice(0, 5) + " " + who.mobile.slice(5) : "") : "Visitor",
+          ]),
+          el("span", { className: "vis-meta", textContent: visTime(start) + (active ? " · active now" : "") }),
+        ]);
+        const place = [v.city, v.region].filter(Boolean).join(", ") + (v.country && v.country !== "IN" ? " (" + v.country + ")" : "");
+        const meta = el("div", { className: "vis-meta", textContent: [
+          place || "Place unknown", [v.device, v.browser].filter(Boolean).join(", "), v.isp,
+          "from " + (v.src || "unknown"), visLength(v.secs), v.n > 1 ? "visit no. " + v.n : "first visit",
+        ].filter(Boolean).join(" · ") });
+        const steps = el("ol", { className: "vis-steps" });
+        ev(v).forEach((x) => {
+          const at = new Date(start.getTime() + (Number(x.t) || 0) * 1000);
+          steps.appendChild(el("li", {}, [el("time", { textContent: visTime(at) }), el("span", { className: VIS_KEY.includes(x.e) ? "vis-key" : "", textContent: visLabel(x) })]));
+        });
+        const item = el("div", { className: "act-item" }, [head, meta, steps]);
+        if (who && who.mobile) item.appendChild(el("div", { className: "vis-links" }, [
+          el("a", { className: "btn secondary small", href: "tel:+91" + who.mobile, textContent: "Call" }),
+          el("a", { className: "btn secondary small", href: "https://wa.me/91" + who.mobile, target: "_blank", rel: "noopener", textContent: "WhatsApp" }),
+        ]));
+        out.appendChild(item);
+      });
+    }
+    $("visitors-ranges").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-range]");
+      if (!b) return;
+      visRange = b.dataset.range;
+      visLimit = VIS_PAGE;
+      document.querySelectorAll("#visitors-ranges [data-range]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      startVisitors();
+    });
+    $("visitors-filter").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-show]");
+      if (!b) return;
+      visShow = b.dataset.show;
+      document.querySelectorAll("#visitors-filter [data-show]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      renderVisitors();
+    });
+    $("visitors-more").addEventListener("click", () => { visLimit += VIS_PAGE; startVisitors(); });
+    // Read only while the tab is open.
+    document.addEventListener("sb-tab", (e) => {
+      if (e.detail === "visitors" && canSetRates()) { if (!visUnsub) startVisitors(); }
+      else if (visUnsub) { visUnsub(); visUnsub = null; clearInterval(visTimer); }
+    });
+
     // ---------- Users tab: my password; the main admin manages IDs (Worker /staff-*) ----------
     let staffUsers = [], editingUser = null;
     function setupUsersTab() {
@@ -2598,6 +2841,9 @@
       $("tab-users").querySelector(".tab-label").textContent = me.manager ? "Users" : "My password";
       $("tab-activity").hidden = !me.manager;
       $("tab-rates").hidden = !canSetRates();
+      $("tab-visitors").hidden = !canSetRates();
+      // This device is an admin's: the website's visitor watch leaves it out (assets/track.js).
+      try { localStorage.setItem("sb-no-track", "1"); } catch (e) {}
       $("mypw-btn").hidden = !staff;
       $("mypw-card").hidden = !staff;
       $("mainadm-card").hidden = !me.owner;
@@ -4107,7 +4353,7 @@
     });
 
     // ---------- Remove a number from all records (the number itself never goes in the activity log) ----------
-    const PURGE_LABELS = { whatsapp_customers: "customer list", whatsapp_inbox: "Inbox", whatsapp_status_log: "delivery records", whatsapp_send_log: "send records", whatsapp_pending: "waiting messages", whatsapp_autoreply: "auto-reply records", credit_applications: "credit application", customer_rates: "customer rates", form_customers: "order form customers", credit_list: "credit list", activity_log: "Activity entries" };
+    const PURGE_LABELS = { whatsapp_customers: "customer list", whatsapp_inbox: "Inbox", whatsapp_status_log: "delivery records", whatsapp_send_log: "send records", whatsapp_pending: "waiting messages", whatsapp_autoreply: "auto-reply records", credit_applications: "credit application", customer_rates: "customer rates", form_customers: "order form customers", site_visits: "website visits", credit_list: "credit list", activity_log: "Activity entries" };
     $("purge-btn").addEventListener("click", async () => {
       const mobile = $("purge-number").value;
       const post = (confirm) => api("/purge-number", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mobile, confirm }) });

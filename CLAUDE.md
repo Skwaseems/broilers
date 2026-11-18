@@ -95,6 +95,11 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   any time; step 2 never shows the Client Profile (owner, 17 Nov): sending it without name/mobile/location goes back to step 1 at the
   empty box; there's no Modify Weekly Requirement button, step 1 is opened by tapping it; step 3 is an info panel), a help line, a "we'll contact you
   within 24 hours" note and a "submitted successfully" box after sending. Microsoft Clarity is on (project ID zeotiyvqlh, in the loader at the end of index.html); the order form is masked (`data-clarity-mask`).
+- Visitor watch (18 Nov 2026): `assets/track.js` (on index.html and the /p/ pages) records each visit (pages, form opened, steps, sent,
+  bank QR, WhatsApp/call/map taps; source, device, city/network from Cloudflare, never the IP or typed text) via the Worker's `/track`
+  into `site_visits/{sid}` (Worker-only writes; `canSetRates()` reads). Admin → More → Visitors shows it live (rate admins only). Name and
+  mobile only after that phone sent the form. index.html calls `sbWatch(event, detail)`. Admin devices set `sb-no-track` and are left out.
+  "Remove a number from all records" also deletes that number's visits.
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - Admin → Send shows an approximate WhatsApp balance and a Recharge link. Meta has no API for the balance: an admin types Meta's figure
   (`settings/whatsapp_balance`) and the Worker's `/balance` subtracts Meta's charges since then plus 18% GST. It needs retyping after each recharge.

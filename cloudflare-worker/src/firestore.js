@@ -164,6 +164,24 @@ export async function commitWrites(env, writes) {
   }
 }
 
+// The documents whose field equals value (up to 500), without reading the whole collection.
+export async function queryDocuments(env, collection, field, value) {
+  const token = await getAccessToken(env);
+  const res = await fetch(`${baseUrl(env)}:runQuery`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ structuredQuery: {
+      from: [{ collectionId: collection }],
+      where: { fieldFilter: { field: { fieldPath: field }, op: "EQUAL", value: encodeValue(value) } },
+      limit: 500,
+    } }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error("Firestore query failed: " + JSON.stringify(data));
+  return (Array.isArray(data) ? data : []).filter((r) => r.document)
+    .map((r) => ({ id: r.document.name.split("/").pop(), ...decodeFields(r.document.fields || {}) }));
+}
+
 export async function addDocument(env, collection, fields) {
   const token = await getAccessToken(env);
   const res = await fetch(`${baseUrl(env)}/${collection}`, {

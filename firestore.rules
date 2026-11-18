@@ -110,6 +110,11 @@ service cloud.firestore {
     match /rate_settings/{docId} {
       allow read, write: if canSetRates();
     }
+    // Website visits (Admin → Visitors): written only by the Worker (/track); the rate admins read them.
+    match /site_visits/{sid} {
+      allow read: if canSetRates();
+      allow write: if false;
+    }
     match /credit_applications/{mobile} {
       allow read, update: if isAdmin();
       allow create, delete: if false;

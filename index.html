@@ -2,7 +2,10 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>if (/[?&]order=1(&|$)/.test(location.search)) document.documentElement.classList.add('sb-form-only');</script>
+<script>if (/[?&]order=1(&|$)/.test(location.search)) document.documentElement.classList.add('sb-form-only');
+// Visitor watch (Admin → Visitors, assets/track.js): what this visit opened and sent. Queued until that file loads.
+window.__sbLanding = location.search; // the page may tidy its address before track.js runs
+function sbWatch(e, d, who){ try { (window.sbTrackQ = window.sbTrackQ || []).push([e, d || '', who || null]); } catch (x) {} }</script>
 <!-- SEO:START -->
 <title>Sharhan Broilers – Wholesale Chicken Supplier in Mumbai</title>
 <meta name="description" content="Sharhan Broilers supplies fresh and frozen chicken to hotels, restaurants, caterers and cloud kitchens across Mumbai. Send your weekly requirement online.">
@@ -2273,6 +2276,7 @@ table.sb-table-booking{min-width:0;}
   }
   window.addEventListener('sb-lang', sbShowSteps);
   window.sbGoStep = function(n){
+    sbWatch('step', String(n));
     sbViewStep = n;
     ['sb-sent-ok', 'sb-sent-ok2', 'sb-wa-second'].forEach(function(id){ var el = document.getElementById(id); if (el) el.style.display = 'none'; });
     sbApplyStage();
@@ -2396,6 +2400,7 @@ table.sb-table-booking{min-width:0;}
   }
 
   function sbAfterSend(){
+    sbWatch(sbEnrollStage() ? 'order' : 'weekly', '', { name: sbVal('sb-company'), mobile: sbMobile10() });
     // "Submitted successfully": at the top after the weekly requirement (the form moves to step 2), under the buttons after an order.
     document.getElementById(sbEnrollStage() ? 'sb-sent-ok2' : 'sb-sent-ok').style.display = '';
     document.getElementById(sbEnrollStage() ? 'sb-sent-ok' : 'sb-sent-ok2').style.display = 'none';
@@ -2577,6 +2582,7 @@ table.sb-table-booking{min-width:0;}
     ov.classList.remove('sb-anim');
     void ov.offsetWidth; // restart the animation
     ov.classList.add('sb-open', 'sb-anim');
+    sbWatch('form');
     clearTimeout(window.sbAnimTimer);
     window.sbAnimTimer = setTimeout(function(){ ov.classList.remove('sb-anim'); }, 1000);
     document.body.style.overflow = 'hidden';
@@ -3260,6 +3266,7 @@ table.sb-table-booking{min-width:0;}
       .then(function(r){ return r.json().catch(function(){ return {}; }); })
       .then(function(d){
         if (d.status === 'pending' || d.status === 'approved') {
+          sbWatch('credit', '', { name: sbVal('sb-company'), mobile: mobile });
           sbCredit = { mobile: mobile, state: d.status === 'approved' ? 'yes' : 'pending' };
           say(d.status === 'approved' ? sbT('creditOk') : sbT('caDone').replace('{mobile}', mobile), true);
           document.querySelectorAll('input[data-kyc]').forEach(function(f){ f.value = ''; });
@@ -3327,6 +3334,7 @@ table.sb-table-booking{min-width:0;}
     var pay = window.__sbPayment || {};
     var b = sbPayBanks(pay)[i];
     if (!b) return;
+    sbWatch('bank', b.bank || 'UPI');
     if (!sbBp) {
       sbBp = document.createElement('div');
       sbBp.className = 'sb-bp';
@@ -4194,4 +4202,5 @@ table.sb-table-booking{min-width:0;}
   (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", id);
 })('zeotiyvqlh'); // Clarity project "Sharhan Broilers" (created 17 Nov 2026)
 </script>
+<script src="/assets/track.js" defer></script>
 </body></html>
