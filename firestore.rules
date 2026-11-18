@@ -105,6 +105,11 @@ service cloud.firestore {
     match /customer_rates/{mobile} {
       allow read, write: if canSetRates();
     }
+    // Daily-rate pricing: rate_settings/today (paper + S.K. Patel lifting rate) and rate_settings/formulas.
+    // Business-sensitive: rate admins only. The Worker works out each daily customer's prices.
+    match /rate_settings/{docId} {
+      allow read, write: if canSetRates();
+    }
     match /credit_applications/{mobile} {
       allow read, update: if isAdmin();
       allow create, delete: if false;

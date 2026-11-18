@@ -168,6 +168,37 @@ async function purgeNumber(env, mobile, confirm) {
 const FORM_CUSTOMERS_MAX = 3000; // stops a flood of fake numbers filling the free database
 // The form's Rate Selection values (English option values) -> Admin -> Rates -> Rate type.
 const FORM_RATE_TYPES = { "Daily Market Published Rate": "daily", "Weekly Fixed Rate": "weekly", "Monthly Fixed Rate": "monthly", "Annually Fixed Rate": "annual" };
+// ---- Daily market rate pricing (customers whose rate type is "daily") ----
+// rate_settings/today = { paper, lifting, day }; rate_settings/formulas = { lines: [{ name, product, base, mult[3], add[3] }] }.
+// price = base rate x mult + add (base: paper | lifting), or add alone (base: fixed). Each customer has a level 1-3;
+// an empty level uses the one before it. Rounded to the rupee. The first line linked to a product wins.
+function dailyPick(arr, level) {
+  for (let i = level - 1; i >= 0; i--) {
+    const v = Array.isArray(arr) ? arr[i] : null;
+    if (v !== null && v !== undefined && v !== "" && !isNaN(Number(v))) return Number(v);
+  }
+  return null;
+}
+export function dailyPrice(line, level, paper, lifting) {
+  if (!line) return null;
+  const add = dailyPick(line.add, level);
+  if (line.base === "fixed") return add > 0 ? Math.round(add) : null;
+  const base = line.base === "lifting" ? Number(lifting) : Number(paper);
+  if (!(base > 0)) return null;
+  const mult = dailyPick(line.mult, level);
+  const v = base * (mult === null ? 1 : mult) + (add || 0);
+  return v > 0 ? Math.round(v) : null;
+}
+export function dailyRates(formulas, today, level) {
+  const out = {};
+  for (const line of (formulas && formulas.lines) || []) {
+    if (!line || !line.product || out[line.product]) continue;
+    const p = dailyPrice(line, level, today && today.paper, today && today.lifting);
+    if (p) out[line.product] = { fresh: p, frozen: p };
+  }
+  return out;
+}
+
 async function noteFormCustomer(env, request) {
   const body = await request.json().catch(() => ({}));
   const mobile = String(body.mobile || "").replace(/\D/g, "").slice(-10);
@@ -1389,7 +1420,20 @@ export default {
       const mobile = String(body.mobile || "").replace(/\D/g, "").slice(-10);
       if (mobile.length !== 10) return json({ rates: {} });
       const doc = await getDocument(env, "customer_rates", mobile).catch(() => null);
-      return json({ rates: (doc && doc.rates) || {} });
+      let rates = (doc && doc.rates) || {};
+      // Daily-rate customers: today's formula prices replace typed ones for the products that have a formula.
+      let rateType = doc && doc.rateType;
+      if (!rateType) rateType = ((await getDocument(env, "form_customers", mobile).catch(() => null)) || {}).rateType;
+      if (rateType === "daily") {
+        const [formulas, today] = await Promise.all([
+          getDocument(env, "rate_settings", "formulas").catch(() => null),
+          getDocument(env, "rate_settings", "today").catch(() => null),
+        ]);
+        const level = [1, 2, 3].includes(Number(doc && doc.level)) ? Number(doc.level) : 1;
+        const daily = dailyRates(formulas, today, level);
+        if (Object.keys(daily).length) return json({ rates: { ...rates, ...daily }, daily: { day: (today && today.day) || "" } });
+      }
+      return json({ rates });
     }
 
     // Public: credit application with KYC photos (multipart form from the order form).

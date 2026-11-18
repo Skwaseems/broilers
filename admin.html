@@ -1212,6 +1212,76 @@
       background: #fff;
     }
 
+    .formula-line {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 10px;
+      background: #fff;
+    }
+
+    .formula-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .formula-levels {
+      display: grid;
+      grid-template-columns: auto repeat(3, minmax(0, 1fr));
+      gap: 6px 8px;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    .formula-levels input,
+    .formula-top input,
+    .formula-top select,
+    .formula-base {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    .formula-levels .lv {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .formula-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .formula-preview {
+      font-size: 14px;
+      color: #1d6b3c;
+    }
+
+    .rate-daily {
+      display: block;
+      font-size: 13px;
+      color: #1d6b3c;
+    }
+
+    #formula-paste {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+
+    @media (max-width:420px) {
+      .formula-top {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .pay-logo-img {
       max-width: 160px;
       height: 52px;
@@ -1760,6 +1830,31 @@
       </div>
 
       <div class="tab-panel" role="tabpanel" id="panel-rates" aria-labelledby="tab-rates" hidden>
+      <section class="card" aria-labelledby="daily-title">
+        <h2 id="daily-title">Daily market rates</h2>
+        <p class="muted">For customers whose rate type is <b>Daily</b>. Type today's rates each morning: their prices in the order form are worked out from the formulas below. Weekly, monthly and annual customers keep the rates you type for them.</p>
+        <div class="recip-grid">
+          <label class="site-field"><span class="cat-label">Paper rate ₹</span><input type="text" id="daily-paper" inputmode="decimal" maxlength="8" placeholder="e.g. 150"></label>
+          <label class="site-field"><span class="cat-label">S.K. Patel lifting rate ₹</span><input type="text" id="daily-lifting" inputmode="decimal" maxlength="8" placeholder="e.g. 120"></label>
+        </div>
+        <p class="muted" id="daily-when"></p>
+        <div class="row-form"><button class="btn" id="daily-save" type="button">Save today's rates</button></div>
+        <div class="status" id="daily-status" role="status"></div>
+        <details class="site-sec" id="formula-box">
+          <summary>Rate formulas (<span id="formula-count">0</span>)</summary>
+          <p class="muted">One line per product. <b>Paper ×</b>: paper rate × number, then + or − ₹. <b>Lifting +</b>: S.K. Patel lifting rate × number (empty = 1), then + ₹. <b>Fixed ₹</b>: a set price. Levels 1–3 are for different customers (set each customer's level below); an empty level uses the one before it. Prices are rounded to the rupee. Link each line to the order form product it prices (add variants such as "BBL Full Trimming" in Order form → Products first).</p>
+          <div id="formula-lines"></div>
+          <div class="row-form"><button class="btn secondary small" id="formula-add" type="button">Add line</button></div>
+          <details class="formula-paste">
+            <summary>Paste many lines at once</summary>
+            <p class="muted">One per line: <code>Name | paper x 1.8/1.7</code>, <code>Name | paper x 2 - 5/8</code>, <code>Name | lifting + 40/45</code> or <code>Name | fixed 150/160/170</code>. Add <code>| Product name</code> at the end to link it.</p>
+            <textarea id="formula-paste" rows="6" placeholder="Product name | paper x 1.8/1.7"></textarea>
+            <div class="row-form"><button class="btn secondary small" id="formula-paste-btn" type="button">Add these lines</button></div>
+          </details>
+          <div class="row-form"><button class="btn" id="formula-save" type="button">Save formulas</button></div>
+          <div class="status" id="formula-status" role="status"></div>
+        </details>
+      </section>
       <section class="card" aria-labelledby="rates-title">
         <h2 id="rates-title">Customer rates</h2>
         <input type="search" class="cust-search" id="rates-search" placeholder="Search name or number" aria-label="Search customers by name or number" autocomplete="off">
@@ -1772,7 +1867,10 @@
               <span class="muted" id="rates-chose"></span></label>
             <label><span class="cat-label">From</span><input type="date" id="rates-from"></label>
             <label><span class="cat-label">To</span><input type="date" id="rates-to"></label>
+            <label id="rates-level-wrap" hidden><span class="cat-label">Daily price level</span>
+              <select id="rates-level"><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option></select></label>
           </div>
+          <p class="muted" id="rates-daily-note" hidden>Daily customer: products with a formula get today's formula price (shown in green). A rate you type is used only for products without a formula.</p>
           <table class="rates-table">
             <thead><tr><th>Item</th><th>Fresh ₹/kg</th><th>Frozen ₹/kg</th></tr></thead>
             <tbody id="rates-rows"></tbody>
@@ -3578,6 +3676,183 @@
       }
     }
 
+    // ---------- Daily market rates (rate_settings/today) and formulas (rate_settings/formulas): rate admins only ----------
+    // The same arithmetic is in the Worker (dailyPrice), which prices the order form for daily customers.
+    let dailyToday = {}, formulaLines = [];
+    const dailyNum = (v) => { const t = String(v == null ? "" : v).trim(); return t === "" || isNaN(Number(t)) ? null : Number(t); };
+    function dailyPick(arr, level) {
+      for (let i = level - 1; i >= 0; i--) { const v = Array.isArray(arr) ? dailyNum(arr[i]) : null; if (v !== null) return v; }
+      return null;
+    }
+    function dailyPrice(line, level, today) {
+      const add = dailyPick(line.add, level);
+      if (line.base === "fixed") return add > 0 ? Math.round(add) : null;
+      const base = Number(line.base === "lifting" ? today.lifting : today.paper);
+      if (!(base > 0)) return null;
+      const mult = dailyPick(line.mult, level);
+      const v = base * (mult === null ? 1 : mult) + (add || 0);
+      return v > 0 ? Math.round(v) : null;
+    }
+    function dailyFor(product, level) {
+      const line = formulaLines.find((l) => l.product === product);
+      return line ? dailyPrice(line, level, dailyToday) : null;
+    }
+    const istDay = () => new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+    function showDailyWhen() {
+      const t = dailyToday;
+      $("daily-paper").value = t.paper || "";
+      $("daily-lifting").value = t.lifting || "";
+      if (!t.day) { $("daily-when").textContent = "Not set yet."; return; }
+      const stale = t.day !== istDay();
+      $("daily-when").textContent = "Saved for " + rateDate(t.day) + (t.by ? " by " + t.by : "") + "." + (stale ? " ⚠ Not updated today: customers still see that day's prices." : "");
+      $("daily-when").style.color = stale ? "var(--err, #b3302c)" : "";
+    }
+    async function loadDaily() {
+      try {
+        const [t, f] = await Promise.all([db.collection("rate_settings").doc("today").get(), db.collection("rate_settings").doc("formulas").get()]);
+        dailyToday = t.exists ? t.data() : {};
+        formulaLines = f.exists && Array.isArray(f.data().lines) ? f.data().lines : [];
+        showDailyWhen();
+        renderFormulas();
+      } catch (e) { setStatus("daily-status", "Couldn't load the daily rates: " + e.message, "err"); }
+    }
+    $("daily-save").addEventListener("click", async () => {
+      const paper = dailyNum($("daily-paper").value), lifting = dailyNum($("daily-lifting").value);
+      if (!(paper > 0) || paper > 9999) { $("daily-paper").focus(); return setStatus("daily-status", "Type today's paper rate as a number, e.g. 150.", "err"); }
+      if (!(lifting > 0) || lifting > 9999) { $("daily-lifting").focus(); return setStatus("daily-status", "Type today's S.K. Patel lifting rate as a number, e.g. 120.", "err"); }
+      $("daily-save").disabled = true;
+      try {
+        const doc = { paper, lifting, day: istDay(), at: new Date().toISOString(), by: String(me.user || "") };
+        await trackedSet(db.collection("rate_settings").doc("today"), doc, null, "Customer rates", "Daily market rates");
+        dailyToday = doc;
+        showDailyWhen();
+        renderFormulas();
+        if (rateMobile) refreshDailyCells();
+        setStatus("daily-status", "Saved. Daily-rate customers see the new prices the next time they open Enroll Now.", "ok");
+      } catch (e) { setStatus("daily-status", "Couldn't save: " + e.message, "err"); }
+      $("daily-save").disabled = false;
+    });
+    // Formula editor: one card per line.
+    function renderFormulas() {
+      const box = $("formula-lines");
+      box.innerHTML = "";
+      $("formula-count").textContent = String(formulaLines.length);
+      const products = formItems.filter((it) => it.name).map((it) => it.name);
+      formulaLines.forEach((line, i) => {
+        line.mult = Array.isArray(line.mult) ? line.mult : [null, null, null];
+        line.add = Array.isArray(line.add) ? line.add : [null, null, null];
+        const name = el("input", { type: "text", value: line.name || "", maxLength: 60, placeholder: "e.g. BBL (Full trimming)" });
+        name.setAttribute("aria-label", "Line " + (i + 1) + " name");
+        name.addEventListener("input", () => { line.name = name.value; });
+        const prod = el("select", {});
+        prod.setAttribute("aria-label", "Line " + (i + 1) + " order form product");
+        prod.appendChild(el("option", { value: "", textContent: "— not linked —" }));
+        const opts = products.includes(line.product) || !line.product ? products : products.concat([line.product]);
+        opts.forEach((p) => prod.appendChild(el("option", { value: p, textContent: p + (products.includes(p) ? "" : " (not in the form)") })));
+        prod.value = line.product || "";
+        prod.addEventListener("change", () => { line.product = prod.value; renderFormulas(); });
+        const base = el("select", { className: "formula-base" });
+        base.setAttribute("aria-label", "Line " + (i + 1) + " price from");
+        [["paper", "Paper rate ×"], ["lifting", "S.K. Patel lifting rate +"], ["fixed", "Fixed ₹"]].forEach(([v, t]) => base.appendChild(el("option", { value: v, textContent: t })));
+        base.value = line.base || "paper";
+        base.addEventListener("change", () => { line.base = base.value; renderFormulas(); });
+        const grid = el("div", { className: "formula-levels" }, [el("span", {}), el("span", { className: "lv", textContent: "Level 1" }), el("span", { className: "lv", textContent: "Level 2" }), el("span", { className: "lv", textContent: "Level 3" })]);
+        const field = (arr, j, label) => {
+          const inp = el("input", { type: "text", inputMode: "decimal", maxLength: 8, value: arr[j] == null ? "" : String(arr[j]), placeholder: j ? "same" : "" });
+          inp.setAttribute("aria-label", "Line " + (i + 1) + " " + label + " level " + (j + 1));
+          inp.addEventListener("input", () => { arr[j] = inp.value.trim() === "" ? null : inp.value.trim(); preview.textContent = previewText(line); });
+          return inp;
+        };
+        if ((line.base || "paper") !== "fixed") {
+          grid.appendChild(el("span", { textContent: "×" }));
+          for (let j = 0; j < 3; j++) grid.appendChild(field(line.mult, j, "times"));
+        }
+        grid.appendChild(el("span", { textContent: (line.base || "paper") === "fixed" ? "₹" : "+/− ₹" }));
+        for (let j = 0; j < 3; j++) grid.appendChild(field(line.add, j, "rupees"));
+        const preview = el("span", { className: "formula-preview", textContent: previewText(line) });
+        const del = el("button", { type: "button", className: "btn secondary small", textContent: "Remove" });
+        del.addEventListener("click", () => { formulaLines.splice(i, 1); renderFormulas(); });
+        const dup = !!line.product && formulaLines.findIndex((l) => l.product === line.product) !== i;
+        box.appendChild(el("div", { className: "formula-line" }, [
+          el("div", { className: "formula-top" }, [name, prod]),
+          el("div", { style: "margin-top:8px" }, [base]),
+          grid,
+          el("div", { className: "formula-foot" }, [preview, del]),
+          dup ? el("p", { className: "status err", textContent: "This product already has a formula above; only the first one is used." }) : el("span", {}),
+        ]));
+      });
+    }
+    function previewText(line) {
+      const t = dailyToday;
+      if ((line.base || "paper") !== "fixed" && !(Number(line.base === "lifting" ? t.lifting : t.paper) > 0)) return "Save today's rates to see prices";
+      const p = [1, 2, 3].map((lv) => dailyPrice({ ...line, base: line.base || "paper" }, lv, t));
+      return p.some(Boolean) ? "Today: " + p.map((v, k) => "L" + (k + 1) + " " + (v ? "₹" + v : "—")).join(" · ") : "Today: —";
+    }
+    $("formula-add").addEventListener("click", () => {
+      formulaLines.push({ name: "", product: "", base: "paper", mult: [null, null, null], add: [null, null, null] });
+      renderFormulas();
+    });
+    // "Name | paper x 2 - 5/8 | Product" -> a line. Null if it can't be read.
+    function parseFormula(text) {
+      const parts = text.split("|").map((p) => p.trim());
+      if (parts.length < 2 || !parts[0]) return null;
+      const expr = parts[1].toLowerCase().replace(/×/g, "x").replace(/\s+/g, " ").trim();
+      const nums = (t) => { const v = (t || "").split("/").map((x) => x.trim()).filter(Boolean).slice(0, 3).map(Number); return v.some(isNaN) ? null : v.concat([null, null, null]).slice(0, 3); };
+      let m = /^(?:fixed|₹|rs\.?)?\s*([\d.\/\s]+)$/.exec(expr);
+      if (m) { const add = nums(m[1]); return add ? { name: parts[0], product: parts[2] || "", base: "fixed", mult: [null, null, null], add } : null; }
+      m = /^(paper|lifting)\s*(?:(?:x|\*)\s*([\d.\/\s]+?))?\s*(?:([+-])\s*([\d.\/\s]+))?$/.exec(expr);
+      if (!m) return null;
+      const mult = m[2] ? nums(m[2]) : [null, null, null];
+      let add = m[4] ? nums(m[4]) : [null, null, null];
+      if (!mult || !add) return null;
+      if (m[3] === "-") add = add.map((v) => (v === null ? null : -v));
+      return { name: parts[0], product: parts[2] || "", base: m[1], mult, add };
+    }
+    $("formula-paste-btn").addEventListener("click", () => {
+      const rows = $("formula-paste").value.split(/\n/).map((r) => r.trim()).filter(Boolean);
+      const bad = [];
+      let added = 0;
+      rows.forEach((r) => { const line = parseFormula(r); if (line) { formulaLines.push(line); added++; } else bad.push(r); });
+      $("formula-paste").value = bad.join("\n");
+      renderFormulas();
+      setStatus("formula-status", added + " line(s) added. " + (bad.length ? "These couldn't be read and are left in the box: fix and add again." : "Check them, link the products, then press Save formulas."), bad.length ? "err" : "ok");
+    });
+    $("formula-save").addEventListener("click", async () => {
+      const lines = [];
+      for (let i = 0; i < formulaLines.length; i++) {
+        const l = formulaLines[i];
+        const clean = (arr) => (arr || []).slice(0, 3).map((v) => dailyNum(v)).concat([null, null, null]).slice(0, 3);
+        const line = { name: String(l.name || "").trim(), product: String(l.product || ""), base: ["paper", "lifting", "fixed"].includes(l.base) ? l.base : "paper", mult: clean(l.mult), add: clean(l.add) };
+        const bad = [...(l.mult || []), ...(l.add || [])].some((v) => v !== null && v !== undefined && String(v).trim() !== "" && dailyNum(v) === null);
+        if (!line.name) return setStatus("formula-status", "Line " + (i + 1) + " needs a name.", "err");
+        if (bad) return setStatus("formula-status", line.name + ": every box must be a number (use − for less, e.g. -10).", "err");
+        if (line.base === "fixed" ? line.add[0] === null : line.mult[0] === null && line.add[0] === null) return setStatus("formula-status", line.name + ": fill in Level 1.", "err");
+        lines.push(line);
+      }
+      $("formula-save").disabled = true;
+      try {
+        await trackedSet(db.collection("rate_settings").doc("formulas"), { lines, updatedAt: new Date().toISOString() }, null, "Customer rates", "Rate formulas");
+        formulaLines = lines;
+        renderFormulas();
+        if (rateMobile) refreshDailyCells();
+        setStatus("formula-status", "Saved " + lines.length + " line(s).", "ok");
+      } catch (e) { setStatus("formula-status", "Couldn't save: " + e.message, "err"); }
+      $("formula-save").disabled = false;
+    });
+    // In a customer's rates: level picker and today's formula price under each product (daily customers).
+    function refreshDailyCells() {
+      const daily = $("rates-type").value === "daily";
+      $("rates-level-wrap").hidden = !daily;
+      $("rates-daily-note").hidden = !daily;
+      const level = Number($("rates-level").value) || 1;
+      $("rates-rows").querySelectorAll(".rate-daily").forEach((span) => {
+        const p = daily ? dailyFor(span.dataset.item, level) : null;
+        span.textContent = p ? "Today: ₹" + p + "/kg" : "";
+      });
+    }
+    $("rates-type").addEventListener("change", refreshDailyCells);
+    $("rates-level").addEventListener("change", refreshDailyCells);
+
     // ---------- Customer rates: customer_rates/{10-digit mobile} = { name, rates: { item: { fresh, frozen } },
     // remarks: { item: text }, rateType, from, to }. Only `rates` ever reaches the public form (Worker /customer-rates). ----------
     // Who may see and set rates. The same list is in firestore.rules (canSetRates), which enforces it.
@@ -3649,17 +3924,21 @@
           input.setAttribute("aria-label", it.name + " " + pkg + " rate per kg");
           return el("td", {}, [input]);
         };
-        body.appendChild(el("tr", { className: "rate-item" }, [el("td", { textContent: it.name }), box("fresh", it.fresh), box("frozen", it.frozen)]));
+        const dailySpan = el("span", { className: "rate-daily" });
+        dailySpan.dataset.item = it.name;
+        body.appendChild(el("tr", { className: "rate-item" }, [el("td", {}, [document.createTextNode(it.name), dailySpan]), box("fresh", it.fresh), box("frozen", it.frozen)]));
         const remark = el("input", { type: "text", className: "rate-remark-box", maxLength: 120, placeholder: "Remarks", value: (saved.remarks && saved.remarks[it.name]) || "" });
         remark.dataset.remark = it.name;
         remark.setAttribute("aria-label", it.name + " remarks");
         body.appendChild(el("tr", { className: "rate-remark" }, [el("td", { colSpan: 3 }, [remark])]));
       });
+      $("rates-level").value = String([1, 2, 3].includes(Number(saved.level)) ? Number(saved.level) : 1);
+      refreshDailyCells();
       $("rates-editor").hidden = false;
       setStatus("rates-status", "", "");
     }
     $("rates-search").addEventListener("input", renderRateMatches);
-    document.addEventListener("sb-tab", (e) => { if (e.detail === "rates" && auth.currentUser && canSetRates()) loadRateList(); });
+    document.addEventListener("sb-tab", (e) => { if (e.detail === "rates" && auth.currentUser && canSetRates()) { loadRateList(); loadDaily(); } });
     // What's on the screen, checked. Null (with the reason shown) if something is wrong.
     function collectRates() {
       const rates = {}, remarks = {};
@@ -3679,7 +3958,11 @@
       const rateType = $("rates-type").value, from = $("rates-from").value, to = $("rates-to").value;
       if (!!from !== !!to) { $(from ? "rates-to" : "rates-from").focus(); setStatus("rates-status", "Enter both the From and To dates.", "err"); return null; }
       if (from && to < from) { $("rates-to").focus(); setStatus("rates-status", "The To date is before the From date.", "err"); return null; }
-      return { rates, remarks, count, rateType, from, to };
+      const level = Number($("rates-level").value) || 1;
+      // For the WhatsApp message only: today's formula prices of a daily customer (never saved as typed rates).
+      const daily = {};
+      if (rateType === "daily") formItems.forEach((it) => { const p = it.name && dailyFor(it.name, level); if (p) daily[it.name] = { fresh: it.fresh ? p : 0, frozen: it.frozen ? p : 0 }; });
+      return { rates, remarks, count, rateType, from, to, level, daily };
     }
     const rateTypeLabel = (v) => ([...$("rates-type").options].find((o) => o.value === v) || { text: v }).text;
     const rateDate = (d) => { const [y, m, day] = d.split("-").map(Number); return new Date(y, m - 1, day).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); };
@@ -3689,8 +3972,9 @@
       if (rateName) lines.push("For: " + rateName);
       if (data.rateType) lines.push("Rate type: " + rateTypeLabel(data.rateType));
       if (data.from) lines.push("Valid: " + rateDate(data.from) + " to " + rateDate(data.to));
-      formItems.filter((it) => it.name && (data.rates[it.name] || data.remarks[it.name])).forEach((it) => {
-        const r = data.rates[it.name] || {};
+      if (data.rateType === "daily" && dailyToday.day) lines.push("Daily market rate of " + rateDate(dailyToday.day));
+      formItems.filter((it) => it.name && (data.rates[it.name] || data.daily[it.name] || data.remarks[it.name])).forEach((it) => {
+        const r = data.daily[it.name] || data.rates[it.name] || {};
         const prices = [r.fresh && "Fresh ₹" + r.fresh + "/kg", r.frozen && "Frozen ₹" + r.frozen + "/kg"].filter(Boolean).join(", ");
         lines.push("", "*" + it.name + "*");
         if (prices) lines.push(prices);
@@ -3703,7 +3987,7 @@
       buttons.forEach((b) => { b.disabled = true; });
       try {
         const ref = db.collection("customer_rates").doc(rateMobile);
-        if (data.count || Object.keys(data.remarks).length) await ref.set({ name: rateName, rates: data.rates, remarks: data.remarks, rateType: data.rateType, from: data.from, to: data.to, updatedAt: new Date().toISOString() });
+        if (data.count || Object.keys(data.remarks).length || data.rateType) await ref.set({ name: rateName, rates: data.rates, remarks: data.remarks, rateType: data.rateType, level: data.level, from: data.from, to: data.to, updatedAt: new Date().toISOString() });
         else await ref.delete();
         logChange("Customer rates", "Saved rates: " + (rateName || "") + " · " + rateMobile, [data.count + " rate(s)"]);
         setStatus("rates-status", savedText, "ok");
@@ -3720,7 +4004,7 @@
     $("rates-send").addEventListener("click", () => {
       const data = collectRates();
       if (!data) return;
-      if (!data.count) return setStatus("rates-status", "Enter at least one rate to send.", "err");
+      if (!data.count && !Object.keys(data.daily).length) return setStatus("rates-status", "Enter at least one rate to send.", "err");
       window.open("https://wa.me/91" + rateMobile + "?text=" + encodeURIComponent(rateMessage(data)), "_blank", "noopener");
       saveRates(data, "Saved. WhatsApp has opened with the rates: tap Send there.");
     });
