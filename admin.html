@@ -1264,6 +1264,38 @@
       color: #1d6b3c;
     }
 
+    .sheet-setup {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid #e3d9c4;
+      border-left: 3px solid #846e3e;
+      border-radius: 4px;
+      background: #fdfbf6;
+      font-size: 15px;
+    }
+
+    .today-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .today-table th,
+    .today-table td {
+      padding: 7px 6px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .today-table th:first-child,
+    .today-table td:first-child {
+      text-align: left;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
     .rate-daily {
       display: block;
       font-size: 13px;
@@ -1840,6 +1872,13 @@
         <p class="muted" id="daily-when"></p>
         <div class="row-form"><button class="btn" id="daily-save" type="button">Save today's rates</button></div>
         <div class="status" id="daily-status" role="status"></div>
+        <div class="sheet-setup" id="sheet-setup" hidden>
+          <p><b>One-time setup.</b> Loads the owner's rate sheet (21 items) and updates the order form's products to match it:
+            Breast Boneless and Leg Boneless become UT / Partial Trimming / Full Trimming; Drumstick, Curry Cut and Chicken Wings get their 2 kinds;
+            Chicken Supreme is added. After this you only type the two rates above each day.</p>
+          <div class="row-form"><button class="btn" id="sheet-setup-btn" type="button">Set up rate sheet</button></div>
+        </div>
+        <div id="today-list"></div>
         <details class="site-sec" id="formula-box">
           <summary>Rate formulas (<span id="formula-count">0</span>)</summary>
           <p class="muted">One line per product. <b>Paper ×</b>: paper rate × number, then + or − ₹. <b>Lifting +</b>: S.K. Patel lifting rate × number (empty = 1), then + ₹. <b>Fixed ₹</b>: a set price. Levels 1–3 are for different customers (set each customer's level below); an empty level uses the one before it. Prices are rounded to the rupee. Link each line to the order form product it prices (add variants such as "BBL Full Trimming" in Order form → Products first).</p>
@@ -3716,6 +3755,61 @@
         renderFormulas();
       } catch (e) { setStatus("daily-status", "Couldn't load the daily rates: " + e.message, "err"); }
     }
+    // Today's price of every rate-sheet item, for each level.
+    function renderTodayList() {
+      $("sheet-setup").hidden = formulaLines.length > 0;
+      const box = $("today-list");
+      box.innerHTML = "";
+      if (!formulaLines.length) return;
+      const ready = Number(dailyToday.paper) > 0 && Number(dailyToday.lifting) > 0;
+      box.appendChild(el("h3", { className: "pay-sub", textContent: "Today's rates (₹/kg)" + (dailyToday.day ? " · " + rateDate(dailyToday.day) : "") }));
+      if (!ready) { box.appendChild(el("p", { className: "muted", textContent: "Type and save today's paper rate and lifting rate to see them." })); return; }
+      const head = el("tr", {}, ["Item", "Level 1", "Level 2", "Level 3"].map((t) => el("th", { textContent: t })));
+      const rows = formulaLines.map((l) => el("tr", {}, [el("td", { textContent: l.product || l.name })].concat([1, 2, 3].map((lv) => {
+        const p = dailyPrice({ ...l, base: l.base || "paper" }, lv, dailyToday);
+        return el("td", { textContent: p ? "₹" + p : "—" });
+      }))));
+      box.appendChild(el("table", { className: "today-table" }, [el("thead", {}, [head]), el("tbody", {}, rows)]));
+    }
+    // One tap: the owner's rate sheet (from the Worker secret) + order form products split into the sheet's kinds.
+    // Product names only here; the figures never appear in this public file.
+    const SHEET_SPLIT = {
+      "Breast Boneless": [["Breast Boneless (UT)", " (UT)"], ["Breast Boneless (Partial Trimming)", " (पार्शियल ट्रिमिंग)"], ["Breast Boneless (Full Trimming)", " (फुल ट्रिमिंग)"]],
+      "Leg Boneless": [["Leg Boneless (UT)", " (UT)"], ["Leg Boneless (Partial Trimming)", " (पार्शियल ट्रिमिंग)"], ["Leg Boneless (Full Trimming)", " (फुल ट्रिमिंग)"]],
+      "Curry Cut": [["Curry Cut (without Skin, Wings, Back Bone)", " (बिना स्किन, विंग्स, बैक बोन)"], ["Curry Cut (without Skin, Wings, Neck)", " (बिना स्किन, विंग्स, नेक)"]],
+      "Drumstick": [["Drumstick (10/11)", " (10/11)"], ["Drumstick (8/9)", " (8/9)"]],
+      "Chicken Wings": [["Chicken Wings Big (10/11)", " बड़े (10/11)"], ["Chicken Wings (12/13/14)", " (12/13/14)"]],
+    };
+    $("sheet-setup-btn").addEventListener("click", async () => {
+      const btn = $("sheet-setup-btn");
+      btn.disabled = true;
+      setStatus("daily-status", "Setting up…", "");
+      try {
+        const sheet = await api("/rate-sheet");
+        if (!sheet.lines || !sheet.lines.length) throw new Error("The rate sheet isn't loaded on the server yet.");
+        let items = null;
+        const snap = await db.collection("site_content").doc("form").get();
+        if (snap.exists) items = snap.data().items;
+        items = (Array.isArray(items) && items.length ? items : formItems).map((i) => ({ name: i.name || "", hi: i.hi || "", mr: i.mr || "", fresh: i.fresh !== false, frozen: i.frozen !== false }));
+        const names = new Set(items.map((i) => i.name));
+        const out = [];
+        items.forEach((it) => {
+          const split = SHEET_SPLIT[it.name];
+          if (!split) { out.push(it); return; }
+          split.forEach(([name, hiSuffix]) => { if (!names.has(name)) out.push({ name, hi: it.hi ? it.hi + hiSuffix : "", mr: "", fresh: it.fresh, frozen: it.frozen }); });
+        });
+        if (!out.some((i) => i.name === "Chicken Supreme")) {
+          const at = out.findIndex((i) => i.name === "Chicken Lollipop");
+          out.splice(at >= 0 ? at + 1 : out.length, 0, { name: "Chicken Supreme", hi: "चिकन सुप्रीम", mr: "", fresh: true, frozen: true });
+        }
+        await trackedSet(db.collection("site_content").doc("form"), { items: out, updatedAt: new Date().toISOString() }, null, "Order form", "Products split to match the rate sheet");
+        await trackedSet(db.collection("rate_settings").doc("formulas"), { lines: sheet.lines, updatedAt: new Date().toISOString() }, null, "Customer rates", "Rate sheet set up");
+        await loadFormItems();
+        await loadDaily();
+        setStatus("daily-status", "Done: " + sheet.lines.length + " rate-sheet items are set up and the order form lists them. Now type today's two rates and save.", "ok");
+      } catch (e) { setStatus("daily-status", "Couldn't set up: " + e.message, "err"); }
+      btn.disabled = false;
+    });
     $("daily-save").addEventListener("click", async () => {
       const paper = dailyNum($("daily-paper").value), lifting = dailyNum($("daily-lifting").value);
       if (!(paper > 0) || paper > 9999) { $("daily-paper").focus(); return setStatus("daily-status", "Type today's paper rate as a number, e.g. 150.", "err"); }
@@ -3737,6 +3831,7 @@
       const box = $("formula-lines");
       box.innerHTML = "";
       $("formula-count").textContent = String(formulaLines.length);
+      renderTodayList();
       const products = formItems.filter((it) => it.name).map((it) => it.name);
       formulaLines.forEach((line, i) => {
         line.mult = Array.isArray(line.mult) ? line.mult : [null, null, null];

@@ -189,6 +189,20 @@ export function dailyPrice(line, level, paper, lifting) {
   const v = base * (mult === null ? 1 : mult) + (add || 0);
   return v > 0 ? Math.round(v) : null;
 }
+// The owner's rate sheet lives in the Worker secret RATE_SHEET ({ lines: [...] }), never in the public repo.
+// Firestore rate_settings/formulas (saved from Admin) takes over once it has lines.
+function rateSheetDefault(env) {
+  try { const v = JSON.parse(env.RATE_SHEET || "{}"); return Array.isArray(v.lines) ? v.lines : []; } catch (e) { return []; }
+}
+async function rateFormulas(env) {
+  const doc = await getDocument(env, "rate_settings", "formulas").catch(() => null);
+  return doc && Array.isArray(doc.lines) && doc.lines.length ? doc : { lines: rateSheetDefault(env) };
+}
+// Same people as canSetRates() in firestore.rules.
+function canSetRatesUser(user) {
+  return user.sb_role === "main" || ["admin", "hanif"].includes(String(user.sb_user || "").toLowerCase())
+    || (!user.sb_user && ["waseemshaikh597@gmail.com", "bagbanhanif@gmail.com"].includes(String(user.email || "").toLowerCase()));
+}
 export function dailyRates(formulas, today, level) {
   const out = {};
   for (const line of (formulas && formulas.lines) || []) {
@@ -1426,7 +1440,7 @@ export default {
       if (!rateType) rateType = ((await getDocument(env, "form_customers", mobile).catch(() => null)) || {}).rateType;
       if (rateType === "daily") {
         const [formulas, today] = await Promise.all([
-          getDocument(env, "rate_settings", "formulas").catch(() => null),
+          rateFormulas(env),
           getDocument(env, "rate_settings", "today").catch(() => null),
         ]);
         const level = [1, 2, 3].includes(Number(doc && doc.level)) ? Number(doc.level) : 1;
@@ -1449,7 +1463,7 @@ export default {
     try {
       user = await requireAuthorizedUser(request, env);
     } catch (e) {
-      if (["/inbox", "/usage", "/balance", "/balance-set", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
+      if (["/inbox", "/usage", "/balance", "/balance-set", "/rate-sheet", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
         return json({ error: e.message }, 401);
       }
       return new Response("Not found", { status: 404 });
@@ -1493,6 +1507,12 @@ export default {
     }
 
     // Admin: the approximate WhatsApp balance, and correcting it from Meta's figure.
+    // Rate admins: the owner's rate sheet (Worker secret), for Admin → Rates → "Set up rate sheet".
+    if (path === "/rate-sheet" && request.method === "GET") {
+      if (!canSetRatesUser(user)) return json({ error: "Only rate admins can see the rate sheet." }, 403);
+      return json({ lines: rateSheetDefault(env) });
+    }
+
     if (path === "/balance" && request.method === "GET") {
       try {
         return json(await whatsappBalance(env));

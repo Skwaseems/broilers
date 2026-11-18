@@ -72,6 +72,9 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   lines (`rate_settings/formulas`: base paper/lifting/fixed, × and +/− ₹ for levels 1–3, linked to a form product). Each daily customer
   has a level (`customer_rates.level`). The Worker's `/customer-rates` works the prices out (`dailyPrice`, same arithmetic in admin.html)
   and overrides typed rates for products with a formula. The formulas and figures stay in Firestore (rate admins only), never in this repo.
+  The owner's 21-line sheet is the Worker secret `RATE_SHEET` (`/rate-sheet`, rate admins only); Admin → Rates → "Set up rate sheet"
+  (one tap, shown while there are no formulas) copies it to Firestore and splits the form products into the sheet's kinds
+  (`SHEET_SPLIT` in admin.html: BBL/LBL UT/Partial/Full, curry cut, drumstick, wings; adds Chicken Supreme). W/S = With Skin.
 - Each customer's rates can also have a remark per item, a rate type (daily/weekly/monthly) and From/To dates, stored in the same
   `customer_rates` doc and never sent to the public form. "Send on WhatsApp" opens the admin's own WhatsApp (wa.me) with the rates and saves them.
 - Sending the weekly requirement records the customer in `form_customers/{mobile}` (via the Worker's `/form-customer`) so
