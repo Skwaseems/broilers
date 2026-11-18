@@ -67,6 +67,8 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
 - Customer item rates: Admin → Rates, only for the main admin, IDs `admin` and `hanif`, and the two Google emails listed in
   `RATE_ADMINS` (admin.html) and `canSetRates()` (firestore.rules): change both. It writes `customer_rates/{mobile}`; the form's Enroll Now step
   gets one number's rates from the Worker's `/customer-rates`, so anyone who types a number sees that number's rates.
+- Daily market rate pricing is HIDDEN for now (owner, 18 Nov 2026): `DAILY_RATES_ON = false` in admin.html and no `DAILY_RATES = "on"`
+  in wrangler.toml; turn both on to bring it back. The rate sheet was never set up (form still has its 17 products).
 - Daily market rate pricing (owner's diary rate sheet, built 18 Nov 2026): customers whose rate type is Daily get formula prices.
   Admin → Rates → Daily market rates: the paper rate and S.K. Patel lifting rate typed each day (`rate_settings/today`) and the formula
   lines (`rate_settings/formulas`: base paper/lifting/fixed, × and +/− ₹ for levels 1–3, linked to a form product). Each daily customer
