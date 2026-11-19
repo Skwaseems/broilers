@@ -1,6 +1,7 @@
 import { listDocuments, addDocument, getDocument, setDocument, deleteDocument, commitWrites, queryDocuments } from "./firestore.js";
 import { verifyFirebaseIdToken } from "./verifyIdToken.js";
 import { staffRoute, requireStaff, isManager } from "./staff.js";
+import { isEmailAdmin, queueOrderCopy, queueCatalogue, emailUnsubscribe } from "./email.js";
 
 const GRAPH = "https://graph.facebook.com/v21.0";
 const MAX_CARDS_PER_CAROUSEL = 10; // Meta's hard limit for carousel templates
@@ -1513,6 +1514,15 @@ export default {
       return noteFormCustomer(env, request);
     }
 
+    // Public: an email copy of the order for the customer (email.js; only while Admin switched it on).
+    if (path === "/order-copy" && request.method === "POST") {
+      return queueOrderCopy(env, request).then((r) => json(r), () => json({ ok: false }, 500));
+    }
+    // Public: the unsubscribe link in catalogue emails.
+    if (path === "/email-unsub" && request.method === "GET") {
+      return emailUnsubscribe(env, url);
+    }
+
     // Public: the rates set for one mobile number, shown in the order form's Enroll Now step.
     // customer_rates itself has no public access; only the typed number's rates come back.
     if (path === "/customer-rates" && request.method === "POST") {
@@ -1550,7 +1560,7 @@ export default {
     try {
       user = await requireAuthorizedUser(request, env);
     } catch (e) {
-      if (["/inbox", "/my-rights", "/usage", "/balance", "/balance-set", "/rate-sheet", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
+      if (["/inbox", "/my-rights", "/email-catalogue", "/usage", "/balance", "/balance-set", "/rate-sheet", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
         return json({ error: e.message }, 401);
       }
       return new Response("Not found", { status: 404 });
@@ -1560,6 +1570,17 @@ export default {
     if (path.startsWith("/staff-")) {
       const res = await staffRoute(env, request, path, user, json);
       if (res) return res;
+    }
+
+    // Email admins (EMAIL_ADMINS): queue the catalogue by email, as a test to themselves or to every contact.
+    if (path === "/email-catalogue" && request.method === "POST") {
+      if (!isEmailAdmin(env, user)) return json({ error: "Only the email admin can do this." }, 403);
+      const body = await request.json().catch(() => ({}));
+      try {
+        return json(await queueCatalogue(env, user, body, await sortedCatalogue(env), url.origin));
+      } catch (e) {
+        return json({ error: e.message }, 400);
+      }
     }
 
     // Admin: the signed-in person's rights (which tabs Admin shows).
