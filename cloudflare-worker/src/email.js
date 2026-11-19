@@ -120,10 +120,12 @@ async function catalogueMail(env, items, subjectLine) {
   const site = MAIN_SITE;
   const settings = (await getDocument(env, "settings", "whatsapp").catch(() => null)) || {};
   const { html: contact, orders } = await contactLine(env);
+  // Photos too through the main address (/catalogue-img/ redirects to the Worker, firebase.json).
+  const ownImage = (u) => String(u || "").replace(/^https:\/\/[^/]+\.workers\.dev(\/catalogue-img\/)/, MAIN_SITE + "$1");
   const cell = (it) => {
     const link = `${site}/p/${encodeURIComponent(it.id)}`;
     const img = it.image && !it.placeholder
-      ? `<a href="${esc(link)}"><img src="${esc(it.image)}" alt="${esc(it.name)}" width="260" style="display:block;width:100%;max-width:260px;height:auto;border-radius:4px;border:0;"></a>` : "";
+      ? `<a href="${esc(link)}"><img src="${esc(ownImage(it.image))}" alt="${esc(it.name)}" width="260" style="display:block;width:100%;max-width:260px;height:auto;border-radius:4px;border:0;"></a>` : "";
     return `<td valign="top" width="50%" style="padding:8px;">${img}
 <div style="font-size:15px;font-weight:bold;margin:8px 0 4px;">${esc(it.name)}</div>
 ${it.spec ? `<div style="font-size:13px;color:#54535c;margin:0 0 8px;">${esc(it.spec)}</div>` : ""}
