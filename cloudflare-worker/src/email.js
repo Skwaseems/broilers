@@ -195,6 +195,19 @@ export async function emailUnsubscribe(env, url) {
     : page(msg));
   if (!validEmail(email) || t !== (await unsubToken(env, email))) return reply(false, "This link isn't valid.");
   const doc = (await getDocument(env, "email_contacts", email).catch(() => null)) || { email };
+  // &undo=1: "Subscribe again" on unsubscribe.html (only the person with this signed link can do it).
+  if (url.searchParams.get("undo") === "1") {
+    const { unsubscribedAt, ...rest } = doc;
+    await setDocument(env, "email_contacts", email, { ...rest, email, unsubscribed: false });
+    return reply(true, "Done. You'll get our catalogue emails again.");
+  }
   await setDocument(env, "email_contacts", email, { ...doc, email, unsubscribed: true, unsubscribedAt: new Date().toISOString() });
+  if (!asJson) {
+    const undo = `${url.pathname}?e=${encodeURIComponent(email)}&t=${t}&undo=1`;
+    return new Response(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sharhan Broilers</title>
+<body style="font-family:Arial,sans-serif;max-width:480px;margin:40px auto;padding:0 16px;color:#1c1b19;"><h2>Sharhan Broilers</h2>
+<p>Done. You won't get our catalogue emails any more.</p><p><a href="${esc(undo)}" style="color:#846e3e;font-weight:bold;">Unsubscribed by mistake? Subscribe again</a></p></body>`,
+      { headers: { "Content-Type": "text/html; charset=utf-8" } });
+  }
   return reply(true, "Done. You won't get our catalogue emails any more.");
 }
