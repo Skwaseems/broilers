@@ -1955,6 +1955,21 @@
         <div class="row-form"><button class="btn" id="recip-save">Save recipients</button></div>
         <div class="status" id="recip-status" role="status"></div>
       </section>
+
+      <section class="card" aria-labelledby="help-title">
+        <h2 id="help-title">Help line on the order form</h2>
+        <p class="muted">Shown under the form: "Please contact us if you need any assistance completing the form". Customers can tap them to call or email.</p>
+        <div class="recip-grid">
+          <label class="site-field"><span class="cat-label">Mobile number 1</span><input type="text" id="help-ph1"
+              inputmode="tel" maxlength="16" placeholder="e.g. 9820132880"></label>
+          <label class="site-field"><span class="cat-label">Mobile number 2 (optional)</span><input type="text" id="help-ph2"
+              inputmode="tel" maxlength="16" placeholder="e.g. 9876543210"></label>
+          <label class="site-field"><span class="cat-label">Email (optional)</span><input type="text" id="help-email"
+              inputmode="email" maxlength="80" placeholder="e.g. sharhanbroilerplant@gmail.com"></label>
+        </div>
+        <div class="row-form"><button class="btn" id="help-save">Save help line</button></div>
+        <div class="status" id="help-status" role="status"></div>
+      </section>
       </div>
 
       <div class="tab-panel" role="tabpanel" id="panel-rates" aria-labelledby="tab-rates" hidden>
@@ -4649,7 +4664,33 @@
       $("recip-wa2").value = showPhone((r.whatsapp || [])[1]);
       $("recip-em1").value = (r.emails || [])[0] || "";
       $("recip-em2").value = (r.emails || [])[1] || "";
+      const h = r.help || HELP_DEFAULT;
+      $("help-ph1").value = showPhone((h.phones || [])[0]);
+      $("help-ph2").value = showPhone((h.phones || [])[1]);
+      $("help-email").value = h.email || "";
     }
+
+    // Help line under the order form (site_content/orders.help); same defaults as index.html.
+    const HELP_DEFAULT = { phones: ["919820132880"], email: "sharhanbroilerplant@gmail.com" };
+    $("help-save").addEventListener("click", async () => {
+      const phones = [$("help-ph1").value, $("help-ph2").value].map(normPhone);
+      const email = $("help-email").value.trim();
+      if (!phones[0] && !phones[1] && !email) return setStatus("help-status", "Type at least one mobile number or the email.", "err");
+      for (let i = 0; i < 2; i++) {
+        if (phones[i] && (phones[i].length < 11 || phones[i].length > 15)) return setStatus("help-status", "Mobile number " + (i + 1) + " doesn't look right (10-digit mobile).", "err");
+      }
+      if (email && !/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(email)) return setStatus("help-status", "The email doesn't look right.", "err");
+      $("help-save").disabled = true;
+      try {
+        await trackedSet(db.collection("site_content").doc("orders"), { help: { phones: phones.filter(Boolean), email }, updatedAt: new Date().toISOString() }, { merge: true }, "Order form", "Help line");
+        setStatus("help-status", "Saved. The order form shows these from the next page load.", "ok");
+        loadRecipients();
+      } catch (e) {
+        setStatus("help-status", "Couldn't save: " + e.message, "err");
+      } finally {
+        $("help-save").disabled = false;
+      }
+    });
 
     $("recip-save").addEventListener("click", async () => {
       const phones = [$("recip-wa1").value, $("recip-wa2").value].map(normPhone);
@@ -4661,7 +4702,7 @@
       if (emails[1] && !emailOk(emails[1])) return setStatus("recip-status", "Email 2 doesn't look right.", "err");
       $("recip-save").disabled = true;
       try {
-        await trackedSet(db.collection("site_content").doc("orders"), { whatsapp: phones.filter(Boolean), emails: emails.filter(Boolean), updatedAt: new Date().toISOString() }, null, "Order form", "Order recipients");
+        await trackedSet(db.collection("site_content").doc("orders"), { whatsapp: phones.filter(Boolean), emails: emails.filter(Boolean), updatedAt: new Date().toISOString() }, { merge: true }, "Order form", "Order recipients");
         setStatus("recip-status", "Saved. The order form uses these from the next page load.", "ok");
         loadRecipients();
       } catch (e) {

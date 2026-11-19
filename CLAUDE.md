@@ -103,6 +103,9 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   mobile only after that phone sent the form. index.html calls `sbWatch(event, detail)`. Admin devices set `sb-no-track` and are left out.
   "Remove a number from all records" also deletes that number's visits.
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
+- The form's help line ("Please contact us if you need any assistance...") shows up to 2 mobiles + an email from Admin → Order form →
+  Help line (`site_content/orders.help` = {phones, email}; saved with merge, as are the recipients). Only the sentence is in DICT;
+  the links are built in index.html (`sb-help-links`, larger font).
 - Admin → Send shows an approximate WhatsApp balance and a Recharge link. Meta has no API for the balance: an admin types Meta's figure
   (`settings/whatsapp_balance`) and the Worker's `/balance` subtracts Meta's charges since then plus 18% GST. It needs retyping after each recharge.
 - WhatsApp usage (today / this month) and the payment alert in Admin → Send are hidden for now (`USAGE_ON` in admin.html).
