@@ -56,7 +56,8 @@ function run() {
       if (MailApp.getRemainingDailyQuota() < 1) break; // the rest wait for tomorrow
       var f = rows[i].fields;
       try {
-        MailApp.sendEmail({ to: str_(f, 'to'), subject: str_(f, 'subject'), htmlBody: str_(f, 'html'), name: 'Sharhan Broilers' });
+        // body: the plain-text copy (mail with only HTML looks like spam); htmlBody: what most apps show.
+        MailApp.sendEmail({ to: str_(f, 'to'), subject: str_(f, 'subject'), body: str_(f, 'text') || 'Sharhan Broilers', htmlBody: str_(f, 'html'), name: 'Sharhan Broilers' });
         mark_(rows[i].name, { status: 'sent', sentAt: new Date().toISOString() });
         sent++;
       } catch (e) {

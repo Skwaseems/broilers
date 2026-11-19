@@ -10,6 +10,9 @@ const EMAIL_RE = /^[^\s@<>"',;:()]+@[^\s@<>"',;:()]+\.[a-z]{2,}$/i;
 export const validEmail = (e) => typeof e === "string" && e.length <= 80 && EMAIL_RE.test(e);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const newId = () => crypto.randomUUID().replace(/-/g, "");
+// Links in emails use the main address: spam filters distrust workers.dev / pages.dev links in mail from a
+// gmail.com sender. /p/<slug> there redirects to the item page (firebase.json); unsubscribe.html calls /email-unsub.
+const MAIN_SITE = "https://sharhanbroilers.co.in";
 const ORDER_COPIES_PER_DAY = 60; // leaves room in Gmail's ~100 a day for catalogues
 const CATALOGUE_MAX = 300;
 
@@ -102,21 +105,23 @@ export async function queueOrderCopy(env, request) {
 <div style="background:#faf8f3;border:1px solid #e6dfcf;border-radius:4px;padding:12px;font-size:14px;line-height:1.55;word-break:break-word;">${esc(clean).replace(/\n/g, "<br>")}</div>`;
   const footer = `Questions? ${contact}<br>You got this email because this address was typed in the order form on our website. If that wasn't you, please ignore it.`;
   const subject = kind === "order" ? "Sharhan Broilers: copy of your order" : "Sharhan Broilers: copy of your weekly requirement";
+  const plain = `${name ? "Dear " + name + "," : "Hello,"}\n\nThank you. We have received ${what}. Our team will contact you within 24 hours to confirm.\n\nYour copy:\n\n${clean}\n\nSharhan Broilers\n${MAIN_SITE}`;
   await setDocument(env, "email_queue", newId(), {
-    to, subject, html: layout(kind === "order" ? "Order for next day delivery" : "Weekly requirement", inner, footer),
+    to, subject, text: plain, html: layout(kind === "order" ? "Order for next day delivery" : "Weekly requirement", inner, footer),
     kind: "order-copy", priority: 0, status: "queued", createdAt: new Date().toISOString(),
   });
   return { ok: true };
 }
 
 // ---- Catalogue by email (POST /email-catalogue, EMAIL_ADMINS only) ----
-// Built once per send; each recipient's unsubscribe link replaces {{UNSUB}}.
-async function catalogueHtml(env, items, subjectLine) {
-  const site = String(env.SITE_URL || "").replace(/\/$/, "");
+// Built once per send; each recipient's greeting and unsubscribe link replace {{GREETING}} and {{UNSUB}}.
+// Returns { html, text } (a plain-text copy too: mail with only HTML and pictures looks like spam).
+async function catalogueMail(env, items, subjectLine) {
+  const site = MAIN_SITE;
   const settings = (await getDocument(env, "settings", "whatsapp").catch(() => null)) || {};
-  const { html: contact } = await contactLine(env);
+  const { html: contact, orders } = await contactLine(env);
   const cell = (it) => {
-    const link = `${site}/p/${encodeURIComponent(it.id)}?utm_source=email`;
+    const link = `${site}/p/${encodeURIComponent(it.id)}`;
     const img = it.image && !it.placeholder
       ? `<a href="${esc(link)}"><img src="${esc(it.image)}" alt="${esc(it.name)}" width="260" style="display:block;width:100%;max-width:260px;height:auto;border-radius:4px;border:0;"></a>` : "";
     return `<td valign="top" width="50%" style="padding:8px;">${img}
@@ -127,11 +132,18 @@ ${button(link, "Enroll Now")}</td>`;
   let rows = "";
   for (let i = 0; i < items.length; i += 2) rows += `<tr>${cell(items[i])}${items[i + 1] ? cell(items[i + 1]) : '<td width="50%"></td>'}</tr>`;
   const intro = String(settings.intro || "").trim();
-  const inner = `${intro ? `<p style="margin:0 0 14px;">${esc(intro)}</p>` : ""}
+  const inner = `<p style="margin:0 0 12px;">{{GREETING}}</p>
+${intro ? `<p style="margin:0 0 14px;">${esc(intro)}</p>` : ""}
 <p style="margin:0 0 16px;">${button(site + "/?order=1&utm_source=email", "Fill your weekly requirement")}</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>`;
   const footer = `Questions or orders: ${contact}<br>You get this email as a customer of Sharhan Broilers. <a href="{{UNSUB}}" style="color:#6b6860;">Unsubscribe</a>`;
-  return layout(subjectLine, inner, footer);
+  const help = (orders && orders.help) || {};
+  const phones = (Array.isArray(help.phones) ? help.phones : ["919820132880"]).map((p) => String(p).replace(/\D/g, "").slice(-10)).filter(Boolean);
+  const text = ["{{GREETING}}", "", intro, intro ? "" : null, "Fill your weekly requirement: " + site + "/?order=1", "", "Our products:",
+    ...items.map((it) => "- " + it.name + (it.spec ? ": " + it.spec : "") + "\n  " + site + "/p/" + encodeURIComponent(it.id)),
+    "", "Questions or orders: " + [...phones, help.email || ""].filter(Boolean).join(", "), "", "Sharhan Broilers", site, "",
+    "To stop these emails: {{UNSUB}}"].filter((l) => l !== null).join("\n");
+  return { html: layout(subjectLine, inner, footer), text };
 }
 
 export async function queueCatalogue(env, user, body, allItems, workerUrl) {
@@ -140,21 +152,26 @@ export async function queueCatalogue(env, user, body, allItems, workerUrl) {
   if (!items.length) items = allItems.filter((it) => it.onWebsite !== false && it.image && !it.placeholder);
   if (!items.length) throw new Error("No products with photos to show.");
   items = items.slice(0, 30);
-  let to;
-  if (body.mode === "test") to = [String(user.email)];
+  let to; // [{ email, name }]
+  if (body.mode === "test") to = [{ email: String(user.email), name: "" }];
   else {
     const contacts = await listDocuments(env, "email_contacts");
-    to = contacts.filter((c) => !c.unsubscribed && validEmail(c.email)).map((c) => c.email.toLowerCase());
-    to = [...new Set(to)].slice(0, CATALOGUE_MAX);
+    const seen = new Set();
+    to = contacts.filter((c) => !c.unsubscribed && validEmail(c.email))
+      .map((c) => ({ email: c.email.toLowerCase(), name: String(c.name || "").trim() }))
+      .filter((c) => !seen.has(c.email) && seen.add(c.email)).slice(0, CATALOGUE_MAX);
   }
   if (!to.length) throw new Error("No email addresses to send to.");
   const at = new Date().toISOString();
-  const template = await catalogueHtml(env, items, "Our products");
+  const mail = await catalogueMail(env, items, "Our products");
   const writes = [];
-  for (const addr of to) {
-    const unsub = `${workerUrl}/email-unsub?e=${encodeURIComponent(addr)}&t=${await unsubToken(env, addr)}`;
+  for (const { email: addr, name } of to) {
+    const unsub = `${MAIN_SITE}/unsubscribe.html?e=${encodeURIComponent(addr)}&t=${await unsubToken(env, addr)}`;
+    const greeting = name ? "Dear " + name + "," : "Hello,";
     writes.push({ set: ["email_queue", newId(), {
-      to: addr, subject, html: template.replace("{{UNSUB}}", esc(unsub)),
+      to: addr, subject,
+      html: mail.html.replace("{{GREETING}}", () => esc(greeting)).replace("{{UNSUB}}", () => esc(unsub)),
+      text: mail.text.replace("{{GREETING}}", () => greeting).replace("{{UNSUB}}", () => unsub),
       kind: body.mode === "test" ? "catalogue-test" : "catalogue", priority: 1, status: "queued", createdAt: at, by: String(user.email),
     }] });
   }
@@ -169,8 +186,13 @@ export async function emailUnsubscribe(env, url) {
   const page = (msg) => new Response(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sharhan Broilers</title>
 <body style="font-family:Arial,sans-serif;max-width:480px;margin:40px auto;padding:0 16px;color:#1c1b19;"><h2>Sharhan Broilers</h2><p>${esc(msg)}</p></body>`,
     { headers: { "Content-Type": "text/html; charset=utf-8" } });
-  if (!validEmail(email) || t !== (await unsubToken(env, email))) return page("This link isn't valid.");
+  // ?json=1: from unsubscribe.html on the main site.
+  const asJson = url.searchParams.get("json") === "1";
+  const reply = (ok, msg) => (asJson
+    ? new Response(JSON.stringify({ ok }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } })
+    : page(msg));
+  if (!validEmail(email) || t !== (await unsubToken(env, email))) return reply(false, "This link isn't valid.");
   const doc = (await getDocument(env, "email_contacts", email).catch(() => null)) || { email };
   await setDocument(env, "email_contacts", email, { ...doc, email, unsubscribed: true, unsubscribedAt: new Date().toISOString() });
-  return page("Done. You won't get our catalogue emails any more.");
+  return reply(true, "Done. You won't get our catalogue emails any more.");
 }

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Unsubscribe – Sharhan Broilers</title>
+<style>
+  body { margin: 0; background: #f4f1ea; font-family: Arial, Helvetica, sans-serif; color: #1c1b19; }
+  main { max-width: 480px; margin: 40px auto; padding: 0 16px; }
+  .box { background: #fff; border-radius: 6px; overflow: hidden; }
+  .head { background: #1c1b19; color: #fff; padding: 18px 20px; font-size: 20px; font-weight: bold; letter-spacing: 1px; }
+  .body { padding: 20px; font-size: 16px; line-height: 1.5; }
+  a { color: #846e3e; font-weight: bold; }
+</style>
+</head>
+<body>
+<main>
+  <div class="box">
+    <div class="head">SHARHAN BROILERS</div>
+    <div class="body"><p id="msg">One moment…</p><p><a href="/">Go to our website</a></p></div>
+  </div>
+</main>
+<script>
+// Catalogue emails link here (our own address, not the Worker's); the Worker checks the signed link.
+(function () {
+  var p = new URLSearchParams(location.search), msg = document.getElementById('msg');
+  var e = p.get('e') || '', t = p.get('t') || '';
+  if (!e || !t) { msg.textContent = "This link isn't complete."; return; }
+  fetch('https://sharhan-whatsapp.waseemshaikh597.workers.dev/email-unsub?json=1&e=' + encodeURIComponent(e) + '&t=' + encodeURIComponent(t))
+    .then(function (r) { return r.json(); })
+    .then(function (d) { msg.textContent = d.ok ? "Done. You won't get our catalogue emails any more." : "This link isn't valid."; })
+    .catch(function () { msg.textContent = "Couldn't reach us just now. Please try the link again in a minute."; });
+})();
+</script>
+</body>
+</html>
