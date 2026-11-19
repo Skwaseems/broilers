@@ -116,7 +116,7 @@ export async function queueOrderCopy(env, request) {
 // ---- Catalogue by email (POST /email-catalogue, EMAIL_ADMINS only) ----
 // Built once per send; each recipient's greeting and unsubscribe link replace {{GREETING}} and {{UNSUB}}.
 // Returns { html, text } (a plain-text copy too: mail with only HTML and pictures looks like spam).
-async function catalogueMail(env, items, subjectLine) {
+async function catalogueMail(env, items, subjectLine, style) {
   const site = MAIN_SITE;
   const settings = (await getDocument(env, "settings", "whatsapp").catch(() => null)) || {};
   const { html: contact, orders } = await contactLine(env);
@@ -145,11 +145,32 @@ ${intro ? `<p style="margin:0 0 14px;">${esc(intro)}</p>` : ""}
     ...items.map((it) => "- " + it.name + (it.spec ? ": " + it.spec : "") + "\n  " + site + "/p/" + encodeURIComponent(it.id)),
     "", "Questions or orders: " + [...phones, help.email || ""].filter(Boolean).join(", "), "", "Sharhan Broilers", site, "",
     "To stop these emails: {{UNSUB}}"].filter((l) => l !== null).join("\n");
+  if (style === "simple") {
+    // Looks like a personal letter: one photo, product names as text, one link. Gmail files the photo-card
+    // version from a new sender under "similar to messages identified as spam" (owner's test, 20 Nov 2026).
+    const first = items[0];
+    const names = items.map((it) => esc(it.name)).join(", ");
+    const simple = `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#1c1b19;background:#ffffff;">
+<div style="max-width:560px;">
+<p style="margin:0 0 12px;">{{GREETING}}</p>
+${intro ? `<p style="margin:0 0 12px;">${esc(intro)}</p>` : ""}
+${first ? `<p style="margin:0 0 12px;"><img src="${esc(ownImage(first.image))}" alt="${esc(first.name)}" width="220" style="display:block;width:220px;max-width:100%;height:auto;border-radius:4px;border:0;"></p>` : ""}
+<p style="margin:0 0 12px;"><b>We supply:</b> ${names}.</p>
+<p style="margin:0 0 16px;">${button(site + "/?order=1&utm_source=email", "Fill your weekly requirement")}</p>
+<p style="margin:0 0 16px;">Regards,<br><b>Sharhan Broilers</b><br>${contact}</p>
+<p style="margin:0;font-size:12px;color:#6b6860;">You get this email as a customer of Sharhan Broilers. <a href="{{UNSUB}}" style="color:#6b6860;">Unsubscribe</a></p>
+</div></body></html>`;
+    const simpleText = ["{{GREETING}}", "", intro, intro ? "" : null, "We supply: " + items.map((it) => it.name).join(", ") + ".", "",
+      "Fill your weekly requirement: " + site + "/?order=1", "", "Regards,", "Sharhan Broilers",
+      [...phones, help.email || ""].filter(Boolean).join(", "), site, "", "To stop these emails: {{UNSUB}}"].filter((l) => l !== null).join("\n");
+    return { html: simple, text: simpleText };
+  }
   return { html: layout(subjectLine, inner, footer), text };
 }
 
 export async function queueCatalogue(env, user, body, allItems, workerUrl) {
-  const subject = String(body.subject || "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, 120) || "Sharhan Broilers: our products";
+  const subject = String(body.subject || "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, 120) || "Product list from Sharhan Broilers";
   let items = allItems.filter((it) => it.onWhatsApp && it.image && !it.placeholder);
   if (!items.length) items = allItems.filter((it) => it.onWebsite !== false && it.image && !it.placeholder);
   if (!items.length) throw new Error("No products with photos to show.");
@@ -165,7 +186,8 @@ export async function queueCatalogue(env, user, body, allItems, workerUrl) {
   }
   if (!to.length) throw new Error("No email addresses to send to.");
   const at = new Date().toISOString();
-  const mail = await catalogueMail(env, items, "Our products");
+  const style = body.style === "photos" ? "photos" : "simple";
+  const mail = await catalogueMail(env, items, "Our products", style);
   const writes = [];
   for (const { email: addr, name } of to) {
     const unsub = `${MAIN_SITE}/unsubscribe.html?e=${encodeURIComponent(addr)}&t=${await unsubToken(env, addr)}`;

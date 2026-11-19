@@ -1949,7 +1949,7 @@
 
       <section class="card" id="email-card" aria-labelledby="email-title" hidden>
         <h2 id="email-title">Catalogue by email</h2>
-        <p class="muted">Sent from the business Gmail with the products ticked "Send on WhatsApp" (photo, name, Enroll Now button). Free: Gmail sends about 100 emails a day; the rest go out the next day by themselves.</p>
+        <p class="muted">Sent from the business Gmail with the products ticked "Send on WhatsApp". Free: Gmail sends about 100 emails a day; the rest go out the next day by themselves.</p>
         <p class="email-sender" id="email-sender">Checking the email sender…</p>
         <label class="check email-switch"><input type="checkbox" id="email-copy-on"> Email customers a copy of their order (adds an optional Email box to the order form)</label>
         <h3 class="pay-sub">Who gets the catalogue <span class="badge" id="email-count">0</span></h3>
@@ -1957,7 +1957,12 @@
           <textarea id="email-add-text" rows="3" placeholder="Ramesh Hotel, ramesh@gmail.com&#10;orders@saicaterers.in"></textarea></label>
         <div class="row-form"><button class="btn secondary small" id="email-add-btn" type="button">Add emails</button></div>
         <div id="email-list" class="email-list"></div>
-        <label class="site-field"><span class="cat-label">Email subject</span><input type="text" id="email-subject" maxlength="120" value="Sharhan Broilers: our products"></label>
+        <div class="site-field" role="radiogroup" aria-label="Email style">
+          <span class="cat-label">Email style</span>
+          <label class="check email-switch"><input type="radio" name="email-style" value="simple" checked> <span><b>Simple</b> (recommended): one photo, product names, one button. Reaches the Inbox more often.</span></label>
+          <label class="check email-switch"><input type="radio" name="email-style" value="photos"> <span><b>With all photos</b>: a photo and Enroll Now button for each product. Gmail often puts this in Spam.</span></label>
+        </div>
+        <label class="site-field"><span class="cat-label">Email subject (use a new one each time you send)</span><input type="text" id="email-subject" maxlength="120" value="Product list from Sharhan Broilers"></label>
         <div class="row-form">
           <button class="btn secondary" id="email-test-btn" type="button">Send a test to me</button>
           <button class="btn" id="email-send-btn" type="button">Send to all</button>
@@ -4885,7 +4890,7 @@
       btn.disabled = true;
       setStatus("email-status", "Getting the emails ready…", "");
       try {
-        const r = await api("/email-catalogue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode, subject: $("email-subject").value.trim() }) });
+        const r = await api("/email-catalogue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode, subject: $("email-subject").value.trim(), style: (document.querySelector('input[name="email-style"]:checked') || {}).value || "simple" }) });
         logChange("Send catalogue", mode === "all" ? "Catalogue by email to " + r.queued + " people" : "Catalogue email test to " + me.user, []);
         setStatus("email-status", mode === "all" ? r.queued + " emails are on their way (they go out within a few minutes)." : "Test is on its way to " + me.user + " (within a few minutes; check Spam too).", "ok");
       } catch (e) {
