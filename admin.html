@@ -715,6 +715,33 @@
       border-top: 1px dashed var(--line);
     }
 
+    .user-rights {
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .rights-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 4px 12px;
+      margin: 4px 0 8px;
+    }
+
+    .rights-grid label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .rights-grid input {
+      width: 20px;
+      height: 20px;
+    }
+
     .btn {
       display: inline-flex;
       align-items: center;
@@ -1624,6 +1651,56 @@
       font-size: 17px;
     }
 
+    .dlv-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 4px 0 8px;
+    }
+
+    .dlv-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+    }
+
+    .dlv-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      min-height: 58px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--dlv, var(--line));
+      border-radius: 4px;
+      background: #fff;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .dlv-chip b {
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .dlv-chip span {
+      font-size: 13px;
+      color: var(--muted, #6b6b6b);
+    }
+
+    .dlv-chip[aria-pressed="true"] {
+      background: #f6f1e6;
+      outline: 2px solid var(--dlv, #846e3e);
+    }
+
+    .dlv-note {
+      margin: 8px 0 0;
+    }
+
     .cust-tools {
       display: flex;
       align-items: center;
@@ -1749,6 +1826,12 @@
 
       <section class="card" aria-labelledby="cust-title">
         <h2 id="cust-title"><span class="step">2</span> Choose who gets it</h2>
+        <div class="dlv-head">
+          <strong>Last catalogue: who got it</strong>
+          <button class="btn secondary small" id="dlv-csv" type="button">Download list</button>
+        </div>
+        <div class="dlv-grid" id="dlv-grid" role="group" aria-label="Show customers by delivery"></div>
+        <p class="muted dlv-note" id="dlv-note"></p>
         <input type="search" class="cust-search" id="cust-search" placeholder="Search name or number" aria-label="Search customers by name or number" autocomplete="off">
         <div class="cust-tools">
           <span class="badge" id="cust-count">0 of 0 ticked</span>
@@ -2183,7 +2266,10 @@
       <div class="tab-panel" role="tabpanel" id="panel-users" aria-labelledby="tab-users" hidden>
       <section class="card" aria-labelledby="users-title" id="users-card" hidden>
         <h2 id="users-title">Users <span class="badge" id="users-count">0</span></h2>
+        <p class="muted">Tap <b>Rights</b> on a user to choose which parts of Admin they can use. The main admin and the owner's emails always have every right.</p>
         <div id="users-list"></div>
+        <h3 class="pay-sub">Google sign-in admins</h3>
+        <div id="gusers-list"></div>
         <h3 class="pay-sub">Add a user</h3>
         <div class="pw-grid">
           <label class="login-field"><span class="cat-label">ID (they type this to sign in)</span>
@@ -2303,6 +2389,11 @@
     const TAB_NAMES = [...document.querySelectorAll(".tabs [data-tab]")].map((b) => b.dataset.tab);
     function showTab(name, focus) {
       if (!TAB_NAMES.includes(name)) name = TAB_NAMES[0];
+      const tabBtn = document.querySelector('.tabs [data-tab="' + name + '"]');
+      if (tabBtn && tabBtn.hidden && document.body.classList.contains("signed-in")) {
+        const first = [...document.querySelectorAll(".tabs [data-tab]")].find((b) => !b.hidden);
+        if (first) name = first.dataset.tab;
+      }
       document.querySelectorAll(".tabs [data-tab]").forEach((b) => {
         const on = b.dataset.tab === name;
         b.setAttribute("aria-selected", on ? "true" : "false");
@@ -2460,13 +2551,12 @@
       document.body.classList.toggle("signed-in", ok);
       if (ok) {
         $("who").textContent = me.label + (me.staff && me.staff.role === "main" ? " · main admin" : "");
+        await loadMyRights();
         setupUsersTab();
         startListeners();
-        startAutoReplyListeners();
-        loadRecipients();
-        loadFormItems();
-        loadPayments();
-        loadCredit().then(startCreditApps);
+        if (can("send") || can("whatsapp")) startAutoReplyListeners();
+        if (can("orders")) { loadRecipients(); loadFormItems(); }
+        if (can("credit")) { loadPayments(); loadCredit().then(startCreditApps); }
         // Slider photos made by an older version are remade here, so a new design needs no Save.
         loadCatalogue().then(ensureCardImages).catch((e) => console.warn("Slider photos:", e.message));
         loadSiteContent();
@@ -2853,13 +2943,21 @@
 
     // ---------- Users tab: my password; the main admin manages IDs (Worker /staff-*) ----------
     let staffUsers = [], editingUser = null;
+    // The signed-in person's rights (Worker /my-rights, the same check as firestore.rules).
+    let myRights = [];
+    const can = (r) => !!me.manager || myRights.includes(r);
+    async function loadMyRights() {
+      try { myRights = (await api("/my-rights")).rights || []; }
+      catch (e) { myRights = me.manager ? RIGHT_AREAS.map((a) => a[0]) : rightsFor(String(me.user || "").toLowerCase()); }
+    }
+
     function setupUsersTab() {
       const staff = !!me.staff;
       $("tab-users").hidden = !staff && !me.manager;
       $("tab-users").querySelector(".tab-label").textContent = me.manager ? "Users" : "My password";
       $("tab-activity").hidden = !me.manager;
-      $("tab-rates").hidden = !canSetRates();
-      $("tab-visitors").hidden = !canSetRates();
+      // Each tab needs its right (Admin → Users → Rights).
+      RIGHT_AREAS.forEach(([k]) => { if ($("tab-" + k)) $("tab-" + k).hidden = !can(k); });
       // This device is an admin's: the website's visitor watch leaves it out (assets/track.js).
       try { localStorage.setItem("sb-no-track", "1"); } catch (e) {}
       $("mypw-btn").hidden = !staff;
@@ -2868,14 +2966,13 @@
       $("users-card").hidden = !me.manager;
       $("purge-card").hidden = !me.manager;
       if (me.manager) loadUsers();
-      if (location.hash === "#users") showTab($("tab-users").hidden ? "send" : "users");
-      if (location.hash === "#activity") showTab(me.manager ? "activity" : "send");
-      if (location.hash === "#rates") showTab(canSetRates() ? "rates" : "send");
+      showTab(location.hash.slice(1) || "send"); // a tab they may not use opens their first allowed one
       if (RECOVERY_LINK && me.owner) { showTab("users"); setStatus("mainadm-status", "Signed in with the recovery link. Set a new main admin password below.", "ok"); $("mainadm-pw").focus(); }
     }
 
     async function loadUsers() {
       try {
+        await loadRights();
         const d = await api("/staff-users");
         staffUsers = d.users || [];
         const main = staffUsers.find((u) => u.role === "main");
@@ -2907,8 +3004,87 @@
         if (u.role !== "main") btn("Remove", () => {
           if (confirm("Remove " + u.id + (u.name ? " (" + u.name + ")" : "") + "? They can't sign in any more.")) saveUser({ action: "remove", id: u.id }, u.id + " removed.");
         });
-        const card = el("div", { className: "user-card" }, [head, info, actions]);
+        if (u.role !== "main") btn("Rights", () => { rightsOpen = rightsOpen === u.id ? null : u.id; renderUsers(); });
+        const card = el("div", { className: "user-card" }, [head, info, rightsLine(u.role === "main" ? null : u.id), actions]);
         if (editingUser === u.id) card.appendChild(userEditRow(u));
+        if (rightsOpen === u.id) card.appendChild(rightsEditor(u.id));
+        box.appendChild(card);
+      });
+      renderGoogleUsers();
+    }
+
+    // ---------- User rights (admin_rights/{admin ID or Google email}; firestore.rules hasRight, Worker rightsOf) ----------
+    const RIGHT_AREAS = [["send", "Send catalogue"], ["inbox", "Inbox"], ["credit", "Credit & KYC"], ["products", "Products"],
+      ["whatsapp", "WhatsApp setup"], ["orders", "Order form"], ["website", "Website"], ["rates", "Rates"], ["visitors", "Visitors"]];
+    const RIGHTS_DEFAULT = ["send", "inbox", "credit", "products", "whatsapp", "orders", "website"];
+    let rightsMap = {}, rightsOpen = null;
+    // Someone without saved rights keeps the access from before rights existed.
+    function rightsFor(who) {
+      if (rightsMap[who]) return rightsMap[who];
+      return RATE_ADMINS.includes(String(who).toLowerCase()) ? RIGHT_AREAS.map((a) => a[0]) : RIGHTS_DEFAULT;
+    }
+    async function loadRights() {
+      try {
+        const snap = await db.collection("admin_rights").get();
+        rightsMap = {};
+        snap.forEach((d) => { if (Array.isArray(d.data().rights)) rightsMap[d.id] = d.data().rights; });
+      } catch (e) { console.warn("Rights:", e.message); }
+    }
+    function rightsLine(who) {
+      if (!who) return el("div", { className: "user-rights", innerHTML: "<b>Rights:</b> all" });
+      const r = rightsFor(who);
+      const names = RIGHT_AREAS.filter((a) => r.includes(a[0])).map((a) => a[1]);
+      return el("div", { className: "user-rights", textContent: "Rights: " + (names.length === RIGHT_AREAS.length ? "all" : names.join(", ") || "none (can only sign in)") });
+    }
+    function rightsEditor(who) {
+      const have = rightsFor(who);
+      const boxes = RIGHT_AREAS.map(([k, label]) => {
+        const c = el("input", { type: "checkbox", checked: have.includes(k) });
+        c.dataset.right = k;
+        return el("label", {}, [c, label]);
+      });
+      const grid = el("div", { className: "rights-grid" }, boxes);
+      const save = el("button", { type: "button", className: "btn small", textContent: "Save rights" });
+      const all = el("button", { type: "button", className: "btn small secondary", textContent: "Tick all" });
+      const cancel = el("button", { type: "button", className: "btn small secondary", textContent: "Cancel" });
+      all.addEventListener("click", () => grid.querySelectorAll("input").forEach((c) => { c.checked = true; }));
+      cancel.addEventListener("click", () => { rightsOpen = null; renderUsers(); });
+      save.addEventListener("click", async () => {
+        const rights = [...grid.querySelectorAll("input")].filter((c) => c.checked).map((c) => c.dataset.right);
+        const before = rightsFor(who);
+        save.disabled = true;
+        try {
+          await db.collection("admin_rights").doc(who).set({ rights, updatedAt: new Date().toISOString(), updatedBy: String(me.user).slice(0, 80) });
+          const label = (k) => (RIGHT_AREAS.find((a) => a[0] === k) || [k, k])[1];
+          const changes = RIGHT_AREAS.map((a) => a[0]).filter((k) => before.includes(k) !== rights.includes(k))
+            .map((k) => (rights.includes(k) ? "gave: " : "took away: ") + label(k));
+          logChange("Users", "Rights of " + who, changes);
+          rightsMap[who] = rights;
+          rightsOpen = null;
+          renderUsers();
+          setStatus("users-status", "Rights of " + who + " saved. They see the change the next time they open Admin.", "ok");
+        } catch (e) {
+          save.disabled = false;
+          setStatus("users-status", "Couldn't save rights: " + e.message, "err");
+        }
+      });
+      return el("div", { className: "user-edit" }, [el("strong", { textContent: "What can " + who + " use?" }), grid, el("div", { className: "row-form" }, [save, all, cancel])]);
+    }
+    // Google sign-in admins (ALLOWED_EMAILS); the owner's emails have every right.
+    function renderGoogleUsers() {
+      const box = $("gusers-list");
+      box.innerHTML = "";
+      ALLOWED_EMAILS.forEach((email) => {
+        const owner = OWNER_EMAILS.includes(email);
+        const head = el("div", { className: "capp-head" }, [el("strong", { textContent: email }), el("span", { className: "badge ok", textContent: owner ? "Owner" : "Google sign-in" })]);
+        const actions = el("div", { className: "row-form" });
+        if (!owner) {
+          const b = el("button", { type: "button", className: "btn small secondary", textContent: "Rights" });
+          b.addEventListener("click", () => { rightsOpen = rightsOpen === email ? null : email; renderUsers(); });
+          actions.appendChild(b);
+        }
+        const card = el("div", { className: "user-card" }, [head, rightsLine(owner ? null : email), actions]);
+        if (rightsOpen === email) card.appendChild(rightsEditor(email));
         box.appendChild(card);
       });
     }
@@ -4218,7 +4394,7 @@
     // remarks: { item: text }, rateType, from, to }. Only `rates` ever reaches the public form (Worker /customer-rates). ----------
     // Who may see and set rates. The same list is in firestore.rules (canSetRates), which enforces it.
     const RATE_ADMINS = ["admin", "hanif", "sharhanbroilerplant@gmail.com", "waseemshaikh597@gmail.com", "bagbanhanif@gmail.com"];
-    function canSetRates() { return !!me.manager || RATE_ADMINS.includes(String(me.user || "").toLowerCase()); }
+    function canSetRates() { return can("rates"); }
     let rateCustomers = {}; // mobile -> saved doc, for "has rates" in the search
     let formCustomers = []; // people who sent the order form (form_customers), newest first
     let rateMobile = "", rateName = "";
@@ -4539,12 +4715,65 @@
         .catch((e) => setStatus("send-status", "Couldn't update " + (c.name || c.phone) + ": " + e.message, "err"));
     }
 
+    // Delivery breakdown of each customer's latest catalogue; tapping a box shows only those customers.
+    const DLV_GROUPS = [
+      ["all", "All customers", "#846e3e"],
+      ["read", "Read", "#1f7a3d"],
+      ["delivered", "Delivered, not read yet", "#3a9a5b"],
+      ["sent", "Sent, not delivered yet", "#c08a1a"],
+      ["held", "Held back by WhatsApp", "#d0661c"],
+      ["unreachable", "Not on WhatsApp", "#b3261e"],
+      ["failed", "Failed, other reason", "#8c1d18"],
+      ["notsent", "Never sent", "#77746c"],
+    ];
+    let dlvFilter = "all";
+    function deliveryGroup(c) {
+      const d = deliveryFor(c.phone);
+      if (!d) return "notsent";
+      if (d.status === "failed") {
+        const codes = (d.errors || []).map((e) => Number(e.code));
+        return codes.includes(131049) ? "held" : codes.includes(131026) ? "unreachable" : "failed";
+      }
+      return d.status === "read" ? "read" : d.status === "delivered" ? "delivered" : "sent";
+    }
+    function renderDelivery(active) {
+      const count = { all: active.length };
+      active.forEach((c) => { const g = deliveryGroup(c); count[g] = (count[g] || 0) + 1; });
+      const grid = $("dlv-grid");
+      grid.innerHTML = "";
+      DLV_GROUPS.forEach(([k, label, color]) => {
+        if (k !== "all" && !count[k] && dlvFilter !== k) return; // empty groups stay out of the way
+        const b = el("button", { type: "button", className: "dlv-chip" }, [el("b", { textContent: String(count[k] || 0) }), el("span", { textContent: label })]);
+        b.style.setProperty("--dlv", color);
+        b.setAttribute("aria-pressed", dlvFilter === k ? "true" : "false");
+        b.addEventListener("click", () => { dlvFilter = dlvFilter === k ? "all" : k; renderCustomers(); });
+        grid.appendChild(b);
+      });
+      const got = (count.read || 0) + (count.delivered || 0);
+      const tried = active.length - (count.notsent || 0);
+      $("dlv-note").textContent = tried ? got + " of the " + tried + " customers it was sent to received it. Tap a box to see who." : "Nothing sent yet.";
+    }
+    $("dlv-csv").addEventListener("click", () => {
+      const q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+      const label = (k) => (DLV_GROUPS.find((g) => g[0] === k) || [k, k])[1];
+      const list = customers.filter((c) => !c.unsubscribed && (dlvFilter === "all" || deliveryGroup(c) === dlvFilter));
+      const rows = [["Name", "Phone", "Result", "When", "Reason"]].concat(list.map((c) => {
+        const d = deliveryFor(c.phone);
+        const e = d && (d.errors || [])[0];
+        return [c.name || "", c.phone || "", label(deliveryGroup(c)), d ? new Date(d.timestamp).toLocaleString() : "", e ? ERROR_TEXT[e.code] || e.title || "" : ""];
+      }));
+      const blob = new Blob([rows.map((r) => r.map(q).join(",")).join("\r\n")], { type: "text/csv" });
+      const a = el("a", { href: URL.createObjectURL(blob), download: "sharhan-catalogue-delivery" + (dlvFilter === "all" ? "" : "-" + dlvFilter) + ".csv" });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
     // Search box in step 2: every word typed must be in the name or the number.
     function customersShown() {
       const words = $("cust-search").value.toLowerCase().split(/\s+/).filter(Boolean);
       return customers.filter((c) => {
         const text = (String(c.name || "") + " " + String(c.phone || "")).toLowerCase();
-        return !c.unsubscribed && words.every((w) => text.includes(w));
+        return !c.unsubscribed && words.every((w) => text.includes(w)) && (dlvFilter === "all" || deliveryGroup(c) === dlvFilter);
       });
     }
 
@@ -4553,9 +4782,10 @@
       body.innerHTML = "";
       const active = customers.filter((c) => !c.unsubscribed);
       $("cust-count").textContent = tickedCustomers().length + " of " + active.length + " ticked";
+      renderDelivery(active);
       renderUnsubscribed();
       const shown = customersShown();
-      $("cust-all").textContent = $("cust-search").value.trim() ? "Tick these" : "Tick all";
+      $("cust-all").textContent = $("cust-search").value.trim() || dlvFilter !== "all" ? "Tick these" : "Tick all";
       const held = heldBackCustomers();
       $("cust-held").hidden = !held.length;
       $("cust-held").textContent = "Tick held back (" + held.length + ")";
@@ -4613,20 +4843,24 @@
     });
 
     function startListeners() {
-      customersUnsub = db.collection("whatsapp_customers").orderBy("name").onSnapshot((snap) => {
+      if (can("send") || can("rates")) customersUnsub = db.collection("whatsapp_customers").orderBy("name").onSnapshot((snap) => {
         customers = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         renderCustomers();
         renderRateMatches();
       });
 
-      loadUsage();
-      loadBalance();
       if (canSetRates()) loadRateList();
-      statusUnsub = db.collection("whatsapp_status_log").orderBy("timestamp", "desc").limit(300).onSnapshot((snap) => {
-        latestStatus = summarizeStatuses(snap.docs.map((doc) => doc.data()));
-        $("usage-alert").hidden = !USAGE_ON || !paymentBlocked(snap.docs.map((doc) => doc.data()));
-        renderCustomers();
-      });
+      if (!can("send") && !can("inbox")) return;
+      if (can("send")) {
+        loadUsage();
+        loadBalance();
+        // 600: each catalogue to a customer makes up to ~6 delivery reports; enough for the latest send to ~100 customers.
+        statusUnsub = db.collection("whatsapp_status_log").orderBy("timestamp", "desc").limit(600).onSnapshot((snap) => {
+          latestStatus = summarizeStatuses(snap.docs.map((doc) => doc.data()));
+          $("usage-alert").hidden = !USAGE_ON || !paymentBlocked(snap.docs.map((doc) => doc.data()));
+          renderCustomers();
+        });
+      }
 
       inboxUnsub = db.collection("whatsapp_inbox").orderBy("timestamp", "desc").limit(100).onSnapshot((snap) => {
         lastInbound = {};

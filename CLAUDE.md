@@ -66,8 +66,14 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   are hidden with `display:none`. Keep the Categories cards in the page: the menu's product names open their photos.
 - The order form has two steps: the weekly requirement, then, once that is sent (`weeklySent` in the saved form), only
   Enroll Now For Next Day Delivery. The customer's saved details and that flag are cleared together on sign-out.
-- Customer item rates: Admin → Rates, only for the main admin, IDs `admin` and `hanif`, and the two Google emails listed in
-  `RATE_ADMINS` (admin.html) and `canSetRates()` (firestore.rules): change both. It writes `customer_rates/{mobile}`; the form's Enroll Now step
+- User rights (19 Nov 2026): Admin → Users → "Rights" per admin ID and per Google sign-in email, stored in
+  `admin_rights/{ID or email}` = {rights: [send, inbox, credit, products, whatsapp, orders, website, rates, visitors]}
+  (only the main admin / owner writes it). Enforced in three places that must match: `hasRight()` in firestore.rules,
+  `rightsOf()` + `ROUTE_RIGHTS` in the Worker (`/my-rights` tells Admin which tabs to show), `RIGHT_AREAS` / `can()` in admin.html.
+  The main admin and the owner's emails always have all rights. Someone with no saved entry keeps the old access:
+  everything except Rates and Visitors, which only the old `RATE_ADMINS` list gets. Users and Activity stay main-admin only.
+- Customer item rates: Admin → Rates, for whoever has the "rates" right (with no saved rights: the main admin, IDs `admin` and `hanif`,
+  and the Google emails in `RATE_ADMINS` (admin.html) and `hasRight()` (firestore.rules): change both). It writes `customer_rates/{mobile}`; the form's Enroll Now step
   gets one number's rates from the Worker's `/customer-rates`, so anyone who types a number sees that number's rates.
 - Daily market rate pricing is HIDDEN for now (owner, 18 Nov 2026): `DAILY_RATES_ON = false` in admin.html and no `DAILY_RATES = "on"`
   in wrangler.toml; turn both on to bring it back. The rate sheet was never set up (form still has its 17 products).
@@ -84,6 +90,9 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
 - Sending the weekly requirement records the customer in `form_customers/{mobile}` (via the Worker's `/form-customer`) so
   they appear in Customer rates, with their Rate Selection (`rateType`), which fills Rates -> Rate type unless an admin saved one later. It's kept apart from `whatsapp_customers`, the catalogue list, which needs their consent.
 - After Send Catalogue Now, the customers WhatsApp accepted are unticked (`send: false`); failed ones stay ticked.
+- Admin → Send step 2 shows "Last catalogue: who got it": counts of each customer's latest catalogue (Read, Delivered, Sent,
+  Held back 131049, Not on WhatsApp 131026, other failure, never sent; `deliveryGroup`). Tapping a box filters the list (Tick these
+  then ticks only them); "Download list" saves a CSV of the boxes shown. It reads the latest 600 entries of whatsapp_status_log.
 - Quantities must be multiples of the chosen pack (`SB_PACK_MULTIPLES = true` in index.html, back on since 15 Nov 2026); since 17 Nov
   other amounts are rounded UP to the next full pack when the customer leaves the box (owner's choice), with a green note. Set it to
   false to accept any quantity: the form then shows the packing breakdown (full packs + kg loose) and the pack discount applies only to kg in full packs.

@@ -35,7 +35,26 @@ service cloud.firestore {
 
     // Who may see and set customer rates (RATE_ADMINS in admin.html shows or hides the tab).
     function canSetRates() {
-      return isManager() || (isAdmin() && actor() in ['admin', 'hanif', 'sharhanbroilerplant@gmail.com', 'waseemshaikh597@gmail.com', 'bagbanhanif@gmail.com']);
+      return hasRight('rates');
+    }
+
+    // User rights (Admin → Users → Rights): admin_rights/{admin ID or Google email} = {rights: [areas]}.
+    // The main admin and the owner's emails have every right. Someone without an entry keeps the
+    // access they had before rights existed (RIGHTS_DEFAULT in admin.html, the Worker's rightsOf).
+    function rightsPath() {
+      return /databases/$(database)/documents/admin_rights/$(actor());
+    }
+    function hasRight(area) {
+      return isManager() || (isAdmin() && (
+        (exists(rightsPath()) && area in get(rightsPath()).data.get('rights', []))
+        || (!exists(rightsPath()) && (area in ['send', 'inbox', 'credit', 'products', 'whatsapp', 'orders', 'website']
+            || (area in ['rates', 'visitors'] && actor() in ['admin', 'hanif', 'sharhanbroilerplant@gmail.com', 'waseemshaikh597@gmail.com', 'bagbanhanif@gmail.com'])))));
+    }
+    match /admin_rights/{who} {
+      allow read: if isManager() || (isAdmin() && who == actor());
+      allow write: if isManager() && request.resource.data.keys().hasOnly(['rights', 'updatedAt', 'updatedBy'])
+        && request.resource.data.rights is list && request.resource.data.rights.size() <= 20;
+      allow delete: if isManager();
     }
 
     // The main admin ID, or the owner's Google emails (business email, and the old personal one).
@@ -62,37 +81,42 @@ service cloud.firestore {
     // Someone who replied STOP (unsubscribed: true, set by the Worker) can't be ticked,
     // re-subscribed or deleted from the admin; only their own "START" undoes it.
     match /whatsapp_customers/{docId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin() && request.resource.data.get('unsubscribed', false) == false;
-      allow update: if isAdmin() && (resource.data.get('unsubscribed', false) != true
+      allow read: if hasRight('send') || hasRight('rates');
+      allow create: if hasRight('send') && request.resource.data.get('unsubscribed', false) == false;
+      allow update: if hasRight('send') && (resource.data.get('unsubscribed', false) != true
         || (request.resource.data.get('unsubscribed', false) == true && request.resource.data.get('send', false) == false));
-      allow delete: if isAdmin() && resource.data.get('unsubscribed', false) != true;
+      allow delete: if hasRight('send') && resource.data.get('unsubscribed', false) != true;
     }
     match /whatsapp_inbox/{docId} {
-      allow read: if isAdmin();
+      allow read: if hasRight('inbox') || hasRight('send');
       allow write: if false; // only the Cloudflare Worker (service account) writes here
     }
     match /whatsapp_send_log/{docId} {
-      allow read: if isAdmin();
+      allow read: if hasRight('send');
       allow write: if false; // only the Cloudflare Worker (service account) writes here
     }
     match /whatsapp_status_log/{docId} {
-      allow read: if isAdmin();
+      allow read: if hasRight('send');
       allow write: if false;
     }
 
-    // Public product pages (?item=...) read the catalogue; only admins edit it.
+    // Public product pages (?item=...) read the catalogue; Products (and Send, for its photo cards) edit it.
     match /catalogue/{slug} {
       allow read: if true;
-      allow write: if isAdmin()
+      allow write: if (hasRight('products') || hasRight('send'))
         && request.resource.data.name is string && request.resource.data.name.size() <= 60
         && request.resource.data.spec is string && request.resource.data.spec.size() <= 160;
-      allow delete: if isAdmin();
+      allow delete: if hasRight('products');
     }
     // Editable homepage content (slides, about, categories, packs...). Public read.
+    // main: Website; orders + form: Order form; payment: Credit (bank QR).
     match /site_content/{docId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if (docId == 'main' && hasRight('website'))
+        || (docId in ['orders', 'form'] && hasRight('orders'))
+        || (docId == 'form' && hasRight('rates'))
+        || (docId == 'payment' && hasRight('credit'))
+        || isManager();
     }
     // Credit applications (customer details + which KYC photos were sent) - created by the
     // Worker; admins read them and record approve / reject.
@@ -112,20 +136,23 @@ service cloud.firestore {
     }
     // Website visits (Admin → Visitors): written only by the Worker (/track); the rate admins read them.
     match /site_visits/{sid} {
-      allow read: if canSetRates();
+      allow read: if hasRight('visitors');
       allow write: if false;
     }
     match /credit_applications/{mobile} {
-      allow read, update: if isAdmin();
+      allow read, update: if hasRight('credit');
       allow create, delete: if false;
     }
     // Admin switches (e.g. settings/whatsapp.autoReply) - read by the Worker.
     match /settings/{docId} {
-      allow read, write: if isAdmin();
+      allow read: if isAdmin();
+      allow write: if (docId == 'whatsapp' && (hasRight('send') || hasRight('whatsapp')))
+        || (docId == 'credit' && hasRight('credit'))
+        || isManager();
     }
     // Last automatic catalogue reply per phone number - written by the Worker only.
     match /whatsapp_autoreply/{phone} {
-      allow read: if isAdmin();
+      allow read: if hasRight('whatsapp') || hasRight('send');
       allow write: if false;
     }
     // Which WhatsApp templates are live / pending - written by the Worker only.

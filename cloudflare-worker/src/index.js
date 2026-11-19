@@ -208,6 +208,31 @@ function canSetRatesUser(user) {
   return user.sb_role === "main" || ["admin", "hanif"].includes(String(user.sb_user || "").toLowerCase())
     || (!user.sb_user && ["sharhanbroilerplant@gmail.com", "waseemshaikh597@gmail.com", "bagbanhanif@gmail.com"].includes(String(user.email || "").toLowerCase()));
 }
+
+// User rights (Admin → Users → Rights): same as hasRight() in firestore.rules. admin_rights/{admin ID or
+// Google email} = {rights: [...]}; the main admin and the owner have all; no entry = the access from before.
+const RIGHTS_DEFAULT = ["send", "inbox", "credit", "products", "whatsapp", "orders", "website"];
+const RIGHTS_ALL = [...RIGHTS_DEFAULT, "rates", "visitors"];
+async function rightsOf(env, user) {
+  if (isManager(env, user)) return RIGHTS_ALL;
+  const who = user.sb_user ? String(user.sb_user) : String(user.email || "");
+  const doc = who ? await getDocument(env, "admin_rights", who).catch(() => null) : null;
+  if (doc && Array.isArray(doc.rights)) return doc.rights.filter((r) => RIGHTS_ALL.includes(r));
+  return canSetRatesUser(user) ? RIGHTS_ALL : RIGHTS_DEFAULT;
+}
+// Which right each admin route needs (any one of them).
+const ROUTE_RIGHTS = {
+  "/usage": ["send"], "/balance": ["send"], "/balance-set": ["send"], "/send-catalogue": ["send"],
+  "/inbox": ["inbox", "send"], "/kyc-delete": ["credit"], "/rate-sheet": ["rates"],
+  "/catalogue-submit": ["send", "whatsapp"], "/products-submit": ["send", "whatsapp"], "/text-submit": ["send", "whatsapp"],
+  "/photo-submit": ["send", "whatsapp"], "/pick-submit": ["send", "whatsapp"], "/commerce-sync": ["products", "send", "whatsapp"],
+};
+function routeRights(path) {
+  if (ROUTE_RIGHTS[path]) return ROUTE_RIGHTS[path];
+  if (path.startsWith("/kyc/")) return ["credit"];
+  if (path.startsWith("/catalogue-image/")) return ["products", "send", "website", "credit"];
+  return null;
+}
 export function dailyRates(formulas, today, level) {
   const out = {};
   for (const line of (formulas && formulas.lines) || []) {
@@ -1525,7 +1550,7 @@ export default {
     try {
       user = await requireAuthorizedUser(request, env);
     } catch (e) {
-      if (["/inbox", "/usage", "/balance", "/balance-set", "/rate-sheet", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
+      if (["/inbox", "/my-rights", "/usage", "/balance", "/balance-set", "/rate-sheet", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
         return json({ error: e.message }, 401);
       }
       return new Response("Not found", { status: 404 });
@@ -1535,6 +1560,14 @@ export default {
     if (path.startsWith("/staff-")) {
       const res = await staffRoute(env, request, path, user, json);
       if (res) return res;
+    }
+
+    // Admin: the signed-in person's rights (which tabs Admin shows).
+    if (path === "/my-rights" && request.method === "GET") return json({ rights: await rightsOf(env, user), manager: isManager(env, user) });
+    const needs = routeRights(path);
+    if (needs) {
+      const mine = await rightsOf(env, user);
+      if (!needs.some((r) => mine.includes(r))) return json({ error: "You don't have the right to do this. Ask the main admin (Admin → Users → Rights)." }, 403);
     }
 
     // Admin: one KYC photo of a credit application.
@@ -1571,7 +1604,6 @@ export default {
     // Admin: the approximate WhatsApp balance, and correcting it from Meta's figure.
     // Rate admins: the owner's rate sheet (Worker secret), for Admin → Rates → "Set up rate sheet".
     if (path === "/rate-sheet" && request.method === "GET") {
-      if (!canSetRatesUser(user)) return json({ error: "Only rate admins can see the rate sheet." }, 403);
       return json({ lines: rateSheetDefault(env) });
     }
 
