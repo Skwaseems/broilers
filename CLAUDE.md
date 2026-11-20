@@ -117,12 +117,12 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   number 86558 15013 only sends catalogues. Rates → Send on WhatsApp signs the message off with that number and reminds the admin
   to send from that phone (`orderWa`). The Worker's replies on the API number point there: the "Enquire Now" reply and, for any
   other message (not a catalogue request or STOP/START), a once-a-day text (`orderNumberReply`, KV `ordnum:`), only while auto-reply is on.
-- Inbox as WhatsApp-style chats (20 Nov 2026, shown only to `CHAT_ADMINS`: admin.html and wrangler.toml, now waseemshaikh597@gmail.com;
-  everyone else keeps the old Inbox list). Chat list (one row per customer, unread counts per device in localStorage `sb-chat-seen`)
+- Inbox as WhatsApp-style chats (built 20 Nov 2026; live for every admin with the Inbox right since 21 Nov 2026, admin IDs and
+  Google sign-ins alike; the old Inbox list `inbox-card` is hidden for them). Chat list (one row per customer, unread counts per device in localStorage `sb-chat-seen`)
   and a conversation view with a reply box. Their messages: `whatsapp_inbox` (now also `media` {id, mime, filename, voice} for photos,
   voice notes, documents: shown as labels for now). Ours: `whatsapp_chat` {to, kind: catalogue|auto|reply, text, waMessageId, by, at},
   written by the Worker (`noteChat`; a catalogue batch writes all its rows in one commit). Ticks from whatsapp_status_log by
-  waMessageId (`noteStatuses`). Replies go through the Worker's `/chat-send` (CHAT_ADMINS + the inbox right), only within 24 h of
+  waMessageId (`noteStatuses`). Replies go through the Worker's `/chat-send` (the inbox right, `ROUTE_RIGHTS`), only within 24 h of
   the customer's last message (WhatsApp's rule); after that the box is closed. Plan: photos/voice notes, browser notifications,
   then move orders and rates to the API number 86558 15013.
 - Admin's Inbox tab has a red counter like Credit's (`tab-badge-inbox`): messages newer than when this device last opened Inbox

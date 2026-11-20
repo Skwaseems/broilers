@@ -1183,12 +1183,6 @@ const catalogueLabel = (template) => {
   return "📷 Catalogue" + (n ? " (" + n + " photos)" : "");
 };
 
-// Who sees the chat view and may reply from Admin (CHAT_ADMINS in wrangler.toml, same list in admin.html).
-function isChatAdmin(env, user) {
-  if (!user || user.sb_user || !user.email_verified) return false;
-  return String(env.CHAT_ADMINS || "").toLowerCase().split(",").map((s) => s.trim()).includes(String(user.email || "").toLowerCase());
-}
-
 // POST /chat-send {to, text}: a typed reply. WhatsApp allows free text only within 24 hours of the customer's
 // last message (after that only an approved template), so that is checked first.
 async function chatSend(env, user, body) {
@@ -1644,9 +1638,8 @@ export default {
       if (res) return res;
     }
 
-    // Inbox chat view (CHAT_ADMINS only for now): send a typed reply.
+    // Inbox chat view: send a typed reply (the Inbox right is checked above, ROUTE_RIGHTS).
     if (path === "/chat-send" && request.method === "POST") {
-      if (!isChatAdmin(env, user)) return json({ error: "Replying from Admin isn't switched on for you yet." }, 403);
       try {
         return json(await chatSend(env, user, await request.json().catch(() => ({}))));
       } catch (e) {

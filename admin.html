@@ -2267,7 +2267,7 @@
         <div id="inbox-list"></div>
       </section>
 
-      <!-- WhatsApp-style chats (CHAT_ADMINS only for now): chat list, then one customer's conversation with a reply box. -->
+      <!-- WhatsApp-style chats (admins with the Inbox right): chat list, then one customer's conversation with a reply box. -->
       <section class="card chat-card" id="chat-card" aria-label="WhatsApp chats" hidden>
         <div id="chat-list-view">
           <h2>Chats <span class="badge" id="chat-count">0</span></h2>
@@ -4995,11 +4995,10 @@
       });
     }
 
-    // ---------- Inbox as WhatsApp-style chats (CHAT_ADMINS only for now; same list in wrangler.toml) ----------
+    // ---------- Inbox as WhatsApp-style chats (every admin with the Inbox right, since 21 Nov 2026) ----------
     // Their messages: whatsapp_inbox. Ours (catalogues, auto-replies, typed replies): whatsapp_chat, written by the
     // Worker. Ticks: whatsapp_status_log by waMessageId (statusById). Read-up-to time per chat: this device only.
-    const CHAT_ADMINS = ["waseemshaikh597@gmail.com"];
-    const isChatAdmin = () => !!me && !me.staff && CHAT_ADMINS.includes(String(me.user || "").toLowerCase());
+    const isChatAdmin = () => !!me && can("inbox");
     let chatIn = [], chatOut = [], statusById = {}, chatOpen = null, chatUnsubs = [], chatsByKey = {};
     let chatSeen = (() => { try { return JSON.parse(localStorage.getItem("sb-chat-seen") || "null"); } catch (e) { return null; } })();
     const saveChatSeen = () => { try { localStorage.setItem("sb-chat-seen", JSON.stringify(chatSeen)); } catch (e) {} };

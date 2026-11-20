@@ -9,9 +9,6 @@ ALLOWED_EMAILS = "sharhanbroilerplant@gmail.com,waseemshaikh597@gmail.com,former
 # Owner's Google emails (comma-separated; business email since 19 Nov 2026, and the old personal one):
 # may set up / reset the main admin ID (Admin → Users). Recovery emails go to OWNER_EMAIL in admin.html.
 OWNER_EMAIL = "sharhanbroilerplant@gmail.com,waseemshaikh597@gmail.com"
-# Who sees Admin → Inbox as WhatsApp-style chats and may reply from Admin (comma-separated Google emails; testing first).
-# Same list as CHAT_ADMINS in admin.html.
-CHAT_ADMINS = "waseemshaikh597@gmail.com"
 TEMPLATE_LANGUAGE = "en"
 META_WABA_ID = "27938981485780059"
 META_APP_ID = "1135339285509297"
