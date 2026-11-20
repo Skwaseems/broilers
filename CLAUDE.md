@@ -111,6 +111,8 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   into `site_visits/{sid}` (Worker-only writes; `canSetRates()` reads). Admin → More → Visitors shows it live (rate admins only). Name and
   mobile only after that phone sent the form. index.html calls `sbWatch(event, detail)`. Admin devices set `sb-no-track` and are left out.
   "Remove a number from all records" also deletes that number's visits.
+- No email sending: catalogue by email and order copies were built 19–20 Nov 2026, then dropped (owner rejected the email plan,
+  20 Nov 2026) and removed. Don't bring them back unless asked.
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - The form's help line ("Please contact us if you need any assistance...") shows up to 2 mobiles + an email from Admin → Order form →
   Help line (`site_content/orders.help` = {phones, email}; saved with merge, as are the recipients). Only the sentence is in DICT;
