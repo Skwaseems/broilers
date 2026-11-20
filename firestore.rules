@@ -50,24 +50,6 @@ service cloud.firestore {
         || (!exists(rightsPath()) && (area in ['send', 'inbox', 'credit', 'products', 'whatsapp', 'orders', 'website']
             || (area in ['rates', 'visitors'] && actor() in ['admin', 'hanif', 'sharhanbroilerplant@gmail.com', 'waseemshaikh597@gmail.com', 'bagbanhanif@gmail.com'])))));
     }
-    // Email features (catalogue by email, order copies): only these Google emails for now.
-    // Same list as EMAIL_ADMINS in admin.html and in cloudflare-worker/wrangler.toml.
-    function isEmailAdmin() {
-      return request.auth != null && request.auth.token.get('email_verified', false) == true
-        && request.auth.token.get('email', '') in ['waseemshaikh597@gmail.com'];
-    }
-    // Who gets the catalogue by email (doc id = the email, lowercase); unsubscribed is set by the Worker's link.
-    match /email_contacts/{email} {
-      allow read, delete: if isEmailAdmin();
-      allow create, update: if isEmailAdmin() && request.resource.data.keys().hasOnly(['email', 'name', 'addedAt', 'unsubscribed', 'unsubscribedAt'])
-        && request.resource.data.email == email && request.resource.data.get('unsubscribed', false) == (resource == null ? false : resource.data.get('unsubscribed', false));
-    }
-    // Emails waiting / sent: written by the Worker, sent and marked by the Apps Script (tools/email-sender).
-    match /email_queue/{id} {
-      allow read: if isEmailAdmin();
-      allow write: if false;
-    }
-
     match /admin_rights/{who} {
       allow read: if isManager() || (isAdmin() && who == actor());
       allow write: if isManager() && request.resource.data.keys().hasOnly(['rights', 'updatedAt', 'updatedBy'])

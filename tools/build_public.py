@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
 
 FILES = [
-    "index.html", "admin.html", "404.html", "unsubscribe.html",
+    "index.html", "admin.html", "404.html",
     "favicon.ico", "apple-touch-icon.png", "icon-192.png", "icon-512.png", "og-image.jpg",
     "robots.txt", "sitemap.xml", "llms.txt", "site.webmanifest",
 ]

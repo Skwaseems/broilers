@@ -1651,57 +1651,6 @@
       font-size: 17px;
     }
 
-    .email-sender {
-      margin: 8px 0;
-      padding: 8px 10px;
-      border-radius: 4px;
-      background: #f6f1e6;
-      font-size: 14px;
-    }
-
-    .email-sender.ok { background: #eaf4ec; }
-    .email-sender.err { background: #fbeceb; }
-
-    .email-switch {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      margin: 10px 0;
-      font-size: 15px;
-      line-height: 1.4;
-    }
-
-    .email-switch input {
-      width: 20px;
-      height: 20px;
-      flex: none;
-      margin-top: 1px;
-    }
-
-    .email-list {
-      max-height: 320px;
-      overflow-y: auto;
-      margin: 8px 0 12px;
-    }
-
-    .email-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .email-row > div {
-      flex: 1;
-      min-width: 0;
-      overflow-wrap: anywhere;
-    }
-
-    .email-row .muted {
-      font-size: 13px;
-    }
-
     .dlv-head {
       display: flex;
       align-items: center;
@@ -1945,31 +1894,6 @@
           <button type="button" class="btn secondary small" id="usage-refresh">Refresh usage</button>
         </div>
         <div class="status" id="usage-status" role="status"></div>
-      </section>
-
-      <section class="card" id="email-card" aria-labelledby="email-title" hidden>
-        <h2 id="email-title">Catalogue by email</h2>
-        <p class="muted">Sent from the business Gmail with the products ticked "Send on WhatsApp". Free: Gmail sends about 100 emails a day; the rest go out the next day by themselves.</p>
-        <p class="email-sender" id="email-sender">Checking the email sender…</p>
-        <label class="check email-switch"><input type="checkbox" id="email-copy-on"> Email customers a copy of their order (adds an optional Email box to the order form)</label>
-        <h3 class="pay-sub">Who gets the catalogue <span class="badge" id="email-count">0</span></h3>
-        <label class="site-field"><span class="cat-label">Add emails, one per line (name, email)</span>
-          <textarea id="email-add-text" rows="3" placeholder="Ramesh Hotel, ramesh@gmail.com&#10;orders@saicaterers.in"></textarea></label>
-        <div class="row-form"><button class="btn secondary small" id="email-add-btn" type="button">Add emails</button></div>
-        <div id="email-list" class="email-list"></div>
-        <div class="site-field" role="radiogroup" aria-label="Email style">
-          <span class="cat-label">Email style</span>
-          <label class="check email-switch"><input type="radio" name="email-style" value="simple" checked> <span><b>Simple</b> (recommended): one photo, product names, one button. Reaches the Inbox more often.</span></label>
-          <label class="check email-switch"><input type="radio" name="email-style" value="photos"> <span><b>With all photos</b>: a photo and Enroll Now button for each product. Gmail often puts this in Spam.</span></label>
-        </div>
-        <label class="site-field"><span class="cat-label">Email subject (use a new one each time you send)</span><input type="text" id="email-subject" maxlength="120" value="Product list from Sharhan Broilers"></label>
-        <div class="row-form">
-          <button class="btn secondary" id="email-test-btn" type="button">Send a test to me</button>
-          <button class="btn" id="email-send-btn" type="button">Send to all</button>
-        </div>
-        <div class="status" id="email-status" role="status"></div>
-        <p class="muted" id="email-queue-line"></p>
-        <div id="email-failed"></div>
       </section>
 
       <section class="card" aria-labelledby="unsub-title">
@@ -2630,7 +2554,6 @@
         await loadMyRights();
         setupUsersTab();
         startListeners();
-        startEmail();
         if (can("send") || can("whatsapp")) startAutoReplyListeners();
         if (can("orders")) { loadRecipients(); loadFormItems(); }
         if (can("credit")) { loadPayments(); loadCredit().then(startCreditApps); }
@@ -2645,9 +2568,6 @@
         if (activityUnsub) { activityUnsub(); activityUnsub = null; }
         if (statusUnsub) statusUnsub();
         if (autoUnsub) autoUnsub();
-        emailUnsubs.forEach((u) => u());
-        emailUnsubs = [];
-        $("email-card").hidden = true;
       }
     });
 
@@ -4794,123 +4714,6 @@
         .then(() => logChange("Send catalogue", (on ? "Ticked " : "Unticked ") + (c.name || c.phone) + " · " + c.phone, []))
         .catch((e) => setStatus("send-status", "Couldn't update " + (c.name || c.phone) + ": " + e.message, "err"));
     }
-
-    // ---------- Catalogue by email + order copies (only EMAIL_ADMINS; Worker email.js, sender tools/email-sender) ----------
-    // Same list as EMAIL_ADMINS in wrangler.toml and isEmailAdmin() in firestore.rules.
-    const EMAIL_ADMINS = ["waseemshaikh597@gmail.com"];
-    const isEmailAdmin = () => !me.staff && EMAIL_ADMINS.includes(String(me.user || "").toLowerCase());
-    const EMAIL_OK = /^[^\s@<>"',;:()]+@[^\s@<>"',;:()]+\.[a-z]{2,}$/i;
-    let emailContacts = [], emailUnsubs = [], emailLeft = null;
-    function startEmail() {
-      emailUnsubs.forEach((u) => u());
-      emailUnsubs = [];
-      $("email-card").hidden = !isEmailAdmin();
-      if (!isEmailAdmin()) return;
-      emailUnsubs.push(db.collection("email_contacts").onSnapshot((s) => {
-        emailContacts = s.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => String(a.name || a.email).localeCompare(String(b.name || b.email)));
-        renderEmailContacts();
-      }, (e) => setStatus("email-status", "Couldn't load emails: " + e.message, "err")));
-      emailUnsubs.push(db.collection("email_queue").orderBy("createdAt", "desc").limit(200).onSnapshot((s) => renderEmailQueue(s.docs.map((d) => d.data())), () => {}));
-      emailUnsubs.push(db.collection("settings").doc("email_status").onSnapshot((s) => renderEmailSender(s.exists ? s.data() : null), () => {}));
-      db.collection("site_content").doc("orders").get().then((s) => { $("email-copy-on").checked = !!(s.exists && s.data().emailCopy === true); }).catch(() => {});
-    }
-    function renderEmailSender(st) {
-      const box = $("email-sender");
-      emailLeft = st && typeof st.left === "number" ? st.left : null;
-      if (!st || !st.lastRun) { box.className = "email-sender err"; box.textContent = "Email sender not set up yet: emails wait in the queue until it is (a one-time step in the business Gmail)."; return; }
-      const mins = Math.round((Date.now() - new Date(st.lastRun).getTime()) / 60000);
-      if (st.error) { box.className = "email-sender err"; box.textContent = "Email sender problem: " + st.error; return; }
-      if (mins > 10) { box.className = "email-sender err"; box.textContent = "Email sender hasn't run for " + mins + " minutes. Emails wait until it runs again."; return; }
-      box.className = "email-sender ok";
-      box.textContent = "Email sender working (" + (st.account || "business Gmail") + ") · checked " + (mins < 1 ? "just now" : mins + " min ago") + (emailLeft != null ? " · " + emailLeft + " emails left today" : "");
-    }
-    function renderEmailContacts() {
-      const box = $("email-list");
-      box.innerHTML = "";
-      const active = emailContacts.filter((c) => !c.unsubscribed);
-      $("email-count").textContent = active.length;
-      $("email-send-btn").textContent = "Send to all (" + active.length + ")";
-      if (!emailContacts.length) box.appendChild(el("p", { className: "muted", textContent: "No emails yet. Add them above." }));
-      emailContacts.forEach((c) => {
-        const info = el("div", {}, [el("strong", { textContent: c.name || c.email }), el("div", { className: "muted", textContent: c.name ? c.email : "" })]);
-        const row = el("div", { className: "email-row" }, [info]);
-        if (c.unsubscribed) row.appendChild(el("span", { className: "badge err", textContent: "Unsubscribed" }));
-        else {
-          const del = el("button", { type: "button", className: "btn secondary small", textContent: "Remove" });
-          del.addEventListener("click", () => {
-            if (!confirm("Remove " + c.email + "?")) return;
-            db.collection("email_contacts").doc(c.id).delete().then(() => logChange("Send catalogue", "Removed email " + c.email, []))
-              .catch((e) => setStatus("email-status", "Couldn't remove: " + e.message, "err"));
-          });
-          row.appendChild(del);
-        }
-        box.appendChild(row);
-      });
-    }
-    function renderEmailQueue(rows) {
-      const day = Date.now() - 24 * 3600000;
-      const recent = rows.filter((r) => new Date(r.createdAt).getTime() > day);
-      const n = (s) => recent.filter((r) => r.status === s).length;
-      const waiting = rows.filter((r) => r.status === "queued").length;
-      $("email-queue-line").textContent = rows.length ? "Last 24 hours: " + n("sent") + " sent · " + n("failed") + " failed" + (waiting ? " · " + waiting + " waiting to go out" : "") : "";
-      const failed = recent.filter((r) => r.status === "failed").slice(0, 5);
-      $("email-failed").innerHTML = "";
-      failed.forEach((r) => $("email-failed").appendChild(el("div", { className: "muted", textContent: "Not sent to " + r.to + ": " + (r.error || "unknown reason") })));
-    }
-    $("email-add-btn").addEventListener("click", async () => {
-      const have = new Set(emailContacts.map((c) => c.id));
-      const add = [], bad = [];
-      $("email-add-text").value.split(/\n+/).map((l) => l.trim()).filter(Boolean).forEach((line) => {
-        const parts = line.split(/[,\t;]+/).map((p) => p.trim().replace(/^<|>$/g, "")).filter(Boolean);
-        const email = (parts.find((p) => EMAIL_OK.test(p)) || "").toLowerCase();
-        if (!email) return bad.push(line);
-        const name = parts.filter((p) => p.toLowerCase() !== email).join(" ").replace(/[<>]/g, "").slice(0, 60);
-        if (!have.has(email) && !add.some((a) => a.email === email)) add.push({ email, name });
-      });
-      if (!add.length) return setStatus("email-status", bad.length ? "These don't look like emails: " + bad.slice(0, 3).join(" | ") : "Those emails are already in the list.", "err");
-      const batch = db.batch();
-      add.forEach((a) => batch.set(db.collection("email_contacts").doc(a.email), { email: a.email, name: a.name, addedAt: new Date().toISOString() }));
-      try {
-        await batch.commit();
-        logChange("Send catalogue", "Added " + add.length + " email" + (add.length === 1 ? "" : "s"), add.map((a) => (a.name ? a.name + " · " : "") + a.email));
-        $("email-add-text").value = "";
-        setStatus("email-status", "Added " + add.length + "." + (bad.length ? " Skipped (not an email): " + bad.slice(0, 3).join(" | ") : ""), bad.length ? "err" : "ok");
-      } catch (e) {
-        setStatus("email-status", "Couldn't add: " + e.message, "err");
-      }
-    });
-    async function sendEmailCatalogue(mode) {
-      const n = emailContacts.filter((c) => !c.unsubscribed).length;
-      if (mode === "all") {
-        if (!n) return setStatus("email-status", "Add some emails first.", "err");
-        const later = emailLeft != null && n > emailLeft ? "\n\nGmail can send " + emailLeft + " more today; the rest go out tomorrow by themselves." : "";
-        if (!confirm("Send the catalogue by email to " + n + " people?" + later)) return;
-      }
-      const btn = $(mode === "all" ? "email-send-btn" : "email-test-btn");
-      btn.disabled = true;
-      setStatus("email-status", "Getting the emails ready…", "");
-      try {
-        const r = await api("/email-catalogue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode, subject: $("email-subject").value.trim(), style: (document.querySelector('input[name="email-style"]:checked') || {}).value || "simple" }) });
-        logChange("Send catalogue", mode === "all" ? "Catalogue by email to " + r.queued + " people" : "Catalogue email test to " + me.user, []);
-        setStatus("email-status", mode === "all" ? r.queued + " emails are on their way (they go out within a few minutes)." : "Test is on its way to " + me.user + " (within a few minutes; check Spam too).", "ok");
-      } catch (e) {
-        setStatus("email-status", "Couldn't send: " + e.message, "err");
-      } finally {
-        btn.disabled = false;
-      }
-    }
-    $("email-test-btn").addEventListener("click", () => sendEmailCatalogue("test"));
-    $("email-send-btn").addEventListener("click", () => sendEmailCatalogue("all"));
-    $("email-copy-on").addEventListener("change", async () => {
-      const on = $("email-copy-on").checked;
-      try {
-        await trackedSet(db.collection("site_content").doc("orders"), { emailCopy: on, updatedAt: new Date().toISOString() }, { merge: true }, "Order form", "Email copy of orders " + (on ? "on" : "off"));
-        setStatus("email-status", on ? "On: the order form shows an optional Email box, and customers who fill it get a copy of what they send." : "Off: the order form's Email box is hidden.", "ok");
-      } catch (e) {
-        $("email-copy-on").checked = !on;
-        setStatus("email-status", "Couldn't change it: " + e.message, "err");
-      }
-    });
 
     // Delivery breakdown of each customer's latest catalogue; tapping a box shows only those customers.
     const DLV_GROUPS = [

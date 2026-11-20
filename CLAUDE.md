@@ -111,15 +111,6 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   into `site_visits/{sid}` (Worker-only writes; `canSetRates()` reads). Admin → More → Visitors shows it live (rate admins only). Name and
   mobile only after that phone sent the form. index.html calls `sbWatch(event, detail)`. Admin devices set `sb-no-track` and are left out.
   "Remove a number from all records" also deletes that number's visits.
-- Email (19 Nov 2026), shown only to `EMAIL_ADMINS` (admin.html, wrangler.toml, `isEmailAdmin()` in firestore.rules: change all
-  three; now only waseemshaikh597@gmail.com): Admin → Send → "Catalogue by email" (contacts in `email_contacts/{email}`, test /
-  send to all via the Worker's `/email-catalogue`) and the switch "Email customers a copy of their order" (`site_content/orders.emailCopy`,
-  shows the form's optional `sb-email` box; the form posts to `/order-copy`, limited per IP / address / day, non-map links removed).
-  The Worker (`src/email.js`) only queues mails in `email_queue`; the Google Apps Script `tools/email-sender/` in the business Gmail
-  sends them every minute (MailApp, ~100 a day free), signs in to Firestore as that account (project Owner, `X-Goog-User-Project`),
-  and writes `settings/email_status`. Unsubscribe links are HMAC-signed with a key derived from the service account.
-  Against spam folders: every link in an email uses sharhanbroilers.co.in (`MAIN_SITE`: `/p/<slug>` redirects to pages.dev,
-  `unsubscribe.html` calls the Worker's `/email-unsub?json=1`), each mail has a plain-text copy (`text`) and a "Dear <name>," greeting.
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - The form's help line ("Please contact us if you need any assistance...") shows up to 2 mobiles + an email from Admin → Order form →
   Help line (`site_content/orders.help` = {phones, email}; saved with merge, as are the recipients). Only the sentence is in DICT;

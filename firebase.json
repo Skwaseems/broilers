@@ -10,8 +10,7 @@
       "**/node_modules/**"
     ],
     "redirects": [
-      { "source": "/p/:slug", "destination": "https://sharhan-broilers.pages.dev/p/:slug", "type": 302 },
-      { "source": "/catalogue-img/:file", "destination": "https://sharhan-whatsapp.waseemshaikh597.workers.dev/catalogue-img/:file", "type": 302 }
+      { "source": "/p/:slug", "destination": "https://sharhan-broilers.pages.dev/p/:slug", "type": 302 }
     ],
     "headers": [
       { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
