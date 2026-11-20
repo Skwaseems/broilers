@@ -91,6 +91,11 @@ service cloud.firestore {
       allow read: if hasRight('inbox') || hasRight('send');
       allow write: if false; // only the Cloudflare Worker (service account) writes here
     }
+    // What we sent each customer, for the Inbox chat view: written by the Worker only.
+    match /whatsapp_chat/{docId} {
+      allow read: if hasRight('inbox') || hasRight('send');
+      allow write: if false;
+    }
     match /whatsapp_send_log/{docId} {
       allow read: if hasRight('send');
       allow write: if false; // only the Cloudflare Worker (service account) writes here

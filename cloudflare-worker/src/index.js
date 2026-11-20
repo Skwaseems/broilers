@@ -223,7 +223,7 @@ async function rightsOf(env, user) {
 // Which right each admin route needs (any one of them).
 const ROUTE_RIGHTS = {
   "/usage": ["send"], "/balance": ["send"], "/balance-set": ["send"], "/send-catalogue": ["send"],
-  "/inbox": ["inbox", "send"], "/kyc-delete": ["credit"], "/rate-sheet": ["rates"],
+  "/inbox": ["inbox", "send"], "/chat-send": ["inbox"], "/kyc-delete": ["credit"], "/rate-sheet": ["rates"],
   "/catalogue-submit": ["send", "whatsapp"], "/products-submit": ["send", "whatsapp"], "/text-submit": ["send", "whatsapp"],
   "/photo-submit": ["send", "whatsapp"], "/pick-submit": ["send", "whatsapp"], "/commerce-sync": ["products", "send", "whatsapp"],
 };
@@ -426,11 +426,14 @@ function extractIncomingMessages(payload) {
       const value = change.value || {};
       for (const msg of value.messages || []) {
         const contact = (value.contacts || [])[0];
+        // Photo, voice note, document...: Meta sends an id to fetch it with; kept for the Inbox chat view.
+        const m = ["image", "audio", "video", "document", "sticker"].includes(msg.type) ? msg[msg.type] || {} : null;
         out.push({
           from: msg.from,
           name: contact?.profile?.name || null,
           type: msg.type,
-          text: msg.text?.body || msg.button?.text || msg.interactive?.button_reply?.title || orderText(msg.order) || null,
+          text: msg.text?.body || msg.button?.text || msg.interactive?.button_reply?.title || orderText(msg.order) || (m && m.caption) || null,
+          media: m && m.id ? { id: m.id, mime: m.mime_type || "", filename: m.filename || "", voice: !!m.voice } : null,
           payload: msg.button?.payload || null, // e.g. the item id behind a catalogue card's "Enquire Now"
           order: msg.order || null, // cart sent from a product card's View screen
           waMessageId: msg.id,
@@ -1162,6 +1165,49 @@ async function sendInOrder(env, to, messages) {
   if (rest.length && id) {
     await setDocument(env, "whatsapp_pending", await pendingKey(id), { to, rest: JSON.stringify(rest), at: new Date().toISOString() });
   }
+  return id || "";
+}
+
+// ---- Inbox chat view: what we sent each customer (whatsapp_chat; their messages are in whatsapp_inbox) ----
+// Ticks come from whatsapp_status_log by waMessageId. Written by the Worker only.
+const chatDoc = (to, kind, text, waMessageId, by) => ({
+  to: String(to || "").replace(/\D/g, ""), kind, text: String(text || "").slice(0, 4096), waMessageId: waMessageId || "",
+  by: by || "", at: new Date().toISOString(),
+});
+const sentId = (res) => (res && res.messages && res.messages[0] && res.messages[0].id) || "";
+function noteChat(env, to, kind, text, waMessageId, by) {
+  return addDocument(env, "whatsapp_chat", chatDoc(to, kind, text, waMessageId, by)).catch(() => {});
+}
+const catalogueLabel = (template) => {
+  const n = (((template.components || []).find((c) => c.type === "carousel") || {}).cards || []).length;
+  return "📷 Catalogue" + (n ? " (" + n + " photos)" : "");
+};
+
+// Who sees the chat view and may reply from Admin (CHAT_ADMINS in wrangler.toml, same list in admin.html).
+function isChatAdmin(env, user) {
+  if (!user || user.sb_user || !user.email_verified) return false;
+  return String(env.CHAT_ADMINS || "").toLowerCase().split(",").map((s) => s.trim()).includes(String(user.email || "").toLowerCase());
+}
+
+// POST /chat-send {to, text}: a typed reply. WhatsApp allows free text only within 24 hours of the customer's
+// last message (after that only an approved template), so that is checked first.
+async function chatSend(env, user, body) {
+  const to = String(body.to || "").replace(/\D/g, "");
+  const text = String(body.text || "").trim();
+  if (to.length < 10 || to.length > 15) throw new Error("Invalid number.");
+  if (!text) throw new Error("Type a message.");
+  if (text.length > 4096) throw new Error("The message is too long.");
+  const theirs = await queryDocuments(env, "whatsapp_inbox", "from", to);
+  const last = theirs.reduce((t, m) => Math.max(t, Date.parse(m.timestamp || "") || 0), 0);
+  if (!last || Date.now() - last > 24 * 3600 * 1000) throw new Error("More than 24 hours since this customer's last message: WhatsApp allows only an approved template now.");
+  const res = await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messaging_product: "whatsapp", recipient_type: "individual", to, type: "text", text: { body: text, preview_url: true } }),
+  });
+  const id = sentId(res);
+  await addDocument(env, "whatsapp_chat", chatDoc(to, "reply", text, id, user.email));
+  return { ok: true, id };
 }
 
 // If the first message failed, the rest is dropped: the customer shouldn't get half a catalogue.
@@ -1173,7 +1219,9 @@ async function releaseNextMessage(env, status) {
   await deleteDocument(env, "whatsapp_pending", key);
   if (status.status === "failed" || Date.now() - new Date(waiting.at).getTime() > PENDING_MAX_MS) return;
   try {
-    await sendInOrder(env, waiting.to, JSON.parse(waiting.rest));
+    const rest = JSON.parse(waiting.rest);
+    const id = await sendInOrder(env, waiting.to, rest);
+    await noteChat(env, waiting.to, "catalogue", catalogueLabel(rest[0]) + " · next part", id, "");
   } catch (e) {
     const at = new Date().toISOString();
     await addDocument(env, "whatsapp_status_log", { waMessageId: "", recipient: waiting.to, status: "failed", errors: [{ code: 0, title: e.message }], timestamp: at, receivedAt: at });
@@ -1211,17 +1259,20 @@ async function sendCatalogueBatch(env, user, offset, limit, mode) {
 
   customers.sort((a, b) => (a.id < b.id ? -1 : 1));
   const batch = customers.slice(offset, offset + limit);
-  const results = [];
+  const results = [], chats = [];
   for (const c of batch) {
     const to = (c.phone || "").replace(/\D/g, "");
     if (!to) continue;
     try {
-      await sendInOrder(env, to, messages);
+      const id = await sendInOrder(env, to, messages);
       results.push({ to, ok: true });
+      chats.push({ set: ["whatsapp_chat", crypto.randomUUID().replace(/-/g, ""), chatDoc(to, "catalogue", catalogueLabel(messages[0]), id, user.email)] });
     } catch (e) {
       results.push({ to, ok: false, error: e.message });
     }
   }
+  // One write for the whole batch (the free plan limits outside calls per request).
+  await commitWrites(env, chats).catch(() => {});
 
   const done = offset + batch.length >= customers.length;
   if (done || offset === 0) {
@@ -1282,11 +1333,12 @@ async function orderNumberReply(env, phone) {
   await env.CATALOGUE_IMAGES.put(key, "1", { expirationTtl: 86400 });
   const num = await orderNumber(env);
   const body = `Thank you for your message! 🙏\nFor orders, rates and credit, please WhatsApp *Sharhan Broilers* on *${num.shown}*:\n${num.link}`;
-  await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
+  const res = await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ messaging_product: "whatsapp", recipient_type: "individual", to: phone, type: "text", text: { body, preview_url: false } }),
   });
+  await noteChat(env, phone, "auto", body, sentId(res), "auto-reply");
 }
 
 // Instant answer to "Enquire Now" on a catalogue card. The tap opened a customer-service
@@ -1303,11 +1355,12 @@ async function enquiryReply(env, m, item) {
     `\n\nThank you for your enquiry! Our team will contact you shortly with today's rate.` +
     `\nTo order, WhatsApp us on *${num.shown}*: ${num.link}` +
     `\nOr see details and order online:\n${site}/?item=${item.id}`;
-  await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
+  const res = await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ messaging_product: "whatsapp", recipient_type: "individual", to: phone, type: "text", text: { body, preview_url: true } }),
   });
+  await noteChat(env, phone, "auto", body, sentId(res), "auto-reply");
 }
 
 // They asked for the catalogue, so they join the customer list (ticked for future sends).
@@ -1359,11 +1412,12 @@ async function subscriptionReply(env, m) {
   const body = stop
     ? "You're unsubscribed. Sharhan Broilers won't send you the catalogue again.\nChanged your mind? Reply START."
     : "Welcome back! You'll receive the Sharhan Broilers catalogue again. Reply STOP anytime to unsubscribe.";
-  await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
+  const res = await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ messaging_product: "whatsapp", recipient_type: "individual", to: phone, type: "text", text: { body } }),
   });
+  await noteChat(env, phone, "auto", body, sentId(res), "auto-reply");
   return true;
 }
 
@@ -1409,7 +1463,8 @@ async function autoReply(env, m, origin) {
       template = null; // not set up for this many items yet - fall back to photos below
     }
     if (template) {
-      await send({ type: "template", template });
+      const res = await send({ type: "template", template });
+      await noteChat(env, phone, "catalogue", catalogueLabel(template) + " · auto-reply", sentId(res), "auto-reply");
       record.ok = true;
       record.items = template.components[0].cards.length;
       record.format = template.name;
@@ -1437,6 +1492,7 @@ async function autoReply(env, m, origin) {
     }
     record.ok = true;
     record.items = sent;
+    await noteChat(env, phone, "catalogue", "📷 Catalogue (" + sent + " photos) · auto-reply", "", "auto-reply");
     await addDocument(env, "whatsapp_send_log", {
       sentBy: "auto-reply", sentAt: record.lastSentAt, templates: "photo messages", mode: "auto-reply",
       batchOffset: 0, batchSize: 1, successCount: 1, to: phone, items: sent,
@@ -1576,7 +1632,7 @@ export default {
     try {
       user = await requireAuthorizedUser(request, env);
     } catch (e) {
-      if (["/inbox", "/my-rights", "/usage", "/balance", "/balance-set", "/rate-sheet", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
+      if (["/inbox", "/my-rights", "/chat-send", "/usage", "/balance", "/balance-set", "/rate-sheet", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
         return json({ error: e.message }, 401);
       }
       return new Response("Not found", { status: 404 });
@@ -1586,6 +1642,16 @@ export default {
     if (path.startsWith("/staff-")) {
       const res = await staffRoute(env, request, path, user, json);
       if (res) return res;
+    }
+
+    // Inbox chat view (CHAT_ADMINS only for now): send a typed reply.
+    if (path === "/chat-send" && request.method === "POST") {
+      if (!isChatAdmin(env, user)) return json({ error: "Replying from Admin isn't switched on for you yet." }, 403);
+      try {
+        return json(await chatSend(env, user, await request.json().catch(() => ({}))));
+      } catch (e) {
+        return json({ error: e.message }, 400);
+      }
     }
 
     // Admin: the signed-in person's rights (which tabs Admin shows).

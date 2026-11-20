@@ -979,6 +979,68 @@
       margin-top: 2px;
     }
 
+    /* WhatsApp-style chats */
+    .chat-card { padding-bottom: 12px; }
+    .chat-list { margin-top: 8px; }
+    .chat-row {
+      display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 4px;
+      border: 0; border-bottom: 1px solid var(--line); background: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+    }
+    .chat-row:active { background: #f5f2ea; }
+    .chat-avatar {
+      flex: none; width: 44px; height: 44px; border-radius: 50%; background: #dfe5e7; color: #54656f;
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px;
+    }
+    .chat-mid { flex: 1; min-width: 0; }
+    .chat-line1, .chat-line2 { display: flex; align-items: center; gap: 8px; }
+    .chat-line1 strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; }
+    .chat-time { flex: none; font-size: 12px; color: var(--muted); }
+    .chat-row.unread .chat-time { color: #1fa855; font-weight: 600; }
+    .chat-prev { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; color: var(--muted); }
+    .chat-unread {
+      flex: none; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #25d366; color: #fff;
+      font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .chat-top { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+    .chat-back { flex: none; width: 40px; height: 40px; border: 0; background: none; font-size: 34px; line-height: 1; cursor: pointer; color: var(--ink); }
+    .chat-who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .chat-callbtn { flex: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00a884; }
+    .chat-callbtn svg { width: 22px; height: 22px; fill: currentColor; }
+    .chat-top .chat-avatar { width: 38px; height: 38px; font-size: 14px; }
+    .chat-back { margin-left: -8px; }
+    .chat-who strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; }
+    .chat-who span { font-size: 12px; color: var(--muted); }
+    .chat-msgs {
+      height: calc(100dvh - 330px); min-height: 280px; overflow-y: auto; padding: 10px 8px; margin: 0 -8px;
+      background: #efeae2; display: flex; flex-direction: column; gap: 4px;
+    }
+    .chat-day { align-self: center; margin: 8px 0 4px; padding: 3px 10px; border-radius: 6px; background: #fff; font-size: 12px; color: #54656f; box-shadow: 0 1px 1px rgba(0,0,0,.08); }
+    .chat-b {
+      max-width: 82%; padding: 6px 8px 4px; border-radius: 8px; background: #fff; box-shadow: 0 1px 1px rgba(0,0,0,.1);
+      font-size: 15px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; align-self: flex-start;
+    }
+    .chat-b.out { align-self: flex-end; background: #d9fdd3; }
+    .chat-b.auto { background: #eef6ff; }
+    .chat-b .chat-meta { display: block; text-align: right; font-size: 11px; color: #667781; margin-top: 2px; white-space: nowrap; }
+    .chat-b .chat-by { display: block; font-size: 11px; color: #667781; margin-bottom: 2px; }
+    .chat-tick { margin-left: 4px; letter-spacing: -3px; }
+    .chat-tick.read { color: #53bdeb; }
+    .chat-tick.failed { color: #b3261e; letter-spacing: 0; }
+    .chat-err { display: block; font-size: 12px; color: #b3261e; margin-top: 2px; white-space: normal; }
+    .chat-compose { display: flex; align-items: flex-end; gap: 8px; margin-top: 10px; }
+    .chat-compose textarea {
+      flex: 1; min-height: 44px; max-height: 140px; resize: none; padding: 10px 14px; border-radius: 22px;
+      border: 1px solid var(--line); font: inherit; font-size: 16px; line-height: 1.4;
+    }
+    .chat-send {
+      flex: none; width: 46px; height: 46px; border-radius: 50%; border: 0; background: #00a884; color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .chat-send svg { width: 22px; height: 22px; fill: currentColor; }
+    .chat-send:disabled { background: #b8c2c7; cursor: default; }
+    .chat-note { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+    .chat-note.err { color: #b3261e; }
+
     .inbox-item.is-new {
       background: #fdf3f2;
       margin: 0 -10px;
@@ -2200,9 +2262,32 @@
       </div>
 
       <div class="tab-panel" role="tabpanel" id="panel-inbox" aria-labelledby="tab-inbox" hidden>
-      <section class="card" aria-labelledby="inbox-title">
+      <section class="card" id="inbox-card" aria-labelledby="inbox-title">
         <h2 id="inbox-title">Inbox <span class="badge" id="inbox-count">0</span></h2>
         <div id="inbox-list"></div>
+      </section>
+
+      <!-- WhatsApp-style chats (CHAT_ADMINS only for now): chat list, then one customer's conversation with a reply box. -->
+      <section class="card chat-card" id="chat-card" aria-label="WhatsApp chats" hidden>
+        <div id="chat-list-view">
+          <h2>Chats <span class="badge" id="chat-count">0</span></h2>
+          <input type="search" class="cust-search" id="chat-search" placeholder="Search name or number" aria-label="Search chats" autocomplete="off">
+          <div id="chat-list" class="chat-list" role="list"></div>
+        </div>
+        <div id="chat-thread-view" hidden>
+          <div class="chat-top">
+            <button type="button" class="chat-back" id="chat-back" aria-label="Back to all chats">&#8249;</button>
+            <div class="chat-avatar" id="chat-avatar" aria-hidden="true"></div>
+            <div class="chat-who"><strong id="chat-name"></strong><span id="chat-sub"></span></div>
+            <a class="chat-callbtn" id="chat-call" href="#" title="Call"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg></a>
+          </div>
+          <div class="chat-msgs" id="chat-msgs" aria-live="polite"></div>
+          <div class="chat-compose">
+            <textarea id="chat-text" rows="1" maxlength="4096" placeholder="Type a message" aria-label="Message"></textarea>
+            <button class="chat-send" id="chat-send" type="button" aria-label="Send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20.5 21 12 3 3.5l.01 6.6L15 12 3.01 13.9z"/></svg></button>
+          </div>
+          <p class="chat-note" id="chat-note" role="status"></p>
+        </div>
       </section>
       </div>
 
@@ -2567,6 +2652,7 @@
         await loadMyRights();
         setupUsersTab();
         startListeners();
+        startChat();
         if (can("send") || can("whatsapp")) startAutoReplyListeners();
         if (can("orders")) { loadRecipients(); loadFormItems(); }
         if (can("credit")) { loadPayments(); loadCredit().then(startCreditApps); }
@@ -2581,6 +2667,9 @@
         if (activityUnsub) { activityUnsub(); activityUnsub = null; }
         if (statusUnsub) statusUnsub();
         if (autoUnsub) autoUnsub();
+        chatUnsubs.forEach((u) => u());
+        chatUnsubs = [];
+        chatOpen = null;
       }
     });
 
@@ -4883,6 +4972,7 @@
         // 600: each catalogue to a customer makes up to ~6 delivery reports; enough for the latest send to ~100 customers.
         statusUnsub = db.collection("whatsapp_status_log").orderBy("timestamp", "desc").limit(600).onSnapshot((snap) => {
           latestStatus = summarizeStatuses(snap.docs.map((doc) => doc.data()));
+          noteStatuses(snap.docs.map((doc) => doc.data()));
           $("usage-alert").hidden = !USAGE_ON || !paymentBlocked(snap.docs.map((doc) => doc.data()));
           renderCustomers();
         });
@@ -4905,6 +4995,226 @@
       });
     }
 
+    // ---------- Inbox as WhatsApp-style chats (CHAT_ADMINS only for now; same list in wrangler.toml) ----------
+    // Their messages: whatsapp_inbox. Ours (catalogues, auto-replies, typed replies): whatsapp_chat, written by the
+    // Worker. Ticks: whatsapp_status_log by waMessageId (statusById). Read-up-to time per chat: this device only.
+    const CHAT_ADMINS = ["waseemshaikh597@gmail.com"];
+    const isChatAdmin = () => !!me && !me.staff && CHAT_ADMINS.includes(String(me.user || "").toLowerCase());
+    let chatIn = [], chatOut = [], statusById = {}, chatOpen = null, chatUnsubs = [], chatsByKey = {};
+    let chatSeen = (() => { try { return JSON.parse(localStorage.getItem("sb-chat-seen") || "null"); } catch (e) { return null; } })();
+    const saveChatSeen = () => { try { localStorage.setItem("sb-chat-seen", JSON.stringify(chatSeen)); } catch (e) {} };
+    const chatKey = (p) => String(p || "").replace(/\D/g, "").slice(-10);
+    const msgTime = (iso) => Date.parse(iso || "") || 0;
+    const MEDIA_LABEL = { image: "📷 Photo", video: "🎬 Video", document: "📄 Document", sticker: "Sticker", location: "📍 Location", contacts: "👤 Contact" };
+    function inLabel(m) {
+      if (m.type === "audio") return (m.media && m.media.voice ? "🎤 Voice note" : "🎵 Audio") + (m.text ? "\n" + m.text : "");
+      if (MEDIA_LABEL[m.type]) return MEDIA_LABEL[m.type] + (m.media && m.media.filename ? ": " + m.media.filename : "") + (m.text ? "\n" + m.text : "");
+      return m.text || "[" + (m.type || "message") + "]";
+    }
+    function chatNote(text, err) { const n = $("chat-note"); n.textContent = text || ""; n.className = "chat-note" + (err ? " err" : ""); }
+    function chatDay(t) {
+      const w = chatWhen(t);
+      return /\d:\d/.test(w) ? "Today" : w === "Yesterday" ? w : new Date(t).toLocaleDateString([], { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+    }
+    function startChat() {
+      chatUnsubs.forEach((u) => u());
+      chatUnsubs = [];
+      const on = isChatAdmin();
+      $("chat-card").hidden = !on;
+      $("inbox-card").hidden = on;
+      if (!on) return;
+      chatUnsubs.push(db.collection("whatsapp_inbox").orderBy("timestamp", "desc").limit(500).onSnapshot((s) => {
+        chatIn = s.docs.map((d) => d.data());
+        if (!chatSeen) { // first time on this device: what's already here counts as read
+          chatSeen = {};
+          chatIn.forEach((m) => { const k = chatKey(m.from); chatSeen[k] = Math.max(chatSeen[k] || 0, msgTime(m.timestamp)); });
+          saveChatSeen();
+        }
+        renderChats();
+      }, (e) => chatNote("Couldn't load chats: " + e.message, true)));
+      chatUnsubs.push(db.collection("whatsapp_chat").orderBy("at", "desc").limit(500).onSnapshot((s) => {
+        chatOut = s.docs.map((d) => d.data());
+        renderChats();
+      }, () => {}));
+    }
+    // Called from the delivery-report listener (Send tab) with its latest entries.
+    function noteStatuses(rows) {
+      const rank = { sent: 1, delivered: 2, read: 3 };
+      statusById = {};
+      rows.forEach((s) => {
+        if (!s.waMessageId) return;
+        const prev = statusById[s.waMessageId];
+        if (!prev || prev.status !== "failed" && (s.status === "failed" || (rank[s.status] || 0) > (rank[prev.status] || 0))) statusById[s.waMessageId] = s;
+      });
+      if (chatOpen) renderThread();
+    }
+    function buildChats() {
+      const byKey = {};
+      const get = (k) => (byKey[k] = byKey[k] || { key: k, phone: "", msgs: [], lastIn: 0, profile: "" });
+      chatIn.forEach((m) => {
+        const k = chatKey(m.from);
+        if (!k) return;
+        const c = get(k);
+        const t = msgTime(m.timestamp);
+        c.msgs.push({ dir: "in", t, text: inLabel(m) });
+        if (t >= c.lastIn) { c.lastIn = t; c.phone = String(m.from).replace(/\D/g, ""); if (m.name) c.profile = m.name; }
+      });
+      chatOut.forEach((o) => {
+        const k = chatKey(o.to);
+        if (!k) return;
+        const c = get(k);
+        c.msgs.push({ dir: "out", t: msgTime(o.at), text: o.text, kind: o.kind, id: o.waMessageId, by: o.by });
+        if (!c.phone) c.phone = String(o.to).replace(/\D/g, "");
+      });
+      const names = {};
+      customers.forEach((c) => { if (c.name) names[chatKey(c.phone)] = c.name; });
+      Object.values(byKey).forEach((c) => {
+        c.msgs.sort((a, b) => a.t - b.t);
+        c.last = c.msgs[c.msgs.length - 1];
+        c.name = names[c.key] || c.profile || "+" + c.phone;
+        c.unread = c.msgs.filter((m) => m.dir === "in" && m.t > ((chatSeen || {})[c.key] || 0)).length;
+      });
+      return byKey;
+    }
+    const chatInitials = (name) => (String(name).replace(/[^A-Za-zऀ-ॿ ]/g, "").trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2) || "#").toUpperCase();
+    function chatWhen(t) {
+      const d = new Date(t), now = new Date();
+      if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      const y = new Date(now); y.setDate(now.getDate() - 1);
+      if (d.toDateString() === y.toDateString()) return "Yesterday";
+      return d.toLocaleDateString([], { day: "numeric", month: "short" });
+    }
+    function renderChats() {
+      if (!isChatAdmin()) return;
+      chatsByKey = buildChats();
+      // The chat on screen counts as read as messages arrive.
+      const onScreen = chatOpen && !$("panel-inbox").hidden && chatsByKey[chatOpen];
+      if (onScreen) { markChatSeen(onScreen); onScreen.unread = 0; }
+      const all = Object.values(chatsByKey).sort((a, b) => (b.last ? b.last.t : 0) - (a.last ? a.last.t : 0));
+      const words = $("chat-search").value.toLowerCase().split(/\s+/).filter(Boolean);
+      const shown = all.filter((c) => words.every((w) => (c.name + " " + c.phone).toLowerCase().includes(w)));
+      $("chat-count").textContent = all.length;
+      const unreadChats = all.filter((c) => c.unread).length;
+      const badge = $("tab-badge-inbox");
+      badge.textContent = unreadChats;
+      badge.hidden = !unreadChats;
+      const list = $("chat-list");
+      list.innerHTML = "";
+      if (!shown.length) list.appendChild(el("p", { className: "muted", textContent: all.length ? "No chat found." : "No messages yet." }));
+      shown.forEach((c) => {
+        const prev = c.last ? (c.last.dir === "out" ? "You: " : "") + c.last.text.split("\n")[0] : "";
+        const row = el("button", { type: "button", className: "chat-row" + (c.unread ? " unread" : "") }, [
+          el("div", { className: "chat-avatar", textContent: chatInitials(c.name) }),
+          el("div", { className: "chat-mid" }, [
+            el("div", { className: "chat-line1" }, [el("strong", { textContent: c.name }), el("span", { className: "chat-time", textContent: c.last ? chatWhen(c.last.t) : "" })]),
+            el("div", { className: "chat-line2" }, [el("span", { className: "chat-prev", textContent: prev }), ...(c.unread ? [el("span", { className: "chat-unread", textContent: c.unread })] : [])]),
+          ]),
+        ]);
+        row.setAttribute("role", "listitem");
+        row.addEventListener("click", () => openChat(c.key));
+        list.appendChild(row);
+      });
+      if (chatOpen) renderThread();
+    }
+    function markChatSeen(c) {
+      if (!c) return;
+      chatSeen = chatSeen || {};
+      if (c.lastIn > (chatSeen[c.key] || 0)) { chatSeen[c.key] = c.lastIn; saveChatSeen(); }
+    }
+    function openChat(key) {
+      chatOpen = key;
+      $("chat-list-view").hidden = true;
+      $("chat-thread-view").hidden = false;
+      $("chat-text").value = "";
+      chatNote("");
+      renderThread(true);
+      renderChats();
+    }
+    function closeChat() {
+      chatOpen = null;
+      $("chat-thread-view").hidden = true;
+      $("chat-list-view").hidden = false;
+      renderChats();
+    }
+    $("chat-back").addEventListener("click", closeChat);
+    $("chat-search").addEventListener("input", renderChats);
+    document.addEventListener("sb-tab", (e) => { if (e.detail !== "inbox" && chatOpen) closeChat(); });
+    // WhatsApp lets you type freely for 24 hours after the customer's last message.
+    const chatWindowLeft = (c) => (c && c.lastIn ? 24 * 3600 * 1000 - (Date.now() - c.lastIn) : 0);
+    function tickFor(m) {
+      if (m.dir !== "out" || !m.id) return null;
+      const s = statusById[m.id];
+      if (!s) return el("span", { className: "chat-tick", textContent: "✓", title: "Sent" });
+      if (s.status === "failed") return el("span", { className: "chat-tick failed", textContent: "!", title: "Not delivered" });
+      if (s.status === "read") return el("span", { className: "chat-tick read", textContent: "✓✓", title: "Read" });
+      if (s.status === "delivered") return el("span", { className: "chat-tick", textContent: "✓✓", title: "Delivered" });
+      return el("span", { className: "chat-tick", textContent: "✓", title: "Sent" });
+    }
+    function renderThread(toBottom) {
+      const c = chatsByKey[chatOpen] || buildChats()[chatOpen];
+      if (!c) return;
+      const box = $("chat-msgs");
+      const nearBottom = toBottom || box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+      $("chat-name").textContent = c.name;
+      $("chat-avatar").textContent = chatInitials(c.name);
+      const left = chatWindowLeft(c);
+      const local = c.phone.length === 12 && c.phone.startsWith("91") ? c.phone.slice(2) : c.phone;
+      $("chat-sub").textContent = "+" + c.phone + " · " + (left > 0 ? "chat open, " + Math.ceil(left / 3600000) + " h left" : "chat closed");
+      $("chat-call").href = "tel:+" + c.phone;
+      $("chat-call").setAttribute("aria-label", "Call " + c.name + " on " + local);
+      box.innerHTML = "";
+      let day = "";
+      c.msgs.forEach((m) => {
+        const d = new Date(m.t);
+        const dayText = chatDay(m.t);
+        if (dayText !== day) { day = dayText; box.appendChild(el("div", { className: "chat-day", textContent: dayText })); }
+        const meta = el("span", { className: "chat-meta", textContent: d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) });
+        const tick = tickFor(m);
+        if (tick) meta.appendChild(tick);
+        const parts = [];
+        if (m.dir === "out" && m.kind !== "reply") parts.push(el("span", { className: "chat-by", textContent: m.kind === "catalogue" ? "Catalogue" : "Automatic reply" }));
+        else if (m.dir === "out" && m.by) parts.push(el("span", { className: "chat-by", textContent: m.by }));
+        parts.push(document.createTextNode(m.text || ""));
+        parts.push(meta);
+        const s = m.id && statusById[m.id];
+        if (s && s.status === "failed") { const e = (s.errors || [])[0] || {}; parts.push(el("span", { className: "chat-err", textContent: "Not delivered: " + (ERROR_TEXT[e.code] || e.title || "unknown reason") })); }
+        box.appendChild(el("div", { className: "chat-b" + (m.dir === "out" ? " out" : "") + (m.dir === "out" && m.kind === "auto" ? " auto" : "") }, parts));
+      });
+      if (nearBottom) box.scrollTop = box.scrollHeight;
+      const open = left > 0;
+      $("chat-text").disabled = !open;
+      $("chat-send").disabled = !open;
+      $("chat-text").placeholder = open ? "Type a message" : "Chat closed";
+      if (!$("chat-note").classList.contains("err") && $("chat-note").textContent !== "Sending…") {
+        chatNote(open ? "" : "More than 24 hours since their last message, so WhatsApp doesn't allow a typed message now. It opens again when they write to you.");
+      }
+      if (!$("panel-inbox").hidden) markChatSeen(c);
+    }
+    async function sendChat() {
+      const c = chatsByKey[chatOpen];
+      const text = $("chat-text").value.trim();
+      if (!c || !text) return;
+      $("chat-send").disabled = true;
+      chatNote("Sending…");
+      try {
+        await api("/chat-send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ to: c.phone, text }) });
+        $("chat-text").value = "";
+        $("chat-text").style.height = "";
+        chatNote("");
+      } catch (e) {
+        chatNote("Not sent: " + e.message, true);
+      } finally {
+        $("chat-send").disabled = chatWindowLeft(chatsByKey[chatOpen]) <= 0;
+      }
+    }
+    $("chat-send").addEventListener("click", sendChat);
+    $("chat-text").addEventListener("input", () => {
+      const t = $("chat-text");
+      t.style.height = "";
+      t.style.height = Math.min(t.scrollHeight, 140) + "px";
+      if ($("chat-note").classList.contains("err")) chatNote("");
+    });
+
     // ---------- Inbox: red counter on the tab for messages that came since this device last opened Inbox ----------
     let inboxMsgs = [], inboxNewSince = 0, inboxLoaded = false;
     let inboxSeen = (() => { try { const v = localStorage.getItem("sb-inbox-seen"); return v === null ? null : Number(v) || 0; } catch (e) { return 0; } })();
@@ -4912,6 +5222,7 @@
     const inboxNewest = () => inboxMsgs.reduce((t, m) => Math.max(t, inboxTime(m)), 0);
     function setInboxSeen(t) { inboxSeen = t; try { localStorage.setItem("sb-inbox-seen", String(t)); } catch (e) {} }
     function updateInboxBadge() {
+      if (isChatAdmin()) return renderChats(); // chat view: the counter is the number of chats with unread messages
       const n = inboxMsgs.filter((m) => inboxTime(m) > (inboxSeen || 0)).length;
       const badge = $("tab-badge-inbox");
       badge.textContent = n > 99 ? "99+" : n;
