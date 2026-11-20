@@ -127,6 +127,9 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   then move orders and rates to the API number 86558 15013.
 - Admin's Inbox tab has a red counter like Credit's (`tab-badge-inbox`): messages newer than when this device last opened Inbox
   (localStorage `sb-inbox-seen`, per device); opening Inbox clears it and labels those messages "New" until the next visit.
+- Admin → WhatsApp starts with "Website QR code" (21 Nov 2026, replaced "Catalogue on request"): a QR of
+  https://sharhanbroilers.co.in/?utm_source=qr (Visitors shows those visits as "qr"), the plain link, Share QR (phone share sheet
+  with the picture), Copy link, Download QR. The auto-reply switch and recent automatic replies are in the "Automatic replies" card below.
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - The form's help line ("Please contact us if you need any assistance...") shows up to 2 mobiles + an email from Admin → Order form →
   Help line (`site_content/orders.help` = {phones, email}; saved with merge, as are the recipients). Only the sentence is in DICT;
