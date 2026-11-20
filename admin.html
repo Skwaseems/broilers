@@ -979,6 +979,18 @@
       margin-top: 2px;
     }
 
+    .inbox-item.is-new {
+      background: #fdf3f2;
+      margin: 0 -10px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+
+    .inbox-new {
+      margin-right: 6px;
+      vertical-align: 1px;
+    }
+
     .cat-item {
       display: grid;
       grid-template-columns: 96px 1fr;
@@ -1784,7 +1796,7 @@
   <div id="app">
     <nav class="tabs" id="admin-nav" role="tablist" aria-label="Admin sections">
       <button type="button" role="tab" id="tab-send" aria-controls="panel-send" data-tab="send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg><span class="tab-label">Send</span></button>
-      <button type="button" role="tab" id="tab-inbox" aria-controls="panel-inbox" data-tab="inbox"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-7a2 2 0 0 0-1.8-1H7.3a2 2 0 0 0-1.8 1Z"/></svg><span class="tab-label">Inbox</span></button>
+      <button type="button" role="tab" id="tab-inbox" aria-controls="panel-inbox" data-tab="inbox"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-7a2 2 0 0 0-1.8-1H7.3a2 2 0 0 0-1.8 1Z"/></svg><span class="tab-label">Inbox</span><span class="tab-badge" id="tab-badge-inbox" hidden></span></button>
       <button type="button" role="tab" id="tab-credit" aria-controls="panel-credit" data-tab="credit"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span class="tab-label">Credit</span><span class="tab-badge" id="tab-badge-credit" hidden></span></button>
       <button type="button" role="tab" id="tab-products" aria-controls="panel-products" data-tab="products"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 8-9-5-9 5v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><span class="tab-label">Products</span></button>
       <button type="button" class="tab-more-btn" id="tab-more-btn" aria-expanded="false" aria-controls="tab-more"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="tab-label">More</span></button>
@@ -4884,20 +4896,55 @@
           if (k && !lastInbound[k]) lastInbound[k] = m.timestamp; // newest first
         });
         renderCustomers();
-        const list = $("inbox-list");
-        list.innerHTML = "";
-        $("inbox-count").textContent = snap.size;
-        if (snap.empty) { list.appendChild(el("p", { className: "muted", textContent: "No replies yet." })); return; }
-        snap.forEach((doc) => {
-          const m = doc.data();
-          list.appendChild(el("div", { className: "inbox-item" }, [
-            el("div", { className: "who", textContent: (m.name || m.from || "Unknown") + " — " + (m.from || "") }),
-            el("div", { className: "when", textContent: m.timestamp ? new Date(m.timestamp).toLocaleString() : "" }),
-            el("div", { className: "text", textContent: m.text || "[" + (m.type || "message") + "]" }),
-          ]));
-        });
+        inboxMsgs = snap.docs.map((doc) => doc.data());
+        if (inboxSeen === null) setInboxSeen(inboxNewest()); // first time on this device: nothing counts as new
+        if (!inboxLoaded) { inboxLoaded = true; inboxNewSince = inboxSeen; }
+        renderInbox();
+        if (!$("panel-inbox").hidden) markInboxSeen(); // Inbox open: new messages are seen as they arrive
+        else updateInboxBadge();
       });
     }
+
+    // ---------- Inbox: red counter on the tab for messages that came since this device last opened Inbox ----------
+    let inboxMsgs = [], inboxNewSince = 0, inboxLoaded = false;
+    let inboxSeen = (() => { try { const v = localStorage.getItem("sb-inbox-seen"); return v === null ? null : Number(v) || 0; } catch (e) { return 0; } })();
+    const inboxTime = (m) => Date.parse(m.timestamp || "") || 0;
+    const inboxNewest = () => inboxMsgs.reduce((t, m) => Math.max(t, inboxTime(m)), 0);
+    function setInboxSeen(t) { inboxSeen = t; try { localStorage.setItem("sb-inbox-seen", String(t)); } catch (e) {} }
+    function updateInboxBadge() {
+      const n = inboxMsgs.filter((m) => inboxTime(m) > (inboxSeen || 0)).length;
+      const badge = $("tab-badge-inbox");
+      badge.textContent = n > 99 ? "99+" : n;
+      badge.hidden = !n;
+      badge.setAttribute("aria-label", n + " new message" + (n === 1 ? "" : "s"));
+    }
+    function markInboxSeen() {
+      if (inboxNewest() > (inboxSeen || 0)) setInboxSeen(inboxNewest());
+      updateInboxBadge();
+    }
+    function renderInbox() {
+      const list = $("inbox-list");
+      list.innerHTML = "";
+      $("inbox-count").textContent = inboxMsgs.length;
+      if (!inboxMsgs.length) { list.appendChild(el("p", { className: "muted", textContent: "No replies yet." })); return; }
+      inboxMsgs.forEach((m) => {
+        const fresh = inboxTime(m) > inboxNewSince;
+        const who = el("div", { className: "who", textContent: (m.name || m.from || "Unknown") + " — " + (m.from || "") });
+        if (fresh) who.prepend(el("span", { className: "badge err inbox-new", textContent: "New" }));
+        list.appendChild(el("div", { className: "inbox-item" + (fresh ? " is-new" : "") }, [
+          who,
+          el("div", { className: "when", textContent: m.timestamp ? new Date(m.timestamp).toLocaleString() : "" }),
+          el("div", { className: "text", textContent: m.text || "[" + (m.type || "message") + "]" }),
+        ]));
+      });
+    }
+    // Opening Inbox: what came since the last visit is labelled New (until Inbox is opened again), and the counter clears.
+    document.addEventListener("sb-tab", (e) => {
+      if (e.detail !== "inbox") return;
+      inboxNewSince = inboxSeen || 0;
+      renderInbox();
+      markInboxSeen();
+    });
 
     // ---------- Order recipients (site_content/orders, read by the website's order form) ----------
     const RECIP_DEFAULT = { whatsapp: ["919820132880"], emails: ["sharhanbroilers@gmail.com"] };

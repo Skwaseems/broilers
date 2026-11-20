@@ -117,6 +117,8 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   number 86558 15013 only sends catalogues. Rates → Send on WhatsApp signs the message off with that number and reminds the admin
   to send from that phone (`orderWa`). The Worker's replies on the API number point there: the "Enquire Now" reply and, for any
   other message (not a catalogue request or STOP/START), a once-a-day text (`orderNumberReply`, KV `ordnum:`), only while auto-reply is on.
+- Admin's Inbox tab has a red counter like Credit's (`tab-badge-inbox`): messages newer than when this device last opened Inbox
+  (localStorage `sb-inbox-seen`, per device); opening Inbox clears it and labels those messages "New" until the next visit.
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - The form's help line ("Please contact us if you need any assistance...") shows up to 2 mobiles + an email from Admin → Order form →
   Help line (`site_content/orders.help` = {phones, email}; saved with merge, as are the recipients). Only the sentence is in DICT;
