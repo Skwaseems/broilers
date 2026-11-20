@@ -2201,23 +2201,28 @@
       </div>
 
       <div class="tab-panel" role="tabpanel" id="panel-whatsapp" aria-labelledby="tab-whatsapp" hidden>
-      <section class="card" aria-labelledby="auto-title">
-        <h2 id="auto-title">Catalogue on request</h2>
-        <label class="check" style="font-size:17px;margin:6px 0 14px;"><input type="checkbox" id="auto-reply-on">
-          <strong>Auto-reply is on</strong></label>
+      <section class="card" aria-labelledby="siteqr-title">
+        <h2 id="siteqr-title">Website QR code</h2>
+        <p class="muted">Share this with customers: scanning it or tapping the link opens the Sharhan Broilers website.</p>
         <div class="auto-share">
-          <div id="auto-qr" class="auto-qr" role="img"
-            aria-label="QR code that opens WhatsApp to ask for the catalogue"></div>
+          <div id="site-qr" class="auto-qr" role="img" aria-label="QR code that opens the Sharhan Broilers website"></div>
           <div class="auto-share-text">
-            <input type="text" id="auto-link" readonly aria-label="Catalogue request link">
+            <input type="text" id="site-link" readonly aria-label="Website link">
             <div class="row-form">
-              <button class="btn small" id="auto-qr-share" type="button">Share QR</button>
-              <button class="btn secondary small" id="auto-copy">Copy link</button>
-              <a class="btn secondary small" id="auto-qr-download" download="sharhan-catalogue-qr.png">Download QR</a>
+              <button class="btn small" id="site-qr-share" type="button">Share QR</button>
+              <button class="btn secondary small" id="site-copy" type="button">Copy link</button>
+              <a class="btn secondary small" id="site-qr-download" download="sharhan-broilers-website-qr.png">Download QR</a>
             </div>
           </div>
         </div>
-        <p class="muted" style="margin:16px 0 4px;"><strong>Recent automatic replies</strong></p>
+        <div class="status" id="siteqr-status" role="status"></div>
+      </section>
+
+      <section class="card" aria-labelledby="auto-title">
+        <h2 id="auto-title">Automatic replies</h2>
+        <label class="check" style="font-size:17px;margin:6px 0 14px;"><input type="checkbox" id="auto-reply-on">
+          <strong>Auto-reply is on</strong></label>
+        <p class="muted" style="margin:0 0 4px;"><strong>Recent automatic replies</strong></p>
         <div id="auto-recent" class="muted">None yet.</div>
         <div class="status" id="auto-status" role="status"></div>
       </section>
@@ -5821,15 +5826,17 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
       }
     });
 
-    // ---------- Catalogue on request (auto-reply) ----------
-    const BUSINESS_WA = "918655815013";
-    const AUTO_LINK = "https://wa.me/" + BUSINESS_WA + "?text=" + encodeURIComponent("Catalogue");
+    // ---------- Automatic replies (auto-reply switch + recent replies) ----------
     let autoUnsub = null;
 
+    // ---------- Website QR code (WhatsApp tab): customers scan it to open the website ----------
+    // The QR carries ?utm_source=qr so Admin → Visitors shows those visits as "qr"; the shared link stays plain.
+    const SITE_LINK = "https://sharhanbroilers.co.in";
+    const SITE_QR_URL = SITE_LINK + "/?utm_source=qr";
     function drawQr() {
       if (typeof qrcode !== "function") return;
       const qr = qrcode(0, "M");
-      qr.addData(AUTO_LINK);
+      qr.addData(SITE_QR_URL);
       qr.make();
       const n = qr.getModuleCount(), cell = 10, margin = 4 * cell;
       const canvas = document.createElement("canvas");
@@ -5840,34 +5847,34 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
       ctx.fillStyle = "#1c1c22";
       for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) ctx.fillRect(margin + c * cell, margin + r * cell, cell, cell);
       const png = canvas.toDataURL("image/png");
-      $("auto-qr").style.backgroundImage = "url('" + png + "')";
-      $("auto-qr-download").href = png;
-      canvas.toBlob((b) => { autoQrBlob = b; }, "image/png");
+      $("site-qr").style.backgroundImage = "url('" + png + "')";
+      $("site-qr-download").href = png;
+      canvas.toBlob((b) => { siteQrBlob = b; }, "image/png");
     }
-    let autoQrBlob = null;
+    let siteQrBlob = null;
     // Share QR: the picture itself to WhatsApp / any app (phone share sheet), with the link as text.
     // Where a picture can't be shared (most computers), the link is shared, or the QR downloads.
-    $("auto-qr-share").addEventListener("click", async () => {
-      const text = "Scan this QR or tap the link to get the Sharhan Broilers catalogue on WhatsApp: " + AUTO_LINK;
+    $("site-qr-share").addEventListener("click", async () => {
+      const text = "Sharhan Broilers: scan this QR or tap the link to visit our website and place your order: " + SITE_LINK;
       try {
-        const file = autoQrBlob && new File([autoQrBlob], "sharhan-catalogue-qr.png", { type: "image/png" });
+        const file = siteQrBlob && new File([siteQrBlob], "sharhan-broilers-website-qr.png", { type: "image/png" });
         if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: "Sharhan Broilers catalogue", text });
+          await navigator.share({ files: [file], title: "Sharhan Broilers", text });
         } else if (navigator.share) {
-          await navigator.share({ title: "Sharhan Broilers catalogue", text });
+          await navigator.share({ title: "Sharhan Broilers", text });
         } else {
-          $("auto-qr-download").click();
-          setStatus("auto-status", "Sharing isn't available on this device, so the QR was downloaded instead.", "");
+          $("site-qr-download").click();
+          setStatus("siteqr-status", "Sharing isn't available on this device, so the QR was downloaded instead.", "");
         }
       } catch (e) {
-        if (e && e.name !== "AbortError") setStatus("auto-status", "Couldn't share: " + e.message, "err");
+        if (e && e.name !== "AbortError") setStatus("siteqr-status", "Couldn't share: " + e.message, "err");
       }
     });
-    $("auto-link").value = AUTO_LINK;
+    $("site-link").value = SITE_LINK;
     drawQr();
-    $("auto-copy").addEventListener("click", async () => {
-      try { await navigator.clipboard.writeText(AUTO_LINK); setStatus("auto-status", "Link copied.", "ok"); }
-      catch (e) { $("auto-link").select(); setStatus("auto-status", "Press Ctrl+C to copy the selected link.", ""); }
+    $("site-copy").addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(SITE_LINK); setStatus("siteqr-status", "Link copied.", "ok"); }
+      catch (e) { $("site-link").select(); setStatus("siteqr-status", "Press Ctrl+C to copy the selected link.", ""); }
     });
 
     $("auto-reply-on").addEventListener("change", async () => {
