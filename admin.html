@@ -2211,6 +2211,7 @@
           <div class="auto-share-text">
             <input type="text" id="auto-link" readonly aria-label="Catalogue request link">
             <div class="row-form">
+              <button class="btn small" id="auto-qr-share" type="button">Share QR</button>
               <button class="btn secondary small" id="auto-copy">Copy link</button>
               <a class="btn secondary small" id="auto-qr-download" download="sharhan-catalogue-qr.png">Download QR</a>
             </div>
@@ -5841,7 +5842,27 @@ ${row("Company / Billing Name", a.name)}${row("Full Name of the Applicant", a.ap
       const png = canvas.toDataURL("image/png");
       $("auto-qr").style.backgroundImage = "url('" + png + "')";
       $("auto-qr-download").href = png;
+      canvas.toBlob((b) => { autoQrBlob = b; }, "image/png");
     }
+    let autoQrBlob = null;
+    // Share QR: the picture itself to WhatsApp / any app (phone share sheet), with the link as text.
+    // Where a picture can't be shared (most computers), the link is shared, or the QR downloads.
+    $("auto-qr-share").addEventListener("click", async () => {
+      const text = "Scan this QR or tap the link to get the Sharhan Broilers catalogue on WhatsApp: " + AUTO_LINK;
+      try {
+        const file = autoQrBlob && new File([autoQrBlob], "sharhan-catalogue-qr.png", { type: "image/png" });
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: "Sharhan Broilers catalogue", text });
+        } else if (navigator.share) {
+          await navigator.share({ title: "Sharhan Broilers catalogue", text });
+        } else {
+          $("auto-qr-download").click();
+          setStatus("auto-status", "Sharing isn't available on this device, so the QR was downloaded instead.", "");
+        }
+      } catch (e) {
+        if (e && e.name !== "AbortError") setStatus("auto-status", "Couldn't share: " + e.message, "err");
+      }
+    });
     $("auto-link").value = AUTO_LINK;
     drawQr();
     $("auto-copy").addEventListener("click", async () => {
