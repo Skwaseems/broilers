@@ -5,7 +5,7 @@ account_id = "e9e9acda46a0218cfcce4959677d8601"
 
 [vars]
 FIREBASE_PROJECT_ID = "sharhan-broilers"
-ALLOWED_EMAILS = "sharhanbroilerplant@gmail.com,waseemshaikh597@gmail.com,former-admin@example.invalid,bagbanhanif@gmail.com,farixashk06@gmail.com"
+ALLOWED_EMAILS = "sharhanbroilerplant@gmail.com,waseemshaikh597@gmail.com,bagbanhanif@gmail.com,farixashk06@gmail.com"
 # Owner's Google emails (comma-separated; business email since 19 Nov 2026, and the old personal one):
 # may set up / reset the main admin ID (Admin → Users). Recovery emails go to OWNER_EMAIL in admin.html.
 OWNER_EMAIL = "sharhanbroilerplant@gmail.com,waseemshaikh597@gmail.com"

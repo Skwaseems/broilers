@@ -14,7 +14,7 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null && (
         request.auth.token.get('email', '') in ['sharhanbroilerplant@gmail.com', 'waseemshaikh597@gmail.com',
-                                                'former-admin@example.invalid', 'bagbanhanif@gmail.com', 'farixashk06@gmail.com']
+                                                'bagbanhanif@gmail.com', 'farixashk06@gmail.com']
         || (request.auth.token.get('sb_user', '') != '' && staffActive()));
     }
 
