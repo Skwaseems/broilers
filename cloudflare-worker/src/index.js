@@ -1265,6 +1265,30 @@ function wantsCatalogue(m) {
   return m.type === "text" && !!m.text && (AUTO_REPLY_KEYWORDS.test(m.text) || AUTO_REPLY_GREETING.test(m.text));
 }
 
+// Orders, credit and rates use one number (owner, 20 Nov 2026): Order recipients WhatsApp number 1, not this
+// catalogue number. Replies here point customers to it.
+async function orderNumber(env) {
+  const orders = (await getDocument(env, "site_content", "orders").catch(() => null)) || {};
+  const digits = String((orders.whatsapp || [])[0] || "919820132880").replace(/\D/g, "");
+  const local = digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : digits;
+  return { shown: local.length === 10 ? local.slice(0, 5) + " " + local.slice(5) : local, link: "https://wa.me/" + digits };
+}
+
+// Anything else a customer writes to the catalogue number (not a catalogue request, STOP/START or a card tap):
+// at most once a day, tell them where orders and rates go. Free: they wrote first.
+async function orderNumberReply(env, phone) {
+  const key = "ordnum:" + phone;
+  if (await env.CATALOGUE_IMAGES.get(key)) return;
+  await env.CATALOGUE_IMAGES.put(key, "1", { expirationTtl: 86400 });
+  const num = await orderNumber(env);
+  const body = `Thank you for your message! 🙏\nFor orders, rates and credit, please WhatsApp *Sharhan Broilers* on *${num.shown}*:\n${num.link}`;
+  await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messaging_product: "whatsapp", recipient_type: "individual", to: phone, type: "text", text: { body, preview_url: false } }),
+  });
+}
+
 // Instant answer to "Enquire Now" on a catalogue card. The tap opened a customer-service
 // window, so a normal (free) message is allowed: the item, its details and the website link.
 async function enquiryReply(env, m, item) {
@@ -1273,10 +1297,12 @@ async function enquiryReply(env, m, item) {
   const site = env.SITE_URL.replace(/\/$/, "");
   const details = pickCardText(item);
   const packs = (item.packs || []).length ? `\nPacks: ${item.packs.join(" / ")}` : "";
+  const num = await orderNumber(env);
   const body = `*${item.name}*` +
     (details && details !== item.name ? `\n${details.replace(/\s*Packs?\s*:.*$/i, "")}` : "") + packs +
     `\n\nThank you for your enquiry! Our team will contact you shortly with today's rate.` +
-    `\nReply here with the quantity you need, or see details and order online:\n${site}/?item=${item.id}`;
+    `\nTo order, WhatsApp us on *${num.shown}*: ${num.link}` +
+    `\nOr see details and order online:\n${site}/?item=${item.id}`;
   await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -1354,9 +1380,9 @@ async function autoReply(env, m, origin) {
   const phone = String(m.from || "").replace(/\D/g, "");
   if (!phone) return;
   if (await subscriptionReply(env, m)) return;
-  if (!wantsCatalogue(m)) return;
   const settings = (await getDocument(env, "settings", "whatsapp")) || {};
   if (settings.autoReply === false) return;
+  if (!wantsCatalogue(m)) return orderNumberReply(env, phone);
   if (await isUnsubscribed(env, phone)) return; // they said STOP; "START" turns it back on
   const prev = await getDocument(env, "whatsapp_autoreply", phone);
   if (prev && prev.lastSentAt && Date.now() - new Date(prev.lastSentAt).getTime() < AUTO_REPLY_GAP_MS) return;

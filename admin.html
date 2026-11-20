@@ -2109,6 +2109,7 @@
             <tbody id="rates-rows"></tbody>
           </table>
           <div class="row-form"><button class="btn" id="rates-save" type="button">Save rates</button><button class="btn secondary" id="rates-send" type="button">Send on WhatsApp</button></div>
+          <p class="muted" id="rates-send-from"></p>
         </div>
         <div class="status" id="rates-status" role="status"></div>
       </section>
@@ -4504,6 +4505,18 @@
     const rateTypeLabel = (v) => ([...$("rates-type").options].find((o) => o.value === v) || { text: v }).text;
     const rateDate = (d) => { const [y, m, day] = d.split("-").map(Number); return new Date(y, m - 1, day).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); };
     // The WhatsApp message. English, like the order message.
+    // Orders and rates use one number (owner, 20 Nov 2026): Order recipients WhatsApp number 1. Rates are signed off
+    // with it, and Admin reminds whoever sends them to do it from that phone (wa.me opens the phone's own WhatsApp).
+    let orderWa = "919820132880";
+    const orderWaShown = () => { const l = orderWa.length === 12 && orderWa.startsWith("91") ? orderWa.slice(2) : orderWa; return l.length === 10 ? l.slice(0, 5) + " " + l.slice(5) : l; };
+    function loadOrderWa() {
+      db.collection("site_content").doc("orders").get().then((s) => {
+        const w = s.exists && (s.data().whatsapp || [])[0];
+        if (w) orderWa = String(w).replace(/\D/g, "");
+      }).catch(() => {}).then(() => {
+        $("rates-send-from").textContent = "Send rates from the WhatsApp of " + orderWaShown() + " (Order recipients number 1): open Admin on that phone, so customers get rates from the same number they send orders to.";
+      });
+    }
     function rateMessage(data) {
       const lines = ["*Sharhan Broilers - Rates*"];
       if (rateName) lines.push("For: " + rateName);
@@ -4517,6 +4530,7 @@
         if (prices) lines.push(prices);
         if (data.remarks[it.name]) lines.push("Remarks: " + data.remarks[it.name]);
       });
+      lines.push("", "For orders and queries, WhatsApp: " + orderWaShown());
       return lines.join("\n");
     }
     async function saveRates(data, savedText) {
@@ -4543,7 +4557,7 @@
       if (!data) return;
       if (!data.count && !Object.keys(data.daily).length) return setStatus("rates-status", "Enter at least one rate to send.", "err");
       window.open("https://wa.me/91" + rateMobile + "?text=" + encodeURIComponent(rateMessage(data)), "_blank", "noopener");
-      saveRates(data, "Saved. WhatsApp has opened with the rates: tap Send there.");
+      saveRates(data, "Saved. WhatsApp has opened with the rates: check it's the WhatsApp of " + orderWaShown() + ", then tap Send.");
     });
 
     // ---------- Remove a number from all records (the number itself never goes in the activity log) ----------
@@ -4849,7 +4863,7 @@
         renderRateMatches();
       });
 
-      if (canSetRates()) loadRateList();
+      if (canSetRates()) { loadRateList(); loadOrderWa(); }
       if (!can("send") && !can("inbox")) return;
       if (can("send")) {
         loadUsage();

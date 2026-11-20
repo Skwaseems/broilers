@@ -113,6 +113,10 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   "Remove a number from all records" also deletes that number's visits.
 - No email sending: catalogue by email and order copies were built 19–20 Nov 2026, then dropped (owner rejected the email plan,
   20 Nov 2026) and removed. Don't bring them back unless asked.
+- One number for orders, credit and rates (owner, 20 Nov 2026): Order recipients WhatsApp number 1 (98201 32880); the API
+  number 86558 15013 only sends catalogues. Rates → Send on WhatsApp signs the message off with that number and reminds the admin
+  to send from that phone (`orderWa`). The Worker's replies on the API number point there: the "Enquire Now" reply and, for any
+  other message (not a catalogue request or STOP/START), a once-a-day text (`orderNumberReply`, KV `ordnum:`), only while auto-reply is on.
 - The website's floating WhatsApp button goes to the first number in Admin → Order form → Order recipients.
 - The form's help line ("Please contact us if you need any assistance...") shows up to 2 mobiles + an email from Admin → Order form →
   Help line (`site_content/orders.help` = {phones, email}; saved with merge, as are the recipients). Only the sentence is in DICT;
