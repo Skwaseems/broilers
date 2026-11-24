@@ -224,6 +224,7 @@ async function rightsOf(env, user) {
 const ROUTE_RIGHTS = {
   "/usage": ["send"], "/balance": ["send"], "/balance-set": ["send"], "/send-catalogue": ["send"],
   "/inbox": ["inbox", "send"], "/chat-send": ["inbox"], "/kyc-delete": ["credit"], "/rate-sheet": ["rates"],
+  "/rates-send": ["rates"], "/rates-template": ["rates"],
   "/catalogue-submit": ["send", "whatsapp"], "/products-submit": ["send", "whatsapp"], "/text-submit": ["send", "whatsapp"],
   "/photo-submit": ["send", "whatsapp"], "/pick-submit": ["send", "whatsapp"], "/commerce-sync": ["products", "send", "whatsapp"],
 };
@@ -1204,6 +1205,87 @@ async function chatSend(env, user, body) {
   return { ok: true, id };
 }
 
+// ---- Customer rates from this (catalogue) number: Admin → Rates → "Send from 86558 15013" (24 Nov 2026) ----
+// Within 24 hours of the customer's last message the whole rates message goes as free text. Otherwise WhatsApp
+// allows only an approved template: catalogue_meta/rates, with the rates on one line (a template variable can't
+// hold line breaks). Orders stay on Order recipients number 1, named at the end of the message.
+const RATES_TEMPLATE_BODY = "Dear {{1}}, please find your latest item prices from Sharhan Broilers below.\n\n{{2}}\n\n" +
+  "These prices apply to your upcoming orders. To place an order or ask a question, WhatsApp us on {{3}}.";
+const RATES_TEMPLATE_EXAMPLE = ["Ravi Traders", "Weekly rate, valid 24 Nov 2026 to 30 Nov 2026 · Curry Cut: Fresh ₹220/kg · Boneless Breast: Fresh ₹320/kg, Frozen ₹300/kg", "98201 32880"];
+const RATES_LINE_MAX = 700; // the template body (with its variables) may be at most 1024 characters
+const oneLine = (s, max) => String(s || "").replace(/[\r\n\t]+/g, " ").replace(/ {2,}/g, " ").trim().slice(0, max);
+
+async function submitRatesTemplate(env, prev) {
+  const attempt = prev ? (prev.attempt || 1) + 1 : 1;
+  const name = "sharhan_rates_v1" + (attempt > 1 ? `_r${attempt}` : "");
+  const created = await graph(env, `${env.META_WABA_ID}/message_templates`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, language: env.TEMPLATE_LANGUAGE, category: "UTILITY", components: [{ type: "BODY", text: RATES_TEMPLATE_BODY, example: { body_text: [RATES_TEMPLATE_EXAMPLE] } }] }),
+  });
+  const doc = { name, id: created.id || "", status: created.status || "PENDING", category: created.category || "UTILITY", attempt, submittedAt: new Date().toISOString() };
+  await setDocument(env, "catalogue_meta", "rates", doc);
+  return doc;
+}
+// The template's state, checked with Meta while it isn't approved. submitIfMissing: the first time Admin → Rates
+// opens, the template is sent for approval.
+async function ratesTemplate(env, submitIfMissing) {
+  const doc = await getDocument(env, "catalogue_meta", "rates").catch(() => null);
+  if (!doc) return submitIfMissing ? submitRatesTemplate(env, null) : null;
+  if (doc.status !== "APPROVED") {
+    const data = await graph(env, `${env.META_WABA_ID}/message_templates?name=${doc.name}&fields=name,status,rejected_reason,category`).catch(() => null);
+    const found = data && (data.data || []).find((d) => d.name === doc.name);
+    if (found) {
+      const rejectedReason = found.rejected_reason && found.rejected_reason !== "NONE" ? found.rejected_reason : null;
+      if (found.status !== doc.status || rejectedReason !== (doc.rejectedReason || null) || (found.category && found.category !== doc.category)) {
+        Object.assign(doc, { status: found.status, rejectedReason, category: found.category || doc.category });
+        await setDocument(env, "catalogue_meta", "rates", doc);
+      }
+    }
+  }
+  return doc;
+}
+
+// POST /rates-send {mobile, name, text, line}: text = the full message (as Admin shows it), line = the same rates on one line.
+async function ratesSend(env, user, body) {
+  const mobile = lastTen(body.mobile);
+  if (!/^[6-9][0-9]{9}$/.test(mobile)) throw new Error("Invalid mobile number.");
+  const to = "91" + mobile;
+  const text = String(body.text || "").trim();
+  const line = oneLine(body.line, 4000);
+  if (!text || !line) throw new Error("Enter at least one rate to send.");
+  if (text.length > 4096) throw new Error("The message is too long.");
+  const theirs = await queryDocuments(env, "whatsapp_inbox", "from", to);
+  const last = theirs.reduce((t, m) => Math.max(t, Date.parse(m.timestamp || "") || 0), 0);
+  let message, shown, how;
+  if (last && Date.now() - last <= 24 * 3600 * 1000) {
+    how = "text";
+    shown = text;
+    message = { type: "text", text: { body: text, preview_url: false } };
+  } else {
+    const t = await ratesTemplate(env, true);
+    if (!t || t.status !== "APPROVED") {
+      throw new Error(t && t.status === "REJECTED"
+        ? "WhatsApp rejected the rates message format" + (t.rejectedReason ? " (" + t.rejectedReason + ")" : "") + ". Use Submit again below."
+        : "WhatsApp hasn't approved the rates message format yet (usually a few minutes to a few hours). Try again later. If the customer messages 86558 15013 first, the full message goes at once.");
+    }
+    if (line.length > RATES_LINE_MAX) throw new Error("Too many rates for one message to a customer who hasn't messaged in the last 24 hours. Send fewer items, or ask the customer to message 86558 15013 first.");
+    const name = oneLine(body.name, 60) || "Customer";
+    const num = await orderNumber(env);
+    how = "template";
+    shown = RATES_TEMPLATE_BODY.replace("{{1}}", name).replace("{{2}}", line).replace("{{3}}", num.shown);
+    message = { type: "template", template: { name: t.name, language: { code: env.TEMPLATE_LANGUAGE }, components: [{ type: "body", parameters: [name, line, num.shown].map((v) => ({ type: "text", text: v })) }] } };
+  }
+  const res = await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messaging_product: "whatsapp", recipient_type: "individual", to, ...message }),
+  });
+  const id = sentId(res);
+  await addDocument(env, "whatsapp_chat", chatDoc(to, "rates", shown, id, user.email));
+  return { ok: true, how, id };
+}
+
 // If the first message failed, the rest is dropped: the customer shouldn't get half a catalogue.
 async function releaseNextMessage(env, status) {
   if (!["delivered", "read", "failed"].includes(status.status) || !status.waMessageId) return;
@@ -1626,7 +1708,7 @@ export default {
     try {
       user = await requireAuthorizedUser(request, env);
     } catch (e) {
-      if (["/inbox", "/my-rights", "/chat-send", "/usage", "/balance", "/balance-set", "/rate-sheet", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
+      if (["/inbox", "/my-rights", "/chat-send", "/rates-send", "/rates-template","/usage", "/balance", "/balance-set", "/rate-sheet", "/purge-number", "/send-catalogue", "/catalogue-submit", "/catalogue-status", "/pick-submit", "/commerce-sync", "/products-submit", "/photo-submit", "/text-submit", "/kyc-delete"].includes(path) || path.startsWith("/catalogue-image/") || path.startsWith("/kyc/") || path.startsWith("/staff-")) {
         return json({ error: e.message }, 401);
       }
       return new Response("Not found", { status: 404 });
@@ -1683,6 +1765,28 @@ export default {
         return json(await whatsappUsage(env));
       } catch (e) {
         return json({ error: e.message }, 502);
+      }
+    }
+
+    // Rate admins: send a customer's rates from this number, and the state of its template (sent for approval
+    // the first time it's asked for; POST sends it again after a rejection).
+    if (path === "/rates-send" && request.method === "POST") {
+      try {
+        return json(await ratesSend(env, user, await request.json().catch(() => ({}))));
+      } catch (e) {
+        return json({ error: e.message }, 400);
+      }
+    }
+    if (path === "/rates-template") {
+      try {
+        if (request.method === "POST") {
+          const t = await ratesTemplate(env, false);
+          if (t && t.status !== "REJECTED") return json(t);
+          return json(await submitRatesTemplate(env, t));
+        }
+        return json((await ratesTemplate(env, true)) || {});
+      } catch (e) {
+        return json({ error: e.message }, 400);
       }
     }
 

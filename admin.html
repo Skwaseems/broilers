@@ -2182,8 +2182,10 @@
             <thead><tr><th>Item</th><th>Fresh ₹/kg</th><th>Frozen ₹/kg</th></tr></thead>
             <tbody id="rates-rows"></tbody>
           </table>
-          <div class="row-form"><button class="btn" id="rates-save" type="button">Save rates</button><button class="btn secondary" id="rates-send" type="button">Send on WhatsApp</button></div>
+          <div class="row-form"><button class="btn" id="rates-save" type="button">Save rates</button><button class="btn" id="rates-api-send" type="button">Send from 86558 15013</button></div>
           <p class="muted" id="rates-send-from"></p>
+          <p class="muted" id="rates-tpl"></p>
+          <div class="row-form"><button class="btn secondary" id="rates-send" type="button">Or send from my own WhatsApp</button></div>
         </div>
         <div class="status" id="rates-status" role="status"></div>
       </section>
@@ -4622,8 +4624,41 @@
         const w = s.exists && (s.data().whatsapp || [])[0];
         if (w) orderWa = String(w).replace(/\D/g, "");
       }).catch(() => {}).then(() => {
-        $("rates-send-from").textContent = "Send rates from the WhatsApp of " + orderWaShown() + " (Order recipients number 1): open Admin on that phone, so customers get rates from the same number they send orders to.";
+        $("rates-send-from").textContent = "Goes from the catalogue number, no phone needed. The message asks customers to WhatsApp " + orderWaShown() + " for orders. Replies come to Inbox.";
       });
+      loadRatesTpl();
+    }
+    // Customers who haven't messaged 86558 15013 in the last 24 hours get WhatsApp's approved rates message
+    // (the rates on one line). The Worker sends it for approval the first time this runs (catalogue_meta/rates).
+    async function loadRatesTpl(resubmit) {
+      const box = $("rates-tpl");
+      try {
+        const t = await api("/rates-template", resubmit ? { method: "POST" } : undefined);
+        box.textContent = "";
+        const lead = "Customer messaged 86558 15013 in the last 24 hours: full message, free. Otherwise WhatsApp's approved format, rates on one line (about ₹" + (t.category === "MARKETING" ? "1" : "0.14") + " each). Format: ";
+        const state = t.status === "APPROVED" ? "approved ✓" : t.status === "REJECTED" ? "rejected by WhatsApp" + (t.rejectedReason ? " (" + t.rejectedReason + ")" : "") + "."
+          : "waiting for WhatsApp's approval (minutes to a few hours).";
+        box.append(lead, el("b", { textContent: state }));
+        if (t.status === "REJECTED") {
+          const again = el("button", { className: "btn secondary", type: "button", textContent: "Submit again" });
+          again.addEventListener("click", () => { again.disabled = true; loadRatesTpl(true); });
+          box.append(" ", again);
+        }
+      } catch (e) { box.textContent = "Couldn't check the rates message format: " + e.message; }
+    }
+    // The same rates on one line, for the template (a WhatsApp template variable can't hold line breaks).
+    function rateLine(data) {
+      const parts = [];
+      const head = [data.rateType && rateTypeLabel(data.rateType) + " rate", data.from && "valid " + rateDate(data.from) + " to " + rateDate(data.to),
+        DAILY_RATES_ON && data.rateType === "daily" && dailyToday.day && "daily market rate of " + rateDate(dailyToday.day)].filter(Boolean).join(", ");
+      if (head) parts.push(head);
+      formItems.filter((it) => it.name && (data.rates[it.name] || data.daily[it.name] || data.remarks[it.name])).forEach((it) => {
+        const r = data.daily[it.name] || data.rates[it.name] || {};
+        const prices = [r.fresh && "Fresh ₹" + r.fresh + "/kg", r.frozen && "Frozen ₹" + r.frozen + "/kg"].filter(Boolean).join(", ");
+        const remark = data.remarks[it.name] ? " (" + data.remarks[it.name] + ")" : "";
+        parts.push(it.name + ": " + (prices || "") + remark);
+      });
+      return parts.join(" · ").replace(/\s+/g, " ").trim();
     }
     function rateMessage(data) {
       const lines = ["*Sharhan Broilers - Rates*"];
@@ -4642,7 +4677,7 @@
       return lines.join("\n");
     }
     async function saveRates(data, savedText) {
-      const buttons = [$("rates-save"), $("rates-send")];
+      const buttons = [$("rates-save"), $("rates-send"), $("rates-api-send")];
       buttons.forEach((b) => { b.disabled = true; });
       try {
         const ref = db.collection("customer_rates").doc(rateMobile);
@@ -4665,7 +4700,28 @@
       if (!data) return;
       if (!data.count && !Object.keys(data.daily).length) return setStatus("rates-status", "Enter at least one rate to send.", "err");
       window.open("https://wa.me/91" + rateMobile + "?text=" + encodeURIComponent(rateMessage(data)), "_blank", "noopener");
-      saveRates(data, "Saved. WhatsApp has opened with the rates: check it's the WhatsApp of " + orderWaShown() + ", then tap Send.");
+      saveRates(data, "Saved. WhatsApp has opened with the rates: check it's the right WhatsApp, then tap Send.");
+    });
+    // From the catalogue number through the Worker (owner's choice, 24 Nov 2026): no phone needed.
+    $("rates-api-send").addEventListener("click", async () => {
+      const data = collectRates();
+      if (!data) return;
+      if (!data.count && !Object.keys(data.daily).length) return setStatus("rates-status", "Enter at least one rate to send.", "err");
+      if (!confirm("Send these rates to " + (rateName ? rateName + " (" + rateMobile + ")" : rateMobile) + " on WhatsApp from 86558 15013?")) return;
+      const btn = $("rates-api-send");
+      btn.disabled = true;
+      setStatus("rates-status", "Sending…", "");
+      try {
+        const r = await api("/rates-send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mobile: rateMobile, name: rateName || "", text: rateMessage(data), line: rateLine(data) }) });
+        btn.disabled = false;
+        logChange("Customer rates", "Sent rates from 86558 15013: " + (rateName || "") + " · " + rateMobile, [r.how === "text" ? "full message" : "approved rates message"]);
+        await saveRates(data, r.how === "text"
+          ? "Saved and sent from 86558 15013: the full message (free: the customer messaged in the last 24 hours). Replies come to Inbox."
+          : "Saved and sent from 86558 15013 as WhatsApp's approved rates message. Replies come to Inbox.");
+      } catch (e) {
+        btn.disabled = false;
+        setStatus("rates-status", "Not sent: " + e.message, "err");
+      }
     });
 
     // ---------- Remove a number from all records (the number itself never goes in the activity log) ----------
@@ -5178,7 +5234,7 @@
         const tick = tickFor(m);
         if (tick) meta.appendChild(tick);
         const parts = [];
-        if (m.dir === "out" && m.kind !== "reply") parts.push(el("span", { className: "chat-by", textContent: m.kind === "catalogue" ? "Catalogue" : "Automatic reply" }));
+        if (m.dir === "out" && m.kind !== "reply") parts.push(el("span", { className: "chat-by", textContent: m.kind === "catalogue" ? "Catalogue" : m.kind === "rates" ? "Rates" : "Automatic reply" }));
         else if (m.dir === "out" && m.by) parts.push(el("span", { className: "chat-by", textContent: m.by }));
         parts.push(document.createTextNode(m.text || ""));
         parts.push(meta);
