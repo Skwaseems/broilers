@@ -96,6 +96,9 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
 - Quantities must be multiples of the chosen pack (`SB_PACK_MULTIPLES = true` in index.html, back on since 15 Nov 2026); since 17 Nov
   other amounts are rounded UP to the next full pack when the customer leaves the box (owner's choice), with a green note. Set it to
   false to accept any quantity: the form then shows the packing breakdown (full packs + kg loose) and the pack discount applies only to kg in full packs.
+- "On Credit" without approval does NOT stop sending (owner, 24 Nov 2026): the form shows a yellow note (`sb-info`, pending or
+  not approved, with Apply for credit) and the message's Payment Terms line says the status (`sbCreditStatusText`: approved /
+  credit application pending approval / not yet approved for credit).
 - Admin → Credit → Bank QR & UPI holds up to two banks: bank 1 at the top of `site_content/payment`, bank 2 under `bank2`, each with a QR
   and an optional logo. The form and the homepage show a tile per bank (logo, or the bank name); tapping one (`data-sb-bank`) opens
   `sbOpenBank`'s popup with the QR and details. In `?order=1` mode the popup must stay outside the `body>*` hide rule.

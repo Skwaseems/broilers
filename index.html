@@ -1372,6 +1372,7 @@ table.sb-table-booking{min-width:0;}
 .sb-lang button[aria-pressed="true"]{background:#1c1c22;border-color:#1c1c22;color:#fff;}
 .sb-credit-note{margin-top:6px;padding:8px 10px;font-size:12px;line-height:1.5;border-radius:3px;background:#fbeceb;color:#8f2420;border-left:3px solid #b3302c;}
 .sb-credit-note.sb-ok{background:#eef7f1;color:#1d6b3c;border-left-color:#25864d;}
+.sb-credit-note.sb-info{background:#fdf6e7;color:#6b4e12;border-left-color:#c99a2e;}
 .sb-ca-open{margin-top:8px;min-height:38px;padding:0 14px;background:#fff;border:1px solid #846e3e;color:#846e3e;border-radius:3px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;cursor:pointer;}
 .sb-ca-open:hover{background:#846e3e;color:#fff;}
 .sb-credit-apply{margin:4px 0 14px;padding:14px;border:1px solid #e3d9c4;border-left:3px solid #846e3e;border-radius:4px;background:#fdfbf6;}
@@ -1789,8 +1790,8 @@ table.sb-table-booking{min-width:0;}
       locBlocked: 'Location permission was blocked — allow it in the browser, or paste a Google Maps link instead.',
       locFailed: 'Couldn’t get your location — please try again or paste a Google Maps link.',
       locUnsupported: 'This phone/browser can’t share its location — please paste a Google Maps link instead.',
-      creditOnly: 'Credit is only for approved customers. Please choose Same Day payment for now, or apply for credit below.',
-      creditPending: 'Your credit application is being checked. Until it is approved, please choose Same Day payment.',
+      creditOnly: 'Your number is not approved for credit yet. You can still send your requirement; we will confirm the payment terms. To get credit, apply below.',
+      creditPending: 'Your credit application is being checked. You can still send your requirement; credit starts once it is approved.',
       caOpen: 'Apply for credit', caTitle: 'Apply For Credit',
       caIntro: 'Fill in your details, add the documents, take a selfie and sign. We check them and contact you.',
       caIntroBasic: 'Upload clear photos of these documents. Sign each copy first (self-attested). We check them and contact you.', caBusiness: 'Business document (GST, Shop Act, FSSAI or trade licence)', caNeedConsentBasic: 'Please tick the agreement box.',
@@ -1871,8 +1872,8 @@ table.sb-table-booking{min-width:0;}
       locBlocked: 'लोकेशन की अनुमति नहीं मिली — ब्राउज़र में अनुमति दें, या गूगल मैप्स लिंक पेस्ट करें।',
       locFailed: 'लोकेशन नहीं मिल सकी — फिर से कोशिश करें या गूगल मैप्स लिंक पेस्ट करें।',
       locUnsupported: 'यह फ़ोन/ब्राउज़र लोकेशन नहीं दे सकता — कृपया गूगल मैप्स लिंक पेस्ट करें।',
-      creditOnly: 'उधार केवल स्वीकृत ग्राहकों के लिए है। अभी के लिए "उसी दिन" भुगतान चुनें, या नीचे उधार के लिए आवेदन करें।',
-      creditPending: 'आपके उधार आवेदन की जाँच चल रही है। मंज़ूरी मिलने तक कृपया "उसी दिन" भुगतान चुनें।',
+      creditOnly: 'आपका नंबर अभी उधार के लिए स्वीकृत नहीं है। आप फिर भी अपनी ज़रूरत भेज सकते हैं; भुगतान की शर्तें हम पक्की करेंगे। उधार के लिए नीचे आवेदन करें।',
+      creditPending: 'आपके उधार आवेदन की जाँच चल रही है। आप फिर भी अपनी ज़रूरत भेज सकते हैं; मंज़ूरी मिलते ही उधार शुरू होगा।',
       caOpen: 'उधार के लिए आवेदन करें', caTitle: 'उधार के लिए आवेदन',
       caIntro: 'अपनी जानकारी भरें, दस्तावेज़ जोड़ें, सेल्फ़ी लें और हस्ताक्षर करें। हम जाँच करके आपसे संपर्क करेंगे।',
       caIntroBasic: 'इन दस्तावेज़ों की साफ़ फ़ोटो अपलोड करें। हर कॉपी पर पहले अपने हस्ताक्षर करें (स्व-सत्यापित)। हम जाँच करके आपसे संपर्क करेंगे।', caBusiness: 'व्यवसाय का दस्तावेज़ (GST, शॉप एक्ट, FSSAI या ट्रेड लाइसेंस)', caNeedConsentBasic: 'कृपया सहमति वाले बॉक्स पर निशान लगाएँ।',
@@ -1953,8 +1954,8 @@ table.sb-table-booking{min-width:0;}
       locBlocked: 'लोकेशनची परवानगी नाकारली — ब्राउझरमध्ये परवानगी द्या, किंवा गूगल मॅप्स लिंक पेस्ट करा.',
       locFailed: 'लोकेशन मिळाले नाही — पुन्हा प्रयत्न करा किंवा गूगल मॅप्स लिंक पेस्ट करा.',
       locUnsupported: 'हा फोन/ब्राउझर लोकेशन देऊ शकत नाही — कृपया गूगल मॅप्स लिंक पेस्ट करा.',
-      creditOnly: 'उधारी फक्त मंजूर ग्राहकांसाठी आहे. सध्या "त्याच दिवशी" पेमेंट निवडा, किंवा खाली उधारीसाठी अर्ज करा.',
-      creditPending: 'तुमच्या उधारी अर्जाची तपासणी सुरू आहे. मंजुरी मिळेपर्यंत कृपया "त्याच दिवशी" पेमेंट निवडा.',
+      creditOnly: 'तुमचा नंबर अजून उधारीसाठी मंजूर नाही. तरीही तुम्ही तुमची गरज पाठवू शकता; पेमेंटच्या अटी आम्ही निश्चित करू. उधारीसाठी खाली अर्ज करा.',
+      creditPending: 'तुमच्या उधारी अर्जाची तपासणी सुरू आहे. तरीही तुम्ही तुमची गरज पाठवू शकता; मंजुरी मिळताच उधारी सुरू होईल.',
       caOpen: 'उधारीसाठी अर्ज करा', caTitle: 'उधारीसाठी अर्ज',
       caIntro: 'तुमची माहिती भरा, कागदपत्रे जोडा, सेल्फी घ्या आणि सही करा. आम्ही तपासून तुमच्याशी संपर्क करू.',
       caIntroBasic: 'या कागदपत्रांचे स्पष्ट फोटो अपलोड करा. प्रत्येक प्रतीवर आधी तुमची सही करा (स्व-साक्षांकित). आम्ही तपासून तुमच्याशी संपर्क करू.', caBusiness: 'व्यवसायाचे कागदपत्र (GST, शॉप ॲक्ट, FSSAI किंवा ट्रेड लायसन्स)', caNeedConsentBasic: 'कृपया संमतीच्या बॉक्सवर खूण करा.',
@@ -2886,7 +2887,7 @@ table.sb-table-booking{min-width:0;}
     lines.push(DIV);
     lines.push('📦 *PACKAGING & LOGISTICS*');
     if (!enroll && (packKg || !booking.rows.length)) lines.push('• *' + (booking.rows.length ? 'Weekly Packing Preference' : 'Packing Preference') + ':* ' + (packKg ? sbPackLabel(packKg) : 'Not specified'));
-    lines.push('• *Payment Terms:* ' + (payment || 'Not specified') + (sbCreditChosen() && sbCredit.state === 'yes' && sbCredit.mobile === sbMobile10() ? (sbCredit.days ? ' (credit days: ' + sbCredit.days + ', approved customer)' : ' (approved customer)') : ''));
+    lines.push('• *Payment Terms:* ' + (payment || 'Not specified') + sbCreditStatusText());
     lines.push('');
     lines.push(DIV);
     lines.push('💼 *COMMERCIAL & ACCOUNTS*');
@@ -2931,11 +2932,8 @@ table.sb-table-booking{min-width:0;}
     if (enroll) {
       if (!document.getElementById('sb-booking-date').reportValidity() || !document.getElementById('sb-booking-pack').reportValidity()) return null;
     } else if (!form.reportValidity()) return null;
-    if (!enroll && sbCreditBlocked()) {
-      var cn = document.getElementById('sb-credit-note');
-      if (cn) cn.scrollIntoView({ block: 'center' });
-      return null;
-    }
+    // On Credit without approval no longer stops sending (owner, 24 Nov 2026): the message says the credit status instead.
+    if (!enroll && sbCreditChosen()) sbCheckCredit();
     var bookingOn = document.getElementById('sb-booking-on').checked;
     if (bookingOn) {
       var bd = document.getElementById('sb-booking-date');
@@ -3015,17 +3013,19 @@ table.sb-table-booking{min-width:0;}
   function sbShowCredit(){
     var note = document.getElementById('sb-credit-note');
     if (!note) return;
-    var text = '', ok = false, canApply = false;
+    var text = '', ok = false, canApply = false, info = false;
     if (sbCreditChosen()) {
       if (sbMobile10().length !== 10) text = sbT('creditCheckMobile');
       else if (sbCredit.mobile === sbMobile10() && sbCredit.state === 'yes') { text = sbCredit.days ? sbT('creditOkDays').replace('{days}', sbCredit.days) : sbT('creditOk'); ok = true; }
       else if (sbCredit.mobile === sbMobile10() && sbCredit.state === 'checking') text = sbT('creditChecking');
-      else if (sbCredit.mobile === sbMobile10() && sbCredit.state === 'pending') text = sbT('creditPending');
-      // Not approved - or the check couldn't be made - so credit stays closed.
-      else if (sbCredit.mobile === sbMobile10()) { text = sbT('creditOnly'); canApply = true; }
+      else if (sbCredit.mobile === sbMobile10() && sbCredit.state === 'pending') { text = sbT('creditPending'); info = true; }
+      // Not approved (or the check couldn't be made): they can still send; the message says so, and they can apply below.
+      else if (sbCredit.mobile === sbMobile10()) { text = sbT('creditOnly'); canApply = true; info = true; }
     }
     note.textContent = text;
     note.classList.toggle('sb-ok', ok);
+    note.classList.toggle('sb-info', info);
+    note.setAttribute('role', ok || info ? 'status' : 'alert');
     note.style.display = text ? '' : 'none';
     var open = document.getElementById('sb-ca-open');
     if (open) open.style.display = canApply ? '' : 'none';
@@ -3047,12 +3047,13 @@ table.sb-table-booking{min-width:0;}
   document.addEventListener('change', function(e){ if (e.target && (e.target.id === 'sb-payment' || e.target.id === 'sb-pm-mobile')) sbCheckCredit(); });
   document.addEventListener('input', function(e){ if (e.target && e.target.id === 'sb-pm-mobile' && sbCredit.mobile !== sbMobile10()) sbShowCredit(); });
   window.addEventListener('sb-lang', sbShowCredit);
-  // true = credit picked but not (yet) approved for this mobile
-  function sbCreditBlocked(){
-    if (!sbCreditChosen()) return false;
-    if (sbCredit.mobile === sbMobile10() && sbCredit.state === 'yes') return false;
-    sbCheckCredit();
-    return true;
+  // For the order message: whether the credit picked is approved for this mobile.
+  function sbCreditStatusText(){
+    if (!sbCreditChosen()) return '';
+    var mine = sbCredit.mobile === sbMobile10();
+    if (mine && sbCredit.state === 'yes') return sbCredit.days ? ' (credit days: ' + sbCredit.days + ', approved customer)' : ' (approved customer)';
+    if (mine && sbCredit.state === 'pending') return ' (credit application pending approval)';
+    return ' (not yet approved for credit)';
   }
 
   // ---- Credit application (eKYC): KYC form, document photos, selfie, signature; checked by an admin ----
