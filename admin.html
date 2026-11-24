@@ -4619,12 +4619,20 @@
     // with it, and Admin reminds whoever sends them to do it from that phone (wa.me opens the phone's own WhatsApp).
     let orderWa = "919820132880";
     const orderWaShown = () => { const l = orderWa.length === 12 && orderWa.startsWith("91") ? orderWa.slice(2) : orderWa; return l.length === 10 ? l.slice(0, 5) + " " + l.slice(5) : l; };
+    // Since 24 Nov 2026 the rates message names the form's help line (Order form → Help line: up to 2 mobiles + email)
+    // for orders and queries; the orders number only if no help mobiles are saved.
+    let helpPhones = [], helpEmail = "";
+    const shownMobile = (v) => { const d = String(v || "").replace(/\D/g, ""); const l = d.length === 12 && d.startsWith("91") ? d.slice(2) : d; return l.length === 10 ? l.slice(0, 5) + " " + l.slice(5) : l; };
+    const ratesContact = () => (helpPhones.length ? helpPhones.map(shownMobile).join(" / ") : orderWaShown());
     function loadOrderWa() {
       db.collection("site_content").doc("orders").get().then((s) => {
-        const w = s.exists && (s.data().whatsapp || [])[0];
+        const d = s.exists ? s.data() : {};
+        const w = (d.whatsapp || [])[0];
         if (w) orderWa = String(w).replace(/\D/g, "");
+        helpPhones = ((d.help && d.help.phones) || []).filter((p) => String(p).replace(/\D/g, "").length >= 10);
+        helpEmail = String((d.help && d.help.email) || "").trim();
       }).catch(() => {}).then(() => {
-        $("rates-send-from").textContent = "Goes from the catalogue number, no phone needed. The message asks customers to WhatsApp " + orderWaShown() + " for orders. Replies come to Inbox.";
+        $("rates-send-from").textContent = "Goes from the catalogue number, no phone needed. For orders and queries the message gives " + ratesContact() + (helpEmail ? " and " + helpEmail : "") + " (Order form → Help line). Replies come to Inbox.";
       });
       loadRatesTpl();
     }
@@ -4673,7 +4681,8 @@
         if (prices) lines.push(prices);
         if (data.remarks[it.name]) lines.push("Remarks: " + data.remarks[it.name]);
       });
-      lines.push("", "For orders and queries, WhatsApp: " + orderWaShown());
+      lines.push("", "For orders and queries, call or WhatsApp: " + ratesContact());
+      if (helpEmail) lines.push("Email: " + helpEmail);
       return lines.join("\n");
     }
     async function saveRates(data, savedText) {

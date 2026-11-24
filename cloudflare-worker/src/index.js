@@ -1246,6 +1246,15 @@ async function ratesTemplate(env, submitIfMissing) {
   return doc;
 }
 
+// For orders and queries the rates name the form's help line (site_content/orders.help.phones, owner 24 Nov 2026);
+// the orders number only if none is saved. Same as ratesContact() in admin.html.
+async function ratesContact(env) {
+  const orders = (await getDocument(env, "site_content", "orders").catch(() => null)) || {};
+  const phones = ((orders.help && orders.help.phones) || []).map((p) => String(p).replace(/\D/g, "")).filter((d) => d.length >= 10)
+    .map((d) => { const l = d.length === 12 && d.startsWith("91") ? d.slice(2) : d; return l.length === 10 ? l.slice(0, 5) + " " + l.slice(5) : l; });
+  return phones.length ? { shown: phones.join(" / ") } : orderNumber(env);
+}
+
 // POST /rates-send {mobile, name, text, line}: text = the full message (as Admin shows it), line = the same rates on one line.
 async function ratesSend(env, user, body) {
   const mobile = lastTen(body.mobile);
@@ -1271,7 +1280,7 @@ async function ratesSend(env, user, body) {
     }
     if (line.length > RATES_LINE_MAX) throw new Error("Too many rates for one message to a customer who hasn't messaged in the last 24 hours. Send fewer items, or ask the customer to message 86558 15013 first.");
     const name = oneLine(body.name, 60) || "Customer";
-    const num = await orderNumber(env);
+    const num = await ratesContact(env);
     how = "template";
     shown = RATES_TEMPLATE_BODY.replace("{{1}}", name).replace("{{2}}", line).replace("{{3}}", num.shown);
     message = { type: "template", template: { name: t.name, language: { code: env.TEMPLATE_LANGUAGE }, components: [{ type: "body", parameters: [name, line, num.shown].map((v) => ({ type: "text", text: v })) }] } };
