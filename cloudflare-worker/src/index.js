@@ -1210,7 +1210,7 @@ async function chatSend(env, user, body) {
 // allows only an approved template: catalogue_meta/rates, with the rates on one line (a template variable can't
 // hold line breaks). Orders stay on Order recipients number 1, named at the end of the message.
 const RATES_TEMPLATE_BODY = "Dear {{1}}, please find your latest item prices from Sharhan Broilers below.\n\n{{2}}\n\n" +
-  "These prices apply to your upcoming orders. To place an order or ask a question, WhatsApp us on {{3}}.";
+  "These prices apply to your upcoming orders. To place an order or ask a question, WhatsApp us on {{3}} anytime. Thank you!";
 const RATES_TEMPLATE_EXAMPLE = ["Ravi Traders", "Weekly rate, valid 24 Nov 2026 to 30 Nov 2026 · Curry Cut: Fresh ₹220/kg · Boneless Breast: Fresh ₹320/kg, Frozen ₹300/kg", "98201 32880"];
 const RATES_LINE_MAX = 700; // the template body (with its variables) may be at most 1024 characters
 const oneLine = (s, max) => String(s || "").replace(/[\r\n\t]+/g, " ").replace(/ {2,}/g, " ").trim().slice(0, max);
