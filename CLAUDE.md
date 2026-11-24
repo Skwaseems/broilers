@@ -122,8 +122,11 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   the UTILITY template `catalogue_meta/rates` (`sharhan_rates_v1`, rates on one line, sent for approval the first time Rates opens;
   `/rates-template`). It shows in Inbox chats as "Rates". For orders and queries the message gives the form's Help line mobiles + email (`ratesContact()` in admin.html and the
   Worker; the orders number only if no help mobiles are saved); the old
-  wa.me button stays as "Or send from my own WhatsApp". The Worker's replies on the API number point there: the "Enquire Now" reply and, for any
-  other message (not a catalogue request or STOP/START), a once-a-day text (`orderNumberReply`, KV `ordnum:`), only while auto-reply is on.
+  wa.me button stays as "Or send from my own WhatsApp".
+- Auto-reply rules (owner, 24 Nov 2026), only while auto-reply is on: the catalogue goes automatically ONLY when the customer writes
+  "Catalogue" (`AUTO_REPLY_KEYWORDS`; greetings/rates/menu no longer trigger it) or an admin sends it. Any other message gets the help
+  line message (`helpLineReply`: the form's Help line mobiles + email, "reply Catalogue", once a day per number, KV `ordnum:`).
+  The "Enquire Now" reply also names the help line mobiles.
 - Inbox as WhatsApp-style chats (built 20 Nov 2026; live for every admin with the Inbox right since 21 Nov 2026, admin IDs and
   Google sign-ins alike; the old Inbox list `inbox-card` is hidden for them). Chat list (one row per customer, unread counts per device in localStorage `sb-chat-seen`)
   and a conversation view with a reply box. Their messages: `whatsapp_inbox` (now also `media` {id, mime, filename, voice} for photos,

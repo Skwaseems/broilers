@@ -1249,9 +1249,7 @@ async function ratesTemplate(env, submitIfMissing) {
 // For orders and queries the rates name the form's help line (site_content/orders.help.phones, owner 24 Nov 2026);
 // the orders number only if none is saved. Same as ratesContact() in admin.html.
 async function ratesContact(env) {
-  const orders = (await getDocument(env, "site_content", "orders").catch(() => null)) || {};
-  const phones = ((orders.help && orders.help.phones) || []).map((p) => String(p).replace(/\D/g, "")).filter((d) => d.length >= 10)
-    .map((d) => { const l = d.length === 12 && d.startsWith("91") ? d.slice(2) : d; return l.length === 10 ? l.slice(0, 5) + " " + l.slice(5) : l; });
+  const { phones } = await helpContact(env);
   return phones.length ? { shown: phones.join(" / ") } : orderNumber(env);
 }
 
@@ -1393,12 +1391,22 @@ async function verifyMetaSignature(env, rawBody, header) {
 // A customer who messages first opens a 24-hour window in which marketing templates
 // don't count towards WhatsApp's per-user marketing limit (error 131049), so a reply
 // to "Catalogue" / "Hi" gets through where a cold send is often held back.
-const AUTO_REPLY_KEYWORDS = /\b(catalogu?e?s?|menu|products?|price\s*list|rates?)\b/i;
-const AUTO_REPLY_GREETING = /^\s*(hi+|hello+|hey+|namaste|salaa?m|assalamu?\s*alaikum)\b/i;
+// Owner's rule (24 Nov 2026): the catalogue goes automatically ONLY when the customer writes "Catalogue" (or an admin
+// sends it). Greetings, "rates", "menu" and anything else get the help line message instead (helpLineReply).
+const AUTO_REPLY_KEYWORDS = /(\bcatalogu?e?s?\b|कैटलॉग|कॅटलॉग)/i;
 const AUTO_REPLY_GAP_MS = 12 * 3600 * 1000; // at most one automatic catalogue per customer per 12 hours
 
 function wantsCatalogue(m) {
-  return m.type === "text" && !!m.text && (AUTO_REPLY_KEYWORDS.test(m.text) || AUTO_REPLY_GREETING.test(m.text));
+  return m.type === "text" && !!m.text && AUTO_REPLY_KEYWORDS.test(m.text);
+}
+
+// The order form's help line (Admin → Order form → Help line: site_content/orders.help = {phones, email}).
+const shownLocal = (d) => { const l = d.length === 12 && d.startsWith("91") ? d.slice(2) : d; return l.length === 10 ? l.slice(0, 5) + " " + l.slice(5) : l; };
+async function helpContact(env) {
+  const orders = (await getDocument(env, "site_content", "orders").catch(() => null)) || {};
+  const help = orders.help || {};
+  const phones = (help.phones || []).map((p) => String(p).replace(/\D/g, "")).filter((d) => d.length >= 10).map(shownLocal);
+  return { phones, email: String(help.email || "").trim() };
 }
 
 // Orders, credit and rates use one number (owner, 20 Nov 2026): Order recipients WhatsApp number 1, not this
@@ -1410,14 +1418,17 @@ async function orderNumber(env) {
   return { shown: local.length === 10 ? local.slice(0, 5) + " " + local.slice(5) : local, link: "https://wa.me/" + digits };
 }
 
-// Anything else a customer writes to the catalogue number (not a catalogue request, STOP/START or a card tap):
-// at most once a day, tell them where orders and rates go. Free: they wrote first.
-async function orderNumberReply(env, phone) {
+// Anything else a customer writes to the catalogue number (not "Catalogue", STOP/START or a card tap): the help line
+// message, at most once a day (so a chat with an admin in Inbox isn't interrupted). Free: they wrote first.
+async function helpLineReply(env, phone) {
   const key = "ordnum:" + phone;
   if (await env.CATALOGUE_IMAGES.get(key)) return;
   await env.CATALOGUE_IMAGES.put(key, "1", { expirationTtl: 86400 });
-  const num = await orderNumber(env);
-  const body = `Thank you for your message! 🙏\nFor orders, rates and credit, please WhatsApp *Sharhan Broilers* on *${num.shown}*:\n${num.link}`;
+  const help = await helpContact(env);
+  const contacts = help.phones.length ? help.phones.map((p) => "📞 " + p) : ["📞 " + (await orderNumber(env)).shown];
+  if (help.email) contacts.push("✉️ " + help.email);
+  const body = `Thank you for your message! 🙏\nFor orders, rates or any assistance, please contact *Sharhan Broilers* (call or WhatsApp):\n` +
+    contacts.join("\n") + `\n\nTo get our catalogue, reply *Catalogue*.`;
   const res = await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -1434,11 +1445,11 @@ async function enquiryReply(env, m, item) {
   const site = env.SITE_URL.replace(/\/$/, "");
   const details = pickCardText(item);
   const packs = (item.packs || []).length ? `\nPacks: ${item.packs.join(" / ")}` : "";
-  const num = await orderNumber(env);
+  const num = await ratesContact(env); // the help line mobiles (owner, 24 Nov 2026)
   const body = `*${item.name}*` +
     (details && details !== item.name ? `\n${details.replace(/\s*Packs?\s*:.*$/i, "")}` : "") + packs +
     `\n\nThank you for your enquiry! Our team will contact you shortly with today's rate.` +
-    `\nTo order, WhatsApp us on *${num.shown}*: ${num.link}` +
+    `\nTo order, call or WhatsApp us on *${num.shown}*` +
     `\nOr see details and order online:\n${site}/?item=${item.id}`;
   const res = await graph(env, `${env.META_PHONE_NUMBER_ID}/messages`, {
     method: "POST",
@@ -1521,7 +1532,7 @@ async function autoReply(env, m, origin) {
   if (await subscriptionReply(env, m)) return;
   const settings = (await getDocument(env, "settings", "whatsapp")) || {};
   if (settings.autoReply === false) return;
-  if (!wantsCatalogue(m)) return orderNumberReply(env, phone);
+  if (!wantsCatalogue(m)) return helpLineReply(env, phone);
   if (await isUnsubscribed(env, phone)) return; // they said STOP; "START" turns it back on
   const prev = await getDocument(env, "whatsapp_autoreply", phone);
   if (prev && prev.lastSentAt && Date.now() - new Date(prev.lastSentAt).getTime() < AUTO_REPLY_GAP_MS) return;
