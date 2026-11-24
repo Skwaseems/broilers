@@ -120,7 +120,8 @@ www redirects to it), also https://sharhan-broilers.pages.dev and https://sharha
   number 86558 15013 sends catalogues and, since 24 Nov 2026 (owner: not from the owner's phone), customer rates: Rates → "Send from
   86558 15013" (Worker `/rates-send`, rates right) sends the full message free within 24 h of the customer's last message, otherwise
   the UTILITY template `catalogue_meta/rates` (`sharhan_rates_v1`, rates on one line, sent for approval the first time Rates opens;
-  `/rates-template`). It shows in Inbox chats as "Rates". The message still signs off with the orders number (`orderWa`); the old
+  `/rates-template`). It shows in Inbox chats as "Rates". For orders and queries the message gives the form's Help line mobiles + email (`ratesContact()` in admin.html and the
+  Worker; the orders number only if no help mobiles are saved); the old
   wa.me button stays as "Or send from my own WhatsApp". The Worker's replies on the API number point there: the "Enquire Now" reply and, for any
   other message (not a catalogue request or STOP/START), a once-a-day text (`orderNumberReply`, KV `ordnum:`), only while auto-reply is on.
 - Inbox as WhatsApp-style chats (built 20 Nov 2026; live for every admin with the Inbox right since 21 Nov 2026, admin IDs and
